@@ -1,50 +1,141 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
-    <div class="card shadow-lg border-0" style="max-width: 500px; width: 100%;">
-        <div class="card-header bg-warning text-dark text-center py-3">
-            <h4 class="mb-0 fw-bold"><i class="fas fa-user-shield me-2"></i>Actualización de Seguridad</h4>
+<style>
+    /* 1. Mantenemos coherencia con el Sistema de Diseño del Login */
+    :root {
+        --brand-primary: #1E3A8A;
+        --brand-dark: #172554;
+        --bg-body: #F8FAFC;
+        --bg-card: #ffffff;
+        --text-main: #0F172A;
+        --text-muted: #64748B;
+        --border-color: #E2E8F0;
+    }
+
+    [data-bs-theme="dark"] {
+        --bg-body: #0F172A;
+        --bg-card: #1E293B;
+        --text-main: #F8FAFC;
+        --text-muted: #E2E8F0;
+        --border-color: #64748B;
+        --brand-primary: #0D9488; /* Teal en modo oscuro para resaltar */
+    }
+
+    .card-security {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    /* Cabecera con el degradado del login */
+    .card-header-auth {
+        background: linear-gradient(135deg, #1E3A8A 0%, #172554 100%);
+        border-radius: 12px 12px 0 0 !important;
+        padding: 1.5rem;
+    }
+
+    .form-control {
+        background-color: var(--bg-body);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        border-radius: 8px;
+        padding: 12px;
+    }
+
+    .form-control:focus {
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 0.25rem rgba(30, 58, 138, 0.1);
+    }
+
+    .btn-primary {
+        background-color: var(--brand-primary);
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background-color: var(--brand-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .input-group-text {
+        background-color: var(--bg-body);
+        border-color: var(--border-color);
+        color: var(--text-muted);
+    }
+</style>
+
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 85vh;">
+    <div class="card shadow-lg card-security w-100" style="max-width: 500px;">
+        
+        <div class="card-header-auth text-white text-center border-0">
+            <div class="mb-2">
+                <i class="fas fa-shield-halved fa-2x opacity-75"></i>
+            </div>
+            <h4 class="mb-0 fw-bold">Seguridad de la Cuenta</h4>
+            <p class="small mb-0 opacity-75">Actualización obligatoria de credenciales</p>
         </div>
+
         <div class="card-body p-4">
-            <p class="text-muted text-center mb-4">Por políticas de la Almacenadora, debes actualizar tu contraseña temporal antes de continuar.</p>
+            <p class="text-muted text-center small mb-4">
+                Por políticas de seguridad de la <strong>Almacenadora Caracas</strong>, debe sustituir su contraseña temporal antes de ingresar a la intranet.
+            </p>
             
             <form id="formActualizarClave">
                 {% csrf_token %}
+                
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Nueva Contraseña</label>
+                    <label class="form-label fw-semibold small" style="color: var(--brand-primary);">Nueva Contraseña</label>
                     <div class="input-group">
-                        <input type="password" id="pass1" name="nueva_clave" class="form-control" required placeholder="Ingresa tu nueva clave">
-                        <button class="btn btn-outline-secondary" type="button" onclick="togglePass('pass1')">
-                            <i class="fas fa-eye"></i>
+                        <span class="input-group-text"><i class="fas fa-lock small"></i></span>
+                        <input type="password" id="pass1" name="nueva_clave" class="form-control" required placeholder="Cree una clave robusta">
+                        <button class="btn btn-outline-secondary border-start-0" type="button" onclick="togglePass('pass1')" style="border-color: var(--border-color);">
+                            <i class="fas fa-eye text-muted"></i>
                         </button>
                     </div>
-                    <div class="progress mt-2" style="height: 5px;">
-                        <div id="meter" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    
+                    <div class="progress mt-2" style="height: 6px; background-color: var(--border-color);">
+                        <div id="meter" class="progress-bar" role="progressbar" style="width: 0%; transition: width 0.5s ease;"></div>
                     </div>
-                    <small id="meterText" class="text-muted" style="font-size: 0.75rem;">Seguridad: Muy débil</small>
+                    <div class="d-flex justify-content-between mt-1">
+                        <small id="meterText" class="text-muted" style="font-size: 0.7rem;">Seguridad: Pendiente</small>
+                        <small class="text-muted" style="font-size: 0.7rem;">Mín. 8 caracteres</small>
+                    </div>
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-bold">Confirmar Contraseña</label>
-                    <input type="password" id="pass2" class="form-control" required placeholder="Repite tu nueva clave">
+                    <label class="form-label fw-semibold small" style="color: var(--brand-primary);">Confirmar Contraseña</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-check-double small"></i></span>
+                        <input type="password" id="pass2" class="form-control" required placeholder="Repita la contraseña">
+                    </div>
                 </div>
 
-                <div class="alert alert-light border small text-muted mb-4">
-                    <h6 class="fw-bold small mb-2">Requisitos de robustez:</h6>
-                    <ul class="mb-0 ps-3">
-                        <li id="req-len">Mínimo 8 caracteres (recomendado 12)</li>
-                        <li id="req-mix">Mayúsculas, minúsculas y números</li>
-                        <li id="req-esp">Al menos un carácter especial (!@#$%*)</li>
-                        <li id="req-lat">Se permite el uso de la letra Ñ</li>
+                <div class="p-3 mb-4 border-0" style="background-color: var(--bg-body); border-radius: 8px;">
+                    <h6 class="fw-bold small mb-2 text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem; color: var(--text-muted);">
+                        Estándar de Seguridad
+                    </h6>
+                    <ul class="mb-0 ps-3 small text-muted list-unstyled">
+                        <li id="req-len"><i class="fas fa-circle me-2" style="font-size: 0.4rem;"></i>Mínimo 8 caracteres (alfa-numéricos)</li>
+                        <li id="req-mix"><i class="fas fa-circle me-2" style="font-size: 0.4rem;"></i>Combinación de Mayúsculas y Minúsculas</li>
+                        <li id="req-esp"><i class="fas fa-circle me-2" style="font-size: 0.4rem;"></i>Uso de caracteres especiales (!@#$*)</li>
                     </ul>
                 </div>
 
                 <div class="d-grid gap-2">
-                    <button type="submit" id="btnGuardar" class="btn btn-primary fw-bold" disabled>
-                        Actualizar y Acceder al Sistema
+                    <button type="submit" id="btnGuardar" class="btn btn-primary fw-bold text-white" disabled>
+                        <i class="fas fa-key me-2"></i>Actualizar y Continuar
                     </button>
-                    <a href="{% url 'salir_sistema' %}" class="btn btn-link text-muted btn-sm">Cerrar sesión y salir</a>
+                    <a href="{% url 'salir_sistema' %}" class="btn btn-link text-muted btn-sm text-decoration-none">
+                        <i class="fas fa-sign-out-alt me-1"></i> Cancelar y Salir
+                    </a>
                 </div>
             </form>
         </div>
@@ -60,6 +151,15 @@
     const meterText = document.getElementById('meterText');
     const btn = document.getElementById('btnGuardar');
 
+    // Lógica para detectar tema actual y ajustar SweetAlert
+    const getSwalTheme = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+            bg: isDark ? '#1E293B' : '#ffffff',
+            color: isDark ? '#F8FAFC' : '#0F172A'
+        };
+    };
+
     // --- 1. LÓGICA DEL MEDIDOR DE FUERZA ---
     pass1.addEventListener('input', function() {
         let val = pass1.value;
@@ -71,12 +171,13 @@
         if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val)) score += 25;
 
         meter.style.width = score + "%";
+        
         if (score < 50) { 
             meter.className = "progress-bar bg-danger"; 
             meterText.innerText = "Seguridad: Débil"; 
         } else if (score < 100) { 
             meter.className = "progress-bar bg-warning"; 
-            meterText.innerText = "Seguridad: Media (Añade símbolos o números)"; 
+            meterText.innerText = "Seguridad: Media"; 
         } else { 
             meter.className = "progress-bar bg-success"; 
             meterText.innerText = "Seguridad: ¡Excelente!"; 
@@ -95,19 +196,25 @@
 
     function togglePass(id) {
         const input = document.getElementById(id);
+        const icon = event.currentTarget.querySelector('i');
         input.type = input.type === 'password' ? 'text' : 'password';
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
     }
 
-    // --- 2. ENVÍO DE DATOS A DJANGO (EL MOTOR) ---
+    // --- 2. ENVÍO DE DATOS ---
     document.getElementById('formActualizarClave').addEventListener('submit', function(e) {
         e.preventDefault();
-        const nuevaClave = pass1.value;
+        const config = getSwalTheme();
 
         Swal.fire({
-            title: 'Actualizando credenciales...',
-            text: 'Espera un momento mientras blindamos tu cuenta',
+            title: 'Procesando...',
+            text: 'Estamos blindando su nueva contraseña',
+            background: config.bg,
+            color: config.color,
             allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); }
+            showConfirmButton: false,
+            willOpen: () => { Swal.showLoading(); }
         });
 
         fetch("{% url 'cambiar_clave_obligatorio' %}", {
@@ -116,28 +223,41 @@
                 'Content-Type': 'application/json',
                 'X-CSRFToken': '{{ csrf_token }}'
             },
-            body: JSON.stringify({ 'nueva_clave': nuevaClave })
+            body: JSON.stringify({ 'nueva_clave': pass1.value })
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
                 Swal.fire({
                     icon: 'success',
-                    title: '¡Seguridad Actualizada!',
-                    text: 'Tu contraseña ha sido cambiada con éxito.',
-                    confirmButtonText: 'Entrar al Sistema',
-                    confirmButtonColor: 'var(--brand-primary)'
+                    title: '¡Operación Exitosa!',
+                    text: 'Su contraseña ha sido actualizada.',
+                    background: config.bg,
+                    color: config.color,
+                    confirmButtonColor: 'var(--brand-primary)',
+                    confirmButtonText: 'Entrar al Sistema'
                 }).then(() => {
-                    // Redireccionamos al inicio, ahora el Middleware nos dejará pasar
                     window.location.href = "{% url 'inicio' %}";
                 });
             } else {
-                Swal.fire('Error de validación', data.mensaje, 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de Validación',
+                    text: data.mensaje,
+                    background: config.bg,
+                    color: config.color,
+                    confirmButtonColor: '#C81E1E'
+                });
             }
         })
         .catch(err => {
-            console.error(err);
-            Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de Conexión',
+                text: 'No se pudo comunicar con el servidor.',
+                background: config.bg,
+                color: config.color
+            });
         });
     });
 </script>

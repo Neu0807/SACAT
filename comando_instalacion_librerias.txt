@@ -2,3 +2,6 @@ pip install -r requirements.txt
 
 para iniciar server
 python manage.py runserver 0.0.0.0:8000
+
+
+S0p0r73ñ.GTI
