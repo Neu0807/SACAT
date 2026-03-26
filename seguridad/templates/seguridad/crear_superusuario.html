@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mb-4">
+        <a href="{% url 'listar_usuarios' %}" class="btn btn-link text-decoration-none text-muted p-0">
+            <i class="fas fa-arrow-left me-2"></i>Volver al Listado
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card card-custom shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0 fw-bold text-center">
+                        <i class="fas fa-user-shield me-2"></i>Registrar Superusuario
+                    </h4>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    
+                    <div class="alert alert-info border-0 shadow-sm mb-4 d-flex align-items-center">
+                        <i class="fas fa-info-circle fa-2x me-3"></i>
+                        <div>
+                            <strong>Información Importante:</strong><br>
+                            Este usuario es para fines de desarrollo. El sistema generará una <strong>contraseña aleatoria segura</strong> que se mostrará al finalizar.
+                        </div>
+                    </div>
+
+                    <form id="formCrearSuperusuario">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Cédula de Identidad (Usuario)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-id-card text-muted"></i>
+                                </span>
+                                <input type="text" name="nombre_usuario" id="cedula_input" class="form-control border-start-0" 
+                                       placeholder="Ej: 20123456" required autocomplete="off">
+                            </div>
+                            <div class="form-text small">La cédula será el identificador de acceso al sistema.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Nivel de Acceso</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-user-shield text-primary"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0 bg-light" value="Superusuario" readonly>
+                                <input type="hidden" name="tipo_acceso" value="superuser">
+                            </div>
+                        </div>
+
+                        <div class="form-check form-switch mb-4 p-3 border rounded-3 bg-light-subtle">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <label class="form-check-label fw-bold d-block" for="isStaff">Habilitar Staff</label>
+                                    <small class="text-muted">Permite ingresar al panel de administración de Django.</small>
+                                </div>
+                                <input class="form-check-input" type="checkbox" name="is_staff" id="isStaff" checked style="width: 3em; height: 1.5em;">
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg shadow fw-bold">
+                                <i class="fas fa-save me-2"></i>Generar y Guardar Usuario
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('formCrearSuperusuario').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+    data.is_staff = document.getElementById('isStaff').checked;
+
+    Swal.fire({
+        title: 'Procesando...',
+        text: 'Estamos generando el acceso seguro',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    fetch("{% url 'guardar_superusuario' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Usuario Creado!',
+                html: `
+                        <p>${result.mensaje}</p>
+                        <div class="alert alert-warning py-3" style="border: 2px dashed #f59e0b; background-color: #fffbeb;">
+                            <small class="d-block text-muted mb-1">Contraseña Temporal (¡Cópiala con cuidado!):</small>
+                            <code style="font-size: 1.6rem; letter-spacing: 3px; color: #b45309; font-family: 'Courier New', monospace; font-weight: bold;">
+                                ${result.clave}
+                            </code>
+                        </div>
+                    `,
+                confirmButtonText: 'Entendido, volver al listado',
+                confirmButtonColor: 'var(--brand-primary)',
+            }).then(() => {
+                window.location.href = "{% url 'listar_usuarios' %}";
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: result.mensaje,
+                confirmButtonColor: 'var(--brand-primary)'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+    });
+});
+</script>
+{% endblock %}

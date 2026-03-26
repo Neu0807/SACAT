@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
+
+<style>
+    /* 1. CONTENEDOR MAESTRO */
+    .tabla-container-wrapper {
+        width: 100%;
+        background-color: var(--bg-card);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .table-responsive-modern {
+        max-height: 550px;
+        overflow-y: auto;
+        border-radius: 8px;
+    }
+
+    /* 2. CABECERA AZUL CORPORATIVO */
+    .dataTable-table thead th {
+        position: sticky;
+        top: 0;
+        background-color: var(--brand-primary) !important;
+        color: white !important;
+        z-index: 20;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        padding: 15px !important;
+        border: none !important;
+    }
+
+    .dataTable-table tbody td {
+        vertical-align: middle;
+        padding: 15px !important;
+        color: var(--text-main);
+        font-size: 0.9rem;
+    }
+
+    /* 3. BUSCADOR MINIMALISTA */
+    .dataTable-top { display: flex; justify-content: flex-end; margin-bottom: 1.5rem; }
+    .dataTable-search { width: 100%; max-width: 350px; }
+    .dataTable-search::before { display: none; }
+    .dataTable-input {
+        width: 100% !important;
+        padding: 10px 20px !important;
+        border-radius: 30px !important;
+        border: 1px solid var(--border-color) !important;
+        background-color: var(--bg-body) !important;
+    }
+
+    /* Colores semánticos para el estado */
+    .text-activo { color: #10b981; font-weight: bold; }
+    .text-inactivo { color: #ef4444; font-weight: bold; }
+
+    [data-bs-theme="dark"] .dataTable-table thead th { background-color: var(--brand-primary) !important; }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: var(--brand-primary);">
+                <i class="fas fa-key me-2"></i>Gestión de Permisos
+            </h2>
+            <p class="text-muted mb-0">Definición de acciones del sistema SACAT</p>
+        </div>
+        <a href="{% url 'crear_permiso' %}" class="btn btn-primary px-4 py-2 shadow-sm rounded-pill">
+            <i class="fas fa-plus-circle me-2"></i>Registrar Permiso
+        </a>
+    </div>
+
+    <div class="tabla-container-wrapper">
+        <div class="table-responsive-modern">
+            <table id="tablaPermisos" class="table table-hover m-0">
+                <thead>
+                    <tr>
+                        <th>Permiso</th>
+                        <th>Descripción</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in permisos %}
+                    <tr>
+                        <td class="fw-bold text-primary">{{ p.nombre_permiso }}</td>
+                        
+                        <td class="text-muted small">
+                            {{ p.descripcion|default:"Sin descripción definida" }}
+                        </td>
+
+                        <td>
+                            {% if p.esta_activo %}
+                                <span class="text-activo small text-uppercase">Activo</span>
+                            {% else %}
+                                <span class="text-inactivo small text-uppercase">Inactivo</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-center">
+                            <div class="btn-group shadow-sm">
+                                <a href="{% url 'editar_permiso' p.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            No hay permisos registrados en la base de datos de la Almacenadora.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        new simpleDatatables.DataTable("#tablaPermisos", {
+            searchable: true,
+            labels: {
+                placeholder: "Buscar permiso por nombre...",
+                perPage: "registros",
+                noRows: "No hay permisos que coincidan",
+                info: "Mostrando {start} al {end} de {rows} permisos",
+            }
+        });
+    });
+</script>
+{% endblock %}

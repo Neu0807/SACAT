@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h2 class="fw-bold" style="color: var(--brand-primary);">
+            <i class="fas fa-id-card-clip me-2"></i>Configuración de Identificación
+        </h2>
+        <p class="text-muted">Gestión de datos demográficos y tipos de contacto para el personal de la Almacenadora.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm overflow-hidden card-hover">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-shape bg-primary text-white rounded-3 p-3 me-3">
+                            <i class="fas fa-passport fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">Documentos</h5>
+                            <small class="text-muted">Tipos de Identidad</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small">Ej: Cédula, Pasaporte, RIF, etc.</p>
+                    <a href="{% url 'listar_tipos_docs' %}" class="btn btn-outline-primary w-100 fw-bold mt-auto">Gestionar</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm overflow-hidden card-hover">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-shape bg-primary text-white rounded-3 p-3 me-3">
+                            <i class="fas fa-venus-mars fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">Sexos</h5>
+                            <small class="text-muted">Biológico/Legal</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small">Valores como Femenino y Masculino.</p>
+                    <a href="{% url 'listar_sexos' %}" class="btn btn-outline-primary w-100 fw-bold mt-auto">Gestionar</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm overflow-hidden card-hover">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-shape bg-primary text-white rounded-3 p-3 me-3">
+                            <i class="fas fa-rings-wedding fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">Estados Civiles</h5>
+                            <small class="text-muted">Estado Legal</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small">Ej: Soltero(a), Casado(a), Viudo(a).</p>
+                    <a href="{% url 'listar_estados_civiles' %}" class="btn btn-outline-primary w-100 fw-bold mt-auto">Gestionar</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm overflow-hidden card-hover">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-shape bg-primary text-white rounded-3 p-3 me-3">
+                            <i class="fas fa-address-book fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark">Contactos</h5>
+                            <small class="text-muted">Vías de Comunicación</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small">Ej: Teléfono Móvil, Correo Personal.</p>
+                    <a href="{% url 'listar_tipos_contactos' %}" class="btn btn-outline-primary w-100 fw-bold mt-auto">Gestionar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-hover { transition: all 0.3s ease; border: 1px solid transparent !important; }
+    .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; border: 1px solid var(--brand-primary) !important; }
+    .icon-shape { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(30, 58, 138, 0.2); }
+</style>
+{% endblock %}

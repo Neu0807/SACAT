@@ -1,0 +1,86 @@
+<div class="modal fade" id="modalCrearTipoDoc" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; background-color: var(--bg-card);">
+            
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, #1E3A8A 0%, #172554 100%); border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title text-white fw-bold" id="modalLabel">
+                    <i class="fas fa-passport me-2 opacity-75"></i>Nuevo Tipo de Documento
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form id="formCrearTipoDoc">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-4">
+                        <i class="fas fa-info-circle me-1"></i> Defina las siglas y descripción para el nuevo estándar de identificación.
+                    </p>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="sigla" class="form-label fw-semibold small" style="color: var(--brand-primary);">Sigla</label>
+                            <input type="text" name="sigla" id="sigla" class="form-control form-control-lg fs-6" 
+                                   placeholder="Ej: V, E, P" maxlength="10" required 
+                                   style="border-radius: 8px; background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                        </div>
+
+                        <div class="col-md-8">
+                            <label for="aplica_a" class="form-label fw-semibold small" style="color: var(--brand-primary);">Aplica a</label>
+                            <select name="aplica_a" id="aplica_a" class="form-select form-select-lg fs-6" 
+                                    style="border-radius: 8px; background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                                <option value="Nacionales">Solo Nacionales</option>
+                                <option value="Extranjeros">Solo Extranjeros</option>
+                                <option value="Todos" selected>Todos (General)</option>
+                                <option value="Jurídicos">Entes Jurídicos (RIF)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="descripcion" class="form-label fw-semibold small" style="color: var(--brand-primary);">Descripción del Documento</label>
+                            <input type="text" name="descripcion" id="descripcion" class="form-control form-control-lg fs-6" 
+                                   placeholder="Ej: Cédula de Identidad, Pasaporte..." maxlength="50" required
+                                   style="border-radius: 8px; background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                        </div>
+
+                        <div class="col-12">
+                            <label for="ente_emisor" class="form-label fw-semibold small" style="color: var(--brand-primary);">Ente Emisor (Opcional)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0" style="border-radius: 8px 0 0 8px;">
+                                    <i class="fas fa-building text-muted small"></i>
+                                </span>
+                                <input type="text" name="ente_emisor" id="ente_emisor" class="form-control form-control-lg fs-6 border-start-0" 
+                                       placeholder="Ej: SAIME, Consulado..." maxlength="100"
+                                       style="border-radius: 0 8px 8px 0; background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light px-4 fw-semibold text-muted" data-bs-dismiss="modal" style="border-radius: 8px;">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold" id="btnSubmitModal" style="border-radius: 8px; background-color: var(--brand-primary); border: none; transition: all 0.3s;">
+                        <i class="fas fa-save me-2"></i>Guardar Registro
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Efectos de Hover y Focus para coherencia con Login */
+    #formCrearTipoDoc .form-control:focus, 
+    #formCrearTipoDoc .form-select:focus {
+        border-color: var(--brand-primary) !important;
+        box-shadow: 0 0 0 0.25rem rgba(30, 58, 138, 0.1) !important;
+        background-color: #fff !important;
+    }
+
+    #btnSubmitModal:hover {
+        background-color: var(--brand-dark) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+</style>

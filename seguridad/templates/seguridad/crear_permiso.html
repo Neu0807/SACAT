@@ -1,0 +1,72 @@
+{% extends 'seguridad/base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mb-4">
+        <a href="{% url 'listar_permisos' %}" class="btn btn-link text-decoration-none text-muted p-0">
+            <i class="fas fa-arrow-left me-2"></i>Volver al Catálogo
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0 fw-bold text-center"><i class="fas fa-key me-2"></i>Nuevo Permiso</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form id="formCrearPermiso">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Nombre Técnico</label>
+                            <input type="text" id="nombre_permiso" class="form-control" placeholder="ej: ver_usuarios_sistema" required>
+                            <div class="form-text small text-muted">Usa minúsculas y guiones bajos (snake_case).</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Descripción / Alcance</label>
+                            <textarea id="descripcion" class="form-control" rows="3" placeholder="Describe qué acción permite este permiso..."></textarea>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary fw-bold py-2">
+                                <i class="fas fa-save me-2"></i>Registrar Permiso
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('formCrearPermiso').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const data = {
+        nombre_permiso: document.getElementById('nombre_permiso').value,
+        descripcion: document.getElementById('descripcion').value
+    };
+
+    Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+    fetch("{% url 'guardar_permiso' %}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(result => {
+        if (result.success) {
+            Swal.fire('¡Listo!', result.mensaje, 'success').then(() => {
+                window.location.href = "{% url 'listar_permisos' %}";
+            });
+        } else {
+            Swal.fire('Error', result.mensaje, 'error');
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="card shadow-lg border-0" style="max-width: 500px; width: 100%;">
+        <div class="card-header bg-warning text-dark text-center py-3">
+            <h4 class="mb-0 fw-bold"><i class="fas fa-user-shield me-2"></i>Actualización de Seguridad</h4>
+        </div>
+        <div class="card-body p-4">
+            <p class="text-muted text-center mb-4">Por políticas de la Almacenadora, debes actualizar tu contraseña temporal antes de continuar.</p>
+            
+            <form id="formActualizarClave">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nueva Contraseña</label>
+                    <div class="input-group">
+                        <input type="password" id="pass1" name="nueva_clave" class="form-control" required placeholder="Ingresa tu nueva clave">
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePass('pass1')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="progress mt-2" style="height: 5px;">
+                        <div id="meter" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <small id="meterText" class="text-muted" style="font-size: 0.75rem;">Seguridad: Muy débil</small>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Confirmar Contraseña</label>
+                    <input type="password" id="pass2" class="form-control" required placeholder="Repite tu nueva clave">
+                </div>
+
+                <div class="alert alert-light border small text-muted mb-4">
+                    <h6 class="fw-bold small mb-2">Requisitos de robustez:</h6>
+                    <ul class="mb-0 ps-3">
+                        <li id="req-len">Mínimo 8 caracteres (recomendado 12)</li>
+                        <li id="req-mix">Mayúsculas, minúsculas y números</li>
+                        <li id="req-esp">Al menos un carácter especial (!@#$%*)</li>
+                        <li id="req-lat">Se permite el uso de la letra Ñ</li>
+                    </ul>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" id="btnGuardar" class="btn btn-primary fw-bold" disabled>
+                        Actualizar y Acceder al Sistema
+                    </button>
+                    <a href="{% url 'salir_sistema' %}" class="btn btn-link text-muted btn-sm">Cerrar sesión y salir</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const pass1 = document.getElementById('pass1');
+    const pass2 = document.getElementById('pass2');
+    const meter = document.getElementById('meter');
+    const meterText = document.getElementById('meterText');
+    const btn = document.getElementById('btnGuardar');
+
+    // --- 1. LÓGICA DEL MEDIDOR DE FUERZA ---
+    pass1.addEventListener('input', function() {
+        let val = pass1.value;
+        let score = 0;
+
+        if (val.length >= 8) score += 25;
+        if (/[A-ZÑ]/.test(val) && /[a-zñ]/.test(val)) score += 25;
+        if (/[0-9]/.test(val)) score += 25;
+        if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val)) score += 25;
+
+        meter.style.width = score + "%";
+        if (score < 50) { 
+            meter.className = "progress-bar bg-danger"; 
+            meterText.innerText = "Seguridad: Débil"; 
+        } else if (score < 100) { 
+            meter.className = "progress-bar bg-warning"; 
+            meterText.innerText = "Seguridad: Media (Añade símbolos o números)"; 
+        } else { 
+            meter.className = "progress-bar bg-success"; 
+            meterText.innerText = "Seguridad: ¡Excelente!"; 
+        }
+
+        validarTodo();
+    });
+
+    function validarTodo() {
+        const robusta = meter.classList.contains('bg-success');
+        const coinciden = (pass1.value === pass2.value) && pass1.value !== "";
+        btn.disabled = !(robusta && coinciden);
+    }
+
+    pass2.addEventListener('input', validarTodo);
+
+    function togglePass(id) {
+        const input = document.getElementById(id);
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // --- 2. ENVÍO DE DATOS A DJANGO (EL MOTOR) ---
+    document.getElementById('formActualizarClave').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nuevaClave = pass1.value;
+
+        Swal.fire({
+            title: 'Actualizando credenciales...',
+            text: 'Espera un momento mientras blindamos tu cuenta',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        fetch("{% url 'cambiar_clave_obligatorio' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ 'nueva_clave': nuevaClave })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Seguridad Actualizada!',
+                    text: 'Tu contraseña ha sido cambiada con éxito.',
+                    confirmButtonText: 'Entrar al Sistema',
+                    confirmButtonColor: 'var(--brand-primary)'
+                }).then(() => {
+                    // Redireccionamos al inicio, ahora el Middleware nos dejará pasar
+                    window.location.href = "{% url 'inicio' %}";
+                });
+            } else {
+                Swal.fire('Error de validación', data.mensaje, 'error');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+        });
+    });
+</script>
+{% endblock %}

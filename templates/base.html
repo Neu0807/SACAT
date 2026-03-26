@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SACAT | Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* [Mantenemos tus estilos originales de :root, body, sidebar y navbar que ya tienes] */
+        :root {
+            --bg-body: #F8FAFC; --bg-card: #ffffff;
+            --text-main: #0F172A; --text-muted: #64748B;
+            --border-color: #E2E8F0;
+            --brand-primary: #1E3A8A; --brand-dark: #172554; --brand-light: #EEF2FF;
+            --accent-teal: #0D9488; --color-success: #0E9F6E; --color-error: #C81E1E;
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 80px;
+        }
+        [data-bs-theme="dark"] {
+            --bg-body: #0F172A; --bg-card: #1E293B;
+            --text-main: #F8FAFC; --text-muted: #E2E8F0;
+            --border-color: #334155;
+            --brand-primary: #0D9488; --brand-dark: #0F766E; --brand-light: #1E293B;
+        }
+        
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-body); color: var(--text-main); overflow-x: hidden; }
+        .wrapper { display: flex; width: 100%; height: 100vh; }
+        #sidebar { width: var(--sidebar-width); background-color: var(--bg-card); border-right: 1px solid var(--border-color); transition: all 0.3s; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; z-index: 1040; }
+        #sidebar.collapsed { width: var(--sidebar-collapsed-width); }
+        #sidebar.collapsed .sidebar-text, #sidebar.collapsed .submenu-arrow { display: none !important; }
+        #sidebar.collapsed .sidebar-header h4 { display: none; }
+        #sidebar.collapsed .sidebar-header i { font-size: 2rem; margin: 0 auto; }
+        #sidebar.collapsed .nav-link { justify-content: center; padding: 0.8rem 0; }
+        #sidebar.collapsed .nav-link i { margin-right: 0 !important; font-size: 1.2rem; }
+        #sidebar.collapsed .collapse { display: none !important; }
+        .sidebar-header { padding: 20px; display: flex; align-items: center; border-bottom: 1px solid var(--border-color); color: var(--brand-primary); white-space: nowrap; overflow: hidden; }
+        .sidebar-menu { padding: 10px 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden; }
+        .nav-item { margin-bottom: 5px; }
+        .nav-link { color: var(--text-muted); padding: 12px 20px; display: flex; align-items: center; transition: all 0.2s; white-space: nowrap; cursor: pointer; border-left: 4px solid transparent; text-decoration: none; }
+        .nav-link:hover, .nav-link[aria-expanded="true"] { color: var(--brand-primary); background-color: var(--brand-light); border-left: 4px solid var(--brand-primary); }
+        .nav-link i { width: 25px; text-align: center; margin-right: 10px; }
+        .submenu-arrow { margin-left: auto; transition: transform 0.3s; }
+        .nav-link[aria-expanded="true"] .submenu-arrow { transform: rotate(180deg); }
+        .submenu { background-color: rgba(0,0,0,0.02); }
+        [data-bs-theme="dark"] .submenu { background-color: rgba(255,255,255,0.02); }
+        .submenu .nav-link { padding: 8px 20px 8px 55px; font-size: 0.85rem; border-left: none; }
+        #content-wrapper { flex-grow: 1; display: flex; flex-direction: column; min-width: 0; transition: all 0.3s; }
+        .navbar-custom { background-color: var(--bg-card); border-bottom: 1px solid var(--border-color); padding: 10px 20px; }
+        .toggle-btn { background: transparent; border: none; color: var(--text-main); font-size: 1.2rem; cursor: pointer; padding: 5px 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    
+    <aside id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-boxes-stacked fa-2x me-2"></i>
+            <h4 class="mb-0 fw-bold sidebar-text">SACAT</h4>
+        </div>
+
+        <div class="sidebar-menu">
+            <ul class="nav flex-column">
+                
+                <li class="nav-item">
+                    <a href="{% url 'inicio' %}" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span class="sidebar-text">Inicio</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#seguridadSubmenu" data-bs-toggle="collapse" class="nav-link" aria-expanded="false">
+                        <i class="fas fa-user-shield"></i>
+                        <span class="sidebar-text">Seguridad</span>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </a>
+                    <div class="collapse submenu" id="seguridadSubmenu">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a href="{% url 'listar_usuarios' %}" class="nav-link sidebar-text">
+                                    <i class="fas fa-users me-2"></i>Usuarios
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'listar_roles' %}" class="nav-link sidebar-text">
+                                    <i class="fas fa-id-badge me-2"></i>Roles
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'listar_permisos' %}" class="nav-link sidebar-text">
+                                    <i class="fas fa-key me-2"></i>Permisos
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#configuracionSubmenu" data-bs-toggle="collapse" class="nav-link" aria-expanded="false">
+                        <i class="fas fa-gears"></i>
+                        <span class="sidebar-text">Configuración</span>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </a>
+                    <div class="collapse submenu" id="configuracionSubmenu">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a href="{% url 'configuracion_ubicacion' %}" class="nav-link sidebar-text">
+                                    <i class="fas fa-map-location-dot me-2"></i>Ubicación
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'configuracion_identificacion' %}" class="nav-link sidebar-text">
+                                    <i class="fas fa-address-card me-2"></i>Identidad
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link sidebar-text">
+                                    <i class="fas fa-house-chimney-user me-2"></i>Entorno
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link sidebar-text">
+                                    <i class="fas fa-sitemap me-2"></i>Estructura Org.
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link sidebar-text">
+                                    <i class="fas fa-graduation-cap me-2"></i>Formación
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link sidebar-text">
+                                    <i class="fas fa-folder-tree me-2"></i>Otros
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item">
+                    <a href="#trabajadoresSubmenu" data-bs-toggle="collapse" class="nav-link" aria-expanded="false">
+                        <i class="fas fa-users-gear"></i>
+                        <span class="sidebar-text">Trabajadores</span>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </a>
+                    <div class="collapse submenu" id="trabajadoresSubmenu">
+                        <ul class="nav flex-column">
+                            <li class="nav-item"><a href="#" class="nav-link sidebar-text"><i class="fas fa-user-plus me-2"></i>Registro</a></li>
+                            <li class="nav-item"><a href="#" class="nav-link sidebar-text"><i class="fas fa-user-pen me-2"></i>Actualización</a></li>
+                        </ul>
+                    </div>
+                </li>
+
+            </ul>
+        </div>
+
+        <div class="sidebar-footer border-top p-2">
+            <a href="#" id="btnSalirSistema" class="nav-link text-danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="sidebar-text">Salir del Sistema</span>
+            </a>
+        </div>
+    </aside>
+
+    <div id="content-wrapper">
+        <nav class="navbar navbar-custom sticky-top d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <button type="button" id="sidebarCollapse" class="toggle-btn me-3">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <span class="text-muted fw-medium d-none d-sm-block">Almacenadora Caracas</span>
+            </div>
+
+            <div class="d-flex align-items-center gap-4">
+                <button class="theme-toggle fs-5" id="btnTheme" title="Cambiar modo">
+                    <i class="fas fa-moon"></i>
+                </button>
+                
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-user-circle fs-3 me-2" style="color: var(--brand-primary);"></i>
+                    <div class="d-none d-md-block">
+                        <div class="fw-bold" style="font-size: 0.9rem;">{{ request.user.nombre_usuario }}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">
+                            {{ request.user.rol.nombre_rol|default:"Sin Rol" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="flex-grow-1 p-4">
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        <footer class="p-3 text-center text-muted border-top" style="background-color: var(--bg-card); font-size: 0.85rem;">
+            &copy; 2026 Sistema SACAT. Desarrollado por la Gerencia de Tecnología.
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    /* [Mantenemos tus scripts de colapso, tema y salir igual] */
+    document.getElementById('sidebarCollapse').addEventListener('click', function () {
+        const sidebar = document.getElementById('sidebar');
+        if (window.innerWidth <= 768) { sidebar.classList.toggle('mobile-show'); }
+        else { sidebar.classList.toggle('collapsed'); }
+    });
+
+    const htmlEl = document.documentElement;
+    const btnTheme = document.getElementById('btnTheme');
+    const savedTheme = localStorage.getItem('sacat_theme') || 'light';
+    htmlEl.setAttribute('data-bs-theme', savedTheme);
+    btnTheme.addEventListener('click', function(e) {
+        const currentTheme = htmlEl.getAttribute('data-bs-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        htmlEl.setAttribute('data-bs-theme', newTheme);
+        localStorage.setItem('sacat_theme', newTheme);
+        btnTheme.innerHTML = newTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    });
+
+    document.getElementById('btnSalirSistema').addEventListener('click', function(e) {
+        e.preventDefault();
+        Swal.fire({
+            title: '¿Cerrar Sesión?',
+            text: '¿Estás seguro que deseas salir del sistema?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--brand-primary)',
+            confirmButtonText: 'Sí, salir'
+        }).then((result) => { if (result.isConfirmed) { window.location.href = "{% url 'salir_sistema' %}"; } });
+    });
+</script>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

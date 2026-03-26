@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <a href="{% url 'configuracion_ubicacion' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+            <i class="fas fa-arrow-left me-2"></i>Volver a Ubicación
+        </a>
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="fw-bold mb-0" style="color: var(--brand-primary);">
+                <i class="fas fa-city me-2"></i>Gestión de Municipios
+            </h2>
+            <div class="d-flex gap-2">
+                {% if request.user.is_superuser %}
+                    <button class="btn btn-outline-success rounded-pill px-4 shadow-sm" onclick="abrirModalImportar()">
+                        <i class="fas fa-file-excel me-2"></i>Importar
+                    </button>
+                {% endif %}
+                <button class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="abrirModalCrear()">
+                    <i class="fas fa-plus-circle me-2"></i>Crear
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="bg-primary text-white text-uppercase small">
+                    <tr>
+                        <th class="ps-4 py-3">Municipio</th>
+                        <th class="py-3">Estado Perteneciente</th>
+                        <th class="py-3 text-center">Estado Registro</th>
+                        <th class="py-3 text-end pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in municipios %}
+                    <tr>
+                        <td class="ps-4 fw-bold">{{ m.nombre_municipio }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ m.estado.nombre_estado }}</span></td>
+                        <td class="text-center">
+                            {% if m.esta_activo %}<span class="text-success small fw-bold">ACTIVO</span>
+                            {% else %}<span class="text-danger small fw-bold">INACTIVO</span>{% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-sm btn-outline-primary border-0"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center py-5 text-muted">No hay municipios registrados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalImportarMunicipios" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, #1E3A8A 0%, #172554 100%); color: white;">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white bg-opacity-25 rounded-circle p-2 me-3" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-city fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0">Importar Municipios</h5>
+                        <small class="opacity-75">Relación por Estados</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-4" style="background-color: var(--bg-card);">
+                <div class="p-3 rounded-3 mb-4" style="background-color: #FFFBEB; border-left: 4px solid #F59E0B;">
+                    <div class="d-flex small text-dark">
+                        <i class="fas fa-exclamation-triangle mt-1 me-2 text-warning"></i>
+                        <div>
+                            <strong>Estructura requerida:</strong><br>
+                            Columna A: <b>Municipio</b> | Columna B: <b>Estado Exacto</b><br>
+                            <span class="text-muted">El Estado debe estar registrado previamente.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="formImportarMunicipios" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-4 text-center">
+                        <div class="upload-area p-4 border border-2 border-dashed rounded-3" id="dropZoneMun" style="border-color: var(--border-color) !important; cursor: pointer;">
+                            <i class="fas fa-file-csv fa-3x mb-2" style="color: var(--brand-primary); opacity: 0.5;"></i>
+                            <p class="small text-muted mb-0">Arrastre aquí su archivo .xlsx o .csv</p>
+                            <input type="file" name="archivo" id="archivoMun" class="form-control d-none" accept=".xlsx, .xls, .csv" required>
+                            <div id="file-name-mun" class="mt-2 fw-bold small text-primary"></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-3 shadow-sm fw-bold">
+                        <i class="fas fa-upload me-2"></i> Cargar Municipios
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .upload-area:hover { background-color: var(--brand-light); border-color: var(--brand-primary) !important; transition: all 0.3s ease; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const dropZone = document.getElementById('dropZoneMun');
+    const fileInput = document.getElementById('archivoMun');
+    const fileName = document.getElementById('file-name-mun');
+
+    if(dropZone){
+        dropZone.onclick = () => fileInput.click();
+        fileInput.onchange = () => {
+            if(fileInput.files.length > 0) {
+                fileName.innerHTML = `<i class="fas fa-check-circle me-1"></i> ${fileInput.files[0].name}`;
+                dropZone.style.backgroundColor = 'var(--brand-light)';
+            }
+        };
+    }
+
+    document.getElementById('formImportarMunicipios').addEventListener('submit', function(e) {
+        e.preventDefault();
+        let formData = new FormData(this);
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
+        Swal.fire({
+            title: 'Procesando Municipios...',
+            text: 'Validando relaciones geográficas, espere...',
+            allowOutsideClick: false, 
+            showConfirmButton: false,
+            background: isDark ? '#1E293B' : '#ffffff', 
+            color: isDark ? '#F8FAFC' : '#0F172A',
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        fetch("{% url 'importar_municipios' %}", {
+            method: 'POST', 
+            body: formData, 
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: '¡Éxito!', 
+                    text: data.mensaje, 
+                    confirmButtonColor: 'var(--brand-primary)',
+                    background: isDark ? '#1E293B' : '#ffffff',
+                    color: isDark ? '#F8FAFC' : '#0F172A'
+                }).then(() => { location.reload(); });
+            } else {
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Error', 
+                    text: data.mensaje,
+                    background: isDark ? '#1E293B' : '#ffffff',
+                    color: isDark ? '#F8FAFC' : '#0F172A'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire('Error crítico', 'No se pudo conectar con el servidor.', 'error');
+        });
+    });
+
+    function abrirModalImportar() {
+        const modalEl = document.getElementById('modalImportarMunicipios');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+</script>
+{% endblock %}

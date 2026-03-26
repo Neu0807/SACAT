@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SACAT | Almacenadora Caracas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* =======================================================================
+           1. SISTEMA DE DISEÑO (Variables CSS basadas en tu paleta)
+           ======================================================================= */
+        :root {
+            /* Neutros / Tipografía */
+            --bg-body: #F8FAFC;         /* Pizarra 50 */
+            --bg-card: #ffffff;
+            --text-main: #0F172A;       /* Pizarra 900 */
+            --text-muted: #64748B;      /* Pizarra 500 */
+            --border-color: #E2E8F0;    /* Pizarra 200 */
+            
+            /* Colores de Marca (Azules Corporativos) */
+            --brand-primary: #1E3A8A;   /* Azul 900 */
+            --brand-dark: #172554;      /* Azul 950 */
+            --brand-light: #EEF2FF;     /* Azul 50 */
+            
+            /* Acentos / Semánticos */
+            --accent-teal: #0D9488;
+            --color-success: #0E9F6E;
+            --color-error: #C81E1E;
+        }
+
+        /* Variables para MODO OSCURO */
+        [data-bs-theme="dark"] {
+            --bg-body: #0F172A;         /* Pizarra 900 */
+            --bg-card: #1E293B;         /* Pizarra 800 */
+            --text-main: #F8FAFC;       /* Pizarra 50 */
+            --text-muted: #E2E8F0;      /* Pizarra 200 */
+            --border-color: #64748B;    /* Pizarra 500 */
+            
+            /* En modo oscuro, el botón primario resalta más con el Teal */
+            --brand-primary: #0D9488;   
+            --brand-dark: #0F766E;      
+            --brand-light: #1E293B;     
+        }
+
+        /* =======================================================================
+           2. ESTILOS GLOBALES
+           ======================================================================= */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        /* =======================================================================
+           3. PANEL IZQUIERDO (Branding corporativo)
+           ======================================================================= */
+        .bg-login-image {
+            background: linear-gradient(135deg, #1E3A8A 0%, #172554 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.15);
+        }
+
+        /* Figuras de fondo geométricas */
+        .bg-login-image::before {
+            content: ''; position: absolute; top: -15%; left: -10%;
+            width: 400px; height: 400px;
+            background: rgba(238, 242, 255, 0.05); /* Usando tu brand-light */
+            border-radius: 50%;
+        }
+
+        .system-logo-text { font-size: 4rem; font-weight: 700; letter-spacing: 2px; }
+
+        /* =======================================================================
+           4. PANEL DERECHO (Formulario)
+           ======================================================================= */
+        .login-form-container {
+            background-color: var(--bg-card);
+            transition: background-color 0.3s ease;
+        }
+
+        .form-control {
+            background-color: var(--bg-body);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 8px;
+        }
+        
+        .form-control:focus {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.2);
+        }
+
+        /* Ajustes para los Floating Labels en modo oscuro/claro */
+        .form-floating > label { color: var(--text-muted); }
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label {
+            color: var(--brand-primary);
+            font-weight: 600;
+        }
+
+        .input-group-text {
+            background-color: transparent;
+            border-color: var(--border-color);
+            color: var(--text-muted);
+        }
+
+        .btn-primary {
+            background-color: var(--brand-primary);
+            border-color: var(--brand-primary);
+            color: #ffffff !important; /* Siempre texto blanco en botón principal */
+            font-weight: 600;
+            padding: 12px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--brand-dark);
+            border-color: var(--brand-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Botón de cambio de tema */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 50%;
+            width: 45px; height: 45px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+        .theme-toggle:hover { background-color: var(--border-color); }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid vh-100">
+    <div class="row h-100">
+        
+        <div class="col-lg-6 d-none d-lg-flex bg-login-image align-items-center justify-content-center text-center p-5">
+            <div style="z-index: 1;">
+                <i class="fas fa-boxes-stacked fa-5x mb-4 opacity-75"></i>
+                <h1 class="system-logo-text">SACAT</h1>
+                <h4 class="mt-2 fw-light opacity-75">Sistema de Administración y Capacitación de Trabajadores</h4>
+                <hr class="w-25 mx-auto my-4 opacity-50">
+                <p class="lead fw-light">Intranet Corporativa de la<br><strong class="fw-semibold">Almacenadora Caracas</strong></p>
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12 login-form-container d-flex align-items-center justify-content-center position-relative">
+            
+            <button class="theme-toggle" id="btnTheme" title="Cambiar modo">
+                <i class="fas fa-moon fs-5"></i>
+            </button>
+
+            <div class="w-100 px-4" style="max-width: 450px;">
+                
+                <div class="d-lg-none text-center mb-5">
+                    <h2 class="fw-bold" style="color: var(--brand-primary);">SACAT</h2>
+                    <p class="text-muted">Almacenadora Caracas</p>
+                </div>
+
+                <div class="mb-5">
+                    <h3 class="fw-bold">¡Bienvenido de vuelta!</h3>
+                    <p style="color: var(--text-muted);">Ingresa tus credenciales para acceder a la intranet.</p>
+                </div>
+
+                <form id="loginForm">
+                    {% csrf_token %}
+                    
+                    <div class="input-group mb-4">
+                        <span class="input-group-text border-end-0"><i class="fas fa-id-card"></i></span>
+                        <div class="form-floating flex-grow-1">
+                            <input type="text" class="form-control border-start-0" id="cedula" placeholder="Cédula" required autocomplete="off">
+                            <label for="cedula">Cédula de Identidad</label>
+                        </div>
+                    </div>
+
+                    <div class="input-group mb-5">
+                        <span class="input-group-text border-end-0"><i class="fas fa-lock"></i></span>
+                        <div class="form-floating flex-grow-1">
+                            <input type="password" class="form-control border-start-0" id="password" placeholder="Contraseña" required>
+                            <label for="password">Contraseña</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" id="btnSubmit">
+                        Iniciar Sesión <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                    
+                    <div class="text-center mt-4">
+                        <small style="color: var(--text-muted);"><i class="fas fa-shield-halved me-1"></i> Plataforma cifrada de uso interno</small>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // ==========================================
+    // Lógica BLINDADA del MODO OSCURO / CLARO
+    // ==========================================
+    const htmlEl = document.documentElement;
+    const btnTheme = document.getElementById('btnTheme');
+
+    // Revisar si ya había preferencia guardada (por defecto 'light')
+    const savedTheme = localStorage.getItem('sacat_theme') || 'light';
+    htmlEl.setAttribute('data-bs-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+
+    // Evento de clic en el botón (con preventDefault por si acaso)
+    btnTheme.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const currentTheme = htmlEl.getAttribute('data-bs-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        
+        // Aplicamos el nuevo tema
+        htmlEl.setAttribute('data-bs-theme', newTheme);
+        localStorage.setItem('sacat_theme', newTheme);
+        
+        // Cambiamos el ícono inyectando el HTML directo
+        updateThemeIcon(newTheme);
+    });
+
+    // Función para cambiar el ícono a la fuerza bruta
+    function updateThemeIcon(theme) {
+        if (theme === 'dark') {
+            btnTheme.innerHTML = '<i class="fas fa-sun fs-5"></i>';
+        } else {
+            btnTheme.innerHTML = '<i class="fas fa-moon fs-5"></i>';
+        }
+    }
+
+    // ==========================================
+    // Lógica AJAX del Login (CORREGIDA A /inicio/)
+    // ==========================================
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault(); 
+        const cedula = document.getElementById('cedula').value.trim();
+        const password = document.getElementById('password').value;
+        const btn = document.getElementById('btnSubmit');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        const isDark = htmlEl.getAttribute('data-bs-theme') === 'dark';
+        const swalBg = isDark ? '#1E293B' : '#ffffff';
+        const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin ms-2"></i> Validando...';
+        btn.disabled = true;
+
+        fetch("{% url 'login' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ 'cedula': cedula, 'password': password })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Si es superusuario, preguntamos a dónde va
+                if (data.is_superuser) {
+                    Swal.fire({
+                        title: '¡Acceso Concedido!',
+                        text: 'Hola Administrador, ¿a dónde deseas ingresar?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="fas fa-desktop"></i> Sistema SACAT',
+                        cancelButtonText: '<i class="fas fa-cogs"></i> Panel Django',
+                        confirmButtonColor: 'var(--brand-primary)',
+                        cancelButtonColor: 'var(--text-muted)',
+                        background: swalBg, color: swalColor
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = '/inicio/'; // <-- Corregido
+                        } else {
+                            window.location.href = '/admin/'; 
+                        }
+                    });
+                } else {
+                    // Si es usuario normal, entra directo al inicio
+                    Swal.fire({
+                        icon: 'success', 
+                        title: '¡Acceso concedido!', 
+                        text: data.mensaje, 
+                        showConfirmButton: false, 
+                        timer: 1500,
+                        background: swalBg, color: swalColor
+                    }).then(() => {
+                        window.location.href = '/inicio/'; // <-- Corregido
+                    });
+                }
+            } else {
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Acceso Denegado', 
+                    text: data.mensaje,
+                    confirmButtonColor: 'var(--color-error)',
+                    background: swalBg, color: swalColor
+                });
+                btn.innerHTML = 'Iniciar Sesión <i class="fas fa-arrow-right ms-2"></i>';
+                btn.disabled = false;
+            }
+        })
+        .catch(error => {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Sin conexión con el servidor.', background: swalBg, color: swalColor });
+            btn.innerHTML = 'Iniciar Sesión <i class="fas fa-arrow-right ms-2"></i>';
+            btn.disabled = false;
+        });
+    });
+</script>
+
+</body>
+</html>

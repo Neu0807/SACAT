@@ -1,0 +1,326 @@
+import json
+import secrets
+import string
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.contrib.auth import get_user_model
+# IMPORTANTE: Importamos el modelo Rol para poder usarlo
+from .models import Rol
+from .models import PermisoSis
+
+Usuario = get_user_model() 
+
+# --- FUNCIÓN DE SEGURIDAD (INTERNA) ---
+def generar_clave_robusta(longitud=12):
+    letras_minus = string.ascii_lowercase + "ñ"
+    letras_mayus = string.ascii_uppercase + "Ñ"
+    numeros = string.digits
+    especiales = "!@#$%&*+-=." 
+    
+    todos = letras_minus + letras_mayus + numeros + especiales
+    
+    while True:
+        password = ''.join(secrets.choice(todos) for _ in range(longitud))
+        if (any(c in letras_minus for c in password)
+            and any(c in letras_mayus for c in password)
+            and any(c in numeros for c in password)
+            and any(c in especiales for c in password)
+            and (len(password) >= 8)):
+            return password
+
+# --- VISTAS DE SESIÓN ---
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('inicio') 
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            cedula = data.get('cedula')
+            password = data.get('password')
+            user = authenticate(request, nombre_usuario=cedula, password=password)
+
+            if user is not None:
+                if user.esta_activo:
+                    login(request, user)
+                    return JsonResponse({
+                        'success': True, 
+                        'mensaje': '¡Bienvenido al sistema SACAT!',
+                        'is_superuser': user.is_superuser
+                    })
+                else:
+                    return JsonResponse({'success': False, 'mensaje': 'Cuenta suspendida.'})
+            else:
+                return JsonResponse({'success': False, 'mensaje': 'Cédula o contraseña incorrectas.'})
+        except Exception:
+            return JsonResponse({'success': False, 'mensaje': 'Error en el servidor.'})
+
+    return render(request, 'seguridad/login.html')
+
+@login_required
+def inicio_view(request):
+    return render(request, 'seguridad/inicio.html')
+
+def salir_sistema(request):
+    logout(request)
+    return redirect('login')
+
+# --- GESTIÓN DE USUARIOS ---
+@login_required
+def listar_usuarios(request):
+    usuarios = Usuario.objects.all().order_by('-id')
+    return render(request, 'seguridad/listar_usuarios.html', {'usuarios': usuarios})
+
+@login_required
+def crear_superusuario_view(request):
+    return render(request, 'seguridad/crear_superusuario.html')
+
+@login_required
+def guardar_superusuario(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            cedula = data.get('nombre_usuario')
+            
+            if Usuario.objects.filter(nombre_usuario=cedula).exists():
+                return JsonResponse({'success': False, 'mensaje': 'Esta cédula ya está registrada.'})
+
+            clave_temporal = generar_clave_robusta(12)
+
+            # 1. Buscamos el objeto Rol 'Superusuario' en tu tabla 'roles'
+            try:
+                rol_su = Rol.objects.get(nombre_rol='Superusuario')
+            except Rol.DoesNotExist:
+                return JsonResponse({'success': False, 'mensaje': 'Error Crítico: El rol Superusuario no existe en la tabla roles. Créalo en el /admin primero.'})
+
+            # 2. Creamos el usuario base
+            nuevo_user = Usuario.objects.create_user(
+                nombre_usuario=cedula,
+                password=clave_temporal
+            )
+            
+            # 3. AUTOMATIZACIÓN: Si el rol es Superusuario, prendemos los interruptores de Django
+            nuevo_user.rol = rol_su  # Se guarda en tu columna 'rol_id'
+            
+            # Aquí ocurre la magia:
+            if rol_su.nombre_rol == 'Superusuario':
+                nuevo_user.is_superuser = True  # Se guarda en 'es_superusuario'
+                nuevo_user.is_staff = True      # Se guarda en 'es_staff'
+            
+            nuevo_user.requiere_cambio_clave = True
+            nuevo_user.creado_por = request.user.id
+            nuevo_user.save()
+
+            return JsonResponse({
+                'success': True, 
+                'clave': clave_temporal,
+                'mensaje': f'Usuario {cedula} creado y configurado como Superusuario automáticamente.'
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+
+@login_required
+def cambiar_estado_usuario(request, username):
+    if request.method == 'POST':
+        user = get_object_or_404(Usuario, nombre_usuario=username)
+        if request.user == user:
+            return JsonResponse({'success': False, 'mensaje': 'No puedes inhabilitarte a ti mismo.'})
+        
+        user.esta_activo = not user.esta_activo 
+        user.save()
+        estado = "habilitado" if user.esta_activo else "inhabilitado"
+        return JsonResponse({'success': True, 'mensaje': f'Usuario {estado} correctamente.'})
+
+@login_required
+def resetear_clave_usuario(request, username):
+    if request.method == 'POST':
+        user = get_object_or_404(Usuario, nombre_usuario=username)
+        nueva_clave = generar_clave_robusta(12)
+        
+        user.set_password(nueva_clave)
+        user.requiere_cambio_clave = True
+        user.save()
+        
+        return JsonResponse({
+            'success': True, 
+            'clave': nueva_clave,
+            'mensaje': f'La clave de {username} ha sido reseteada.'
+        })
+
+@login_required
+def editar_usuario_view(request, username):
+    user_editar = get_object_or_404(Usuario, nombre_usuario=username)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_editar.is_superuser = True
+            user_editar.is_staff = data.get('is_staff', True)
+            user_editar.save()
+            return JsonResponse({'success': True, 'mensaje': 'Permisos actualizados correctamente.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+    return render(request, 'seguridad/editar_usuario.html', {'user_editar': user_editar})
+
+# --- VISTA DE CAMBIO DE CLAVE OBLIGATORIO ---
+@login_required
+def cambiar_clave_obligatorio_view(request):
+    if not request.user.requiere_cambio_clave:
+        return redirect('inicio')
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nueva_clave = data.get('nueva_clave')
+            caracteres_especiales = "!@#$%&*+-=." 
+
+            if (len(nueva_clave) < 8 or 
+                not any(c.isdigit() for c in nueva_clave) or 
+                not any(c.isupper() or c == 'Ñ' for c in nueva_clave) or
+                not any(c.islower() or c == 'ñ' for c in nueva_clave) or
+                not any(c in caracteres_especiales for c in nueva_clave)):
+                
+                return JsonResponse({
+                    'success': False, 
+                    'mensaje': 'La clave no cumple con los requisitos de seguridad.'
+                })
+
+            request.user.set_password(nueva_clave)
+            request.user.requiere_cambio_clave = False
+            request.user.save()
+            
+            update_session_auth_hash(request, request.user)
+
+            return JsonResponse({'success': True, 'mensaje': '¡Contraseña actualizada!'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+
+    return render(request, 'seguridad/cambiar_clave.html')
+
+# --- SUBMÓDULO DE ROLES ---
+@login_required
+def crear_rol_view(request):
+    """Esta es la función que faltaba para cargar el modal de crear rol"""
+    return render(request, 'seguridad/crear_rol.html')
+
+@login_required
+def listar_roles(request):
+    # Traemos todos los roles de tu tabla 'roles'
+    roles = Rol.objects.all().order_by('id')
+    return render(request, 'seguridad/listar_roles.html', {'roles': roles})
+
+@login_required
+def guardar_rol(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nombre = data.get('nombre_rol')
+            descripcion = data.get('descripcion')
+
+            if Rol.objects.filter(nombre_rol=nombre).exists():
+                return JsonResponse({'success': False, 'mensaje': 'Este nombre de rol ya existe.'})
+
+            nuevo_rol = Rol.objects.create(
+                nombre_rol=nombre,
+                descripcion=descripcion,
+                creado_por=request.user.id # Auditoría automática
+            )
+            
+            return JsonResponse({'success': True, 'mensaje': f'Rol "{nombre}" creado exitosamente.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': str(e)})
+
+@login_required
+def editar_rol_view(request, rol_id):
+    rol = get_object_or_404(Rol, id=rol_id)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            rol.nombre_rol = data.get('nombre_rol')
+            rol.descripcion = data.get('descripcion')
+            rol.actualizado_por = request.user.id
+            rol.save()
+            return JsonResponse({'success': True, 'mensaje': 'Rol actualizado correctamente.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': str(e)})
+            
+    return render(request, 'seguridad/editar_rol.html', {'rol': rol})
+
+def listar_permisos(request):
+    permisos = PermisoSis.objects.all().order_by('-fecha_creacion')
+    return render(request, 'seguridad/listar_permisos.html', {'permisos': permisos})
+
+# Vista para el formulario de creación (Página aparte)
+def crear_permiso(request):
+    return render(request, 'seguridad/crear_permiso.html')
+
+# Guardar Permiso (AJAX)
+def guardar_permiso(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nombre = data.get('nombre_permiso')
+            descripcion = data.get('descripcion')
+
+            if PermisoSis.objects.filter(nombre_permiso=nombre).exists():
+                return JsonResponse({'success': False, 'mensaje': 'Este permiso ya existe.'})
+
+            nuevo_permiso = PermisoSis.objects.create(
+                nombre_permiso=nombre,
+                descripcion=descripcion,
+                creado_por=request.user.id # Si usas autenticación
+            )
+
+            return JsonResponse({
+                'success': True, 
+                'mensaje': f'Permiso "{nuevo_permiso.nombre_permiso}" registrado con éxito.'
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': str(e)})
+    return JsonResponse({'success': False, 'mensaje': 'Método no permitido.'})
+
+# 1. VISTA PARA RENDERIZAR EL FORMULARIO
+def crear_permiso(request):
+    return render(request, 'seguridad/crear_permiso.html')
+
+# 2. FUNCIÓN PARA GUARDAR EL PERMISO (POR AJAX)
+def guardar_permiso(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nombre = data.get('nombre_permiso').strip().lower().replace(" ", "_") # Limpiamos el nombre
+            descripcion = data.get('descripcion')
+
+            # Validación: Evitar duplicados
+            if PermisoSis.objects.filter(nombre_permiso=nombre).exists():
+                return JsonResponse({'success': False, 'mensaje': f'El permiso "{nombre}" ya existe.'})
+
+            # Creamos el registro
+            PermisoSis.objects.create(
+                nombre_permiso=nombre,
+                descripcion=descripcion,
+                creado_por=request.user.id if request.user.is_authenticated else None
+            )
+            return JsonResponse({'success': True, 'mensaje': 'Permiso creado exitosamente.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': str(e)})
+    return JsonResponse({'success': False, 'mensaje': 'Método no permitido'})
+
+# 3. FUNCIÓN PARA EDITAR (CARGAR DATOS Y GUARDAR)
+def editar_permiso(request, pk):
+    permiso = get_object_or_404(PermisoSis, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            permiso.descripcion = data.get('descripcion')
+            permiso.esta_activo = data.get('esta_activo')
+            permiso.actualizado_por = request.user.id if request.user.is_authenticated else None
+            permiso.save()
+            return JsonResponse({'success': True, 'mensaje': 'Permiso actualizado.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': str(e)})
+            
+    return render(request, 'seguridad/editar_permiso.html', {'permiso': permiso})

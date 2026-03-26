@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
+
+<style>
+    /* 1. COMPONENTES RESPONSIVOS */
+    .search-panel-container {
+        background-color: var(--bg-card);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        padding: 10px 20px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /* Buscador que se adapta al ancho */
+    .gridjs-search { 
+        float: left !important; 
+        padding: 0 !important; 
+        width: 100% !important;
+    }
+    .gridjs-search-input {
+        width: 250px !important;
+        max-width: 100%; /* No se sale de la pantalla en móviles */
+        border-radius: 30px !important;
+        padding: 8px 15px 8px 35px !important;
+        border: 1px solid var(--border-color) !important;
+        background-color: var(--bg-body) !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* 2. EL CONTENEDOR MAESTRO DEL GRID */
+    .grid-wrapper-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        width: 100%;
+        position: relative;
+    }
+
+    /* Forzar el scroll horizontal solo dentro de la tabla si es necesario */
+    .gridjs-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch; /* Scroll suave en iPhone */
+    }
+
+    /* Estilos de la tabla interna */
+    .gridjs-table {
+        min-width: 600px; /* Evita que las columnas se aplasten en pantallas pequeñas */
+        width: 100% !important;
+    }
+
+    .gridjs-thead th {
+        background-color: var(--brand-primary) !important;
+        color: white !important;
+        text-transform: uppercase;
+        font-size: 0.75rem !important;
+        letter-spacing: 0.5px;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+    }
+
+    /* 3. PAGINACIÓN RESPONSIVA */
+    .pagination-panel-container {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 8px 20px;
+        margin-top: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /* Ajuste para que la info y los botones de página no se monten uno sobre otro */
+    .gridjs-pagination {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 10px;
+    }
+
+    /* Media Queries para Pantallas Pequeñas (Celulares) */
+    @media (max-width: 576px) {
+        .gridjs-search-input {
+            width: 100% !important; /* Buscador ancho total en móvil */
+        }
+        .pagination-panel-container {
+            flex-direction: column;
+            text-align: center;
+        }
+        .gridjs-pagination {
+            justify-content: center !important;
+        }
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <a href="{% url 'configuracion_ubicacion' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <h2 class="fw-bold mb-0" style="color: var(--brand-primary);">
+                <i class="fas fa-map me-2"></i>Gestión de Estados
+            </h2>
+            <div class="d-flex gap-2">
+                {% if request.user.is_superuser %}
+                    <button class="btn btn-outline-success rounded-pill px-4 shadow-sm" onclick="abrirModalImportar()">
+                        <i class="fas fa-file-excel me-1"></i> <span class="d-none d-sm-inline">Importar</span>
+                    </button>
+                {% endif %}
+                <button class="btn btn-primary rounded-pill px-4 shadow-sm">
+                    <i class="fas fa-plus-circle me-1"></i> <span class="d-none d-sm-inline">Crear</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid-wrapper-card">
+        <div id="table-grid"></div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const dataEstados = [
+            {% for e in estados %}
+            ["{{ e.id }}", "{{ e.nombre_estado }}", "{{ e.esta_activo|yesno:'ACTIVO,INACTIVO' }}"],
+            {% endfor %}
+        ];
+
+        new gridjs.Grid({
+            columns: [
+                { name: "ID", width: "70px", sort: true },
+                { name: "Estado", sort: true },
+                { 
+                    name: "Estatus", 
+                    width: "140px",
+                    formatter: (cell) => {
+                        const color = cell === 'ACTIVO' ? 'success' : 'danger';
+                        return gridjs.html(`<span class="badge bg-${color}-subtle text-${color} border border-${color}-subtle w-100 text-center">${cell}</span>`);
+                    }
+                },
+                {
+                    name: "Acciones",
+                    width: "100px",
+                    sort: false,
+                    formatter: (cell, row) => gridjs.html(`
+                        <div class="d-flex justify-content-center">
+                            <button class="btn btn-sm btn-link text-primary p-0 me-2"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-link text-danger p-0"><i class="fas fa-power-off"></i></button>
+                        </div>
+                    `)
+                }
+            ],
+            data: dataEstados,
+            search: { enabled: true, container: document.getElementById("search-slot") },
+            pagination: { enabled: true, limit: 10, summary: true, container: document.getElementById("pagination-slot") },
+            language: {
+                search: { placeholder: "🔍 Buscar..." },
+                pagination: { 
+                    showing: "Mostrando", 
+                    results: () => "registros",
+                    to: "a",
+                    of: "de"
+                }
+            },
+            fixedHeader: true, // ¡Mantiene los títulos azules arriba!
+            height: '400px', // Altura del área de registros
+            resizable: true
+        }).render(document.getElementById("table-grid"));
+    });
+</script>
+{% endblock %}

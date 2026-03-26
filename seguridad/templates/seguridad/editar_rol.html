@@ -1,0 +1,59 @@
+<div class="p-4">
+    <form id="formEditarRol">
+        {% csrf_token %}
+        <div class="mb-4 text-center">
+            <span class="badge px-3 py-2 border" style="background-color: var(--brand-light); color: var(--brand-primary); border-color: var(--brand-primary) !important;">
+                <i class="fas fa-fingerprint me-2"></i>Editando: {{ rol.nombre_rol }}
+            </span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold text-muted">Nombre del Rol (Protegido)</label>
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock"></i></span>
+                <input type="text" class="form-control border-start-0 bg-light fw-bold" value="{{ rol.nombre_rol }}" readonly disabled>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label fw-bold" style="color: var(--brand-primary);">Actualizar Descripción</label>
+            <textarea id="desc_edit" class="form-control shadow-sm" rows="5" required>{{ rol.descripcion }}</textarea>
+        </div>
+
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary fw-bold py-2 shadow" style="background-color: var(--brand-primary); border: none;">
+                <i class="fas fa-sync-alt me-2"></i>Guardar Cambios
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('formEditarRol').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        Swal.fire({ title: 'Actualizando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+        fetch("{% url 'editar_rol' rol.id %}", {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                nombre_rol: "{{ rol.nombre_rol }}",
+                descripcion: document.getElementById('desc_edit').value 
+            })
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (res.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Actualizado!',
+                    text: res.mensaje,
+                    confirmButtonColor: 'var(--brand-primary)'
+                }).then(() => location.reload());
+            } else {
+                Swal.fire('Error', res.mensaje, 'error');
+            }
+        });
+    });
+</script>

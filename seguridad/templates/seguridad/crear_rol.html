@@ -1,0 +1,59 @@
+<div class="p-4">
+    <div class="alert alert-info border-0 shadow-sm mb-4 d-flex align-items-center" style="background-color: var(--brand-light); color: var(--brand-primary);">
+        <i class="fas fa-info-circle fa-lg me-3"></i>
+        <small>Define un nombre claro para el rol. Luego podrás asignarle permisos específicos.</small>
+    </div>
+
+    <form id="formCrearRol">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label fw-bold" style="color: var(--brand-primary);">Nombre del Nuevo Rol</label>
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-white border-end-0"><i class="fas fa-tag text-muted"></i></span>
+                <input type="text" id="nombre_rol_input" class="form-control border-start-0" placeholder="Ej: Analista de Almacén" required>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label fw-bold" style="color: var(--brand-primary);">Descripción Funcional</label>
+            <textarea id="descripcion_rol_input" class="form-control shadow-sm" rows="4" placeholder="Describe brevemente las responsabilidades de este perfil..."></textarea>
+        </div>
+
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary fw-bold py-2 shadow" style="background-color: var(--brand-primary); border: none;">
+                <i class="fas fa-save me-2"></i>Registrar Rol
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('formCrearRol').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const data = {
+            nombre_rol: document.getElementById('nombre_rol_input').value,
+            descripcion: document.getElementById('descripcion_rol_input').value
+        };
+
+        Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+        fetch("{% url 'guardar_rol' %}", {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (res.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Rol Creado!',
+                    text: res.mensaje,
+                    confirmButtonColor: 'var(--brand-primary)'
+                }).then(() => location.reload());
+            } else {
+                Swal.fire('Error', res.mensaje, 'error');
+            }
+        });
+    });
+</script>
