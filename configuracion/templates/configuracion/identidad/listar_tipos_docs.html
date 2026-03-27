@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<style>
+    /* =======================================================================
+       ESTILOS DEL MÓDULO (Estandarizado SACAT)
+       ======================================================================= */
+    .dataTables_wrapper { display: flex; flex-direction: column; gap: 15px; }
+
+    .search-panel {
+        background-color: var(--bg-card); border: 1px solid var(--border-color);
+        border-radius: 12px; padding: 15px 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        display: flex; justify-content: flex-start; transition: background-color 0.3s, border-color 0.3s;
+    }
+    
+    .dataTables_filter { text-align: left !important; width: 100%; }
+    .dataTables_filter label { width: 100%; max-width: 350px; margin: 0; color: var(--text-muted); }
+    .dataTables_filter input {
+        width: 100% !important; border-radius: 8px !important; padding: 10px 15px !important;
+        border: 1px solid var(--border-color) !important; background-color: var(--bg-body) !important;
+        color: var(--text-main) !important; margin-left: 0 !important; transition: all 0.3s ease;
+    }
+    .dataTables_filter input:focus {
+        border-color: var(--brand-primary) !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.2) !important; outline: none;
+    }
+
+    .table-panel {
+        background-color: var(--bg-card); border: 1px solid var(--border-color);
+        border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+    }
+
+    .dataTables_scrollHead { background-color: var(--brand-primary) !important; }
+    .dataTables_scrollHead th {
+        background-color: var(--brand-primary) !important; color: #ffffff !important; 
+        text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px;
+        border: none !important; padding: 15px !important;
+    }
+
+    table.dataTable tbody td {
+        vertical-align: middle; padding: 12px 15px; border-bottom: 1px solid var(--border-color);
+        color: var(--text-main); background-color: var(--bg-card);
+    }
+    table.dataTable tbody tr:hover td { background-color: var(--brand-light) !important; }
+
+    .pagination-panel {
+        background-color: var(--bg-card); border: 1px solid var(--border-color);
+        border-radius: 12px; padding: 10px 20px; display: flex;
+        justify-content: space-between; align-items: center;
+    }
+
+    .page-item.active .page-link { 
+        background-color: var(--brand-primary) !important; border-color: var(--brand-primary) !important; color: #ffffff !important; 
+    }
+
+    .btn-primary {
+        background-color: var(--brand-primary) !important; border-color: var(--brand-primary) !important;
+        color: #ffffff !important; transition: all 0.3s;
+    }
+    .btn-primary:hover {
+        background-color: var(--brand-dark) !important; transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .text-status-active { color: var(--color-success); font-weight: 600; letter-spacing: 0.5px; }
+    .text-status-inactive { color: var(--color-error); font-weight: 600; letter-spacing: 0.5px; }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <a href="{% url 'configuracion_identidad' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+            <i class="fas fa-arrow-left me-2"></i>Volver a Identidad
+        </a>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <h2 class="fw-bold mb-0" style="color: var(--brand-primary);">
+                <i class="fas fa-passport me-2"></i>Gestión de Documentos
+            </h2>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCrearTipoDoc">
+                    <i class="fas fa-plus-circle me-2"></i>Crear
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <table id="tablaDocumentos" class="table w-100 m-0 display nowrap">
+        <thead>
+            <tr>
+                <th style="width: 80px;">Sigla</th>
+                <th>Descripción</th>
+                <th>Ente Emisor</th>
+                <th class="text-center">Estatus</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in documentos %}
+            <tr>
+                <td class="fw-bold">{{ doc.sigla }}</td>
+                <td>{{ doc.descripcion }}</td>
+                <td>{% if doc.ente_emisor %}{{ doc.ente_emisor }}{% else %}<span class="text-muted fst-italic">N/A</span>{% endif %}</td>
+                <td class="text-center">
+                    {% if doc.esta_activo %}
+                        <span class="text-status-active"><i class="fas fa-circle ms-1 small"></i> ACTIVO</span>
+                    {% else %}
+                        <span class="text-status-inactive"><i class="fas fa-circle ms-1 small"></i> INACTIVO</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-link text-primary border-0 me-1 btn-editar" 
+                            title="Editar"
+                            data-id="{{ doc.id }}"
+                            data-sigla="{{ doc.sigla }}"
+                            data-desc="{{ doc.descripcion }}"
+                            data-ente="{{ doc.ente_emisor|default:'' }}"
+                            data-aplica="{{ doc.aplica_a }}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link {% if doc.esta_activo %}text-danger{% else %}text-success{% endif %} border-0 btn-toggle-estatus" 
+                            data-id="{{ doc.id }}" 
+                            data-nombre="{{ doc.sigla }}"
+                            data-activo="{{ doc.esta_activo|yesno:'true,false' }}"
+                            title="Cambiar Estatus">
+                        <i class="fas fa-power-off"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% include "configuracion/identidad/crear_tipos_docs.html" %}
+
+<div class="modal fade" id="modalEditarTipoDoc" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; background-color: var(--bg-card);">
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%); border-radius: 12px 12px 0 0;">
+                <h5 class="modal-title text-white fw-bold"><i class="fas fa-edit me-2"></i>Editar Documento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formEditarTipoDoc">
+                {% csrf_token %}
+                <input type="hidden" id="edit_id" name="id">
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Sigla</label>
+                            <input type="text" name="sigla" id="edit_sigla" class="form-control" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold small">Aplica a</label>
+                            <select name="aplica_a" id="edit_aplica_a" class="form-select">
+                                <option value="Nacionales">Solo Nacionales</option>
+                                <option value="Extranjeros">Solo Extranjeros</option>
+                                <option value="Todos">Todos (General)</option>
+                                <option value="Jurídicos">Entes Jurídicos (RIF)</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Descripción</label>
+                            <input type="text" name="descripcion" id="edit_descripcion" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Ente Emisor</label>
+                            <input type="text" name="ente_emisor" id="edit_ente_emisor" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm" id="btnEditSubmit">GUARDAR CAMBIOS</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // 1. Iniciar DataTable
+        $('#tablaDocumentos').DataTable({
+            scrollX: true, scrollY: "35vh", scrollCollapse: true, paging: true, pageLength: 15,
+            dom: '<"search-panel"f><"table-panel"t><"pagination-panel"ip>',
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json', search: "", searchPlaceholder: "🔍 Filtrar..." }
+        });
+
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const swalBg = isDark ? '#1E293B' : '#ffffff';
+        const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
+        // 2. Lógica Crear
+        $('#formCrearTipoDoc').on('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitModal');
+            btn.disabled = true;
+            fetch("{% url 'crear_tipo_documento' %}", {
+                method: "POST", body: new FormData(this), headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            })
+            .then(r => r.json()).then(data => {
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: '¡Éxito!', text: data.message, background: swalBg, color: swalColor }).then(() => location.reload());
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.error, background: swalBg, color: swalColor });
+                    btn.disabled = false;
+                }
+            });
+        });
+
+        // 3. Lógica Editar (Abrir Modal y Cargar Datos)
+        $('.btn-editar').on('click', function() {
+            const d = $(this).data();
+            $('#edit_id').val(d.id);
+            $('#edit_sigla').val(d.sigla);
+            $('#edit_descripcion').val(d.desc);
+            $('#edit_ente_emisor').val(d.ente);
+            $('#edit_aplica_a').val(d.aplica);
+            new bootstrap.Modal($('#modalEditarTipoDoc')).show();
+        });
+
+        // 4. Lógica Guardar Edición
+        $('#formEditarTipoDoc').on('submit', function(e) {
+            e.preventDefault();
+            const id = $('#edit_id').val();
+            const urlEdit = "{% url 'editar_tipo_documento' 0 %}".replace('0', id);
+            fetch(urlEdit, {
+                method: "POST", body: new FormData(this), headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            })
+            .then(r => r.json()).then(data => {
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: '¡Actualizado!', text: data.message, background: swalBg, color: swalColor }).then(() => location.reload());
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.error });
+                }
+            });
+        });
+
+        // 5. Lógica Toggle Estatus
+        $('.btn-toggle-estatus').on('click', function() {
+            const id = $(this).data('id');
+            const nombre = $(this).data('nombre');
+            const estaActivo = $(this).data('activo') === true;
+            const accion = estaActivo ? 'inhabilitar' : 'habilitar';
+
+            Swal.fire({
+                title: `¿Desea ${accion} el documento ${nombre}?`,
+                icon: 'warning', showCancelButton: true, confirmButtonColor: 'var(--brand-primary)',
+                confirmButtonText: 'Sí, continuar', background: swalBg, color: swalColor
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const urlToggle = "{% url 'toggle_tipo_doc' 0 %}".replace('0', id);
+                    fetch(urlToggle, {
+                        method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ esta_activo: !estaActivo })
+                    })
+                    .then(r => r.json()).then(data => {
+                        if (data.success) { location.reload(); }
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

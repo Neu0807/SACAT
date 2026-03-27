@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h2 class="fw-bold" style="color: var(--brand-primary);">
+            <i class="fas fa-house-chimney-user me-2"></i>Configuración de Entorno
+        </h2>
+        <p style="color: var(--text-muted);">Gestión de datos socioeconómicos, viviendas y formación académica.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm overflow-hidden card-hover">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-shape text-white rounded-3 p-3 me-3"><i class="fas fa-house fa-2x"></i></div>
+                        <div>
+                            <h5 class="fw-bold mb-0 card-title-theme">Tipos de Vivienda</h5>
+                            <small style="color: var(--text-muted);">Estructura Física</small>
+                        </div>
+                    </div>
+                    <p class="small mb-4" style="color: var(--text-muted);">Ej: Quinta, Apartamento, Anexo.</p>
+                    <a href="#" class="btn w-100 fw-bold mt-auto btn-outline-theme">Gestionar</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm overflow-hidden card-hover">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-shape text-white rounded-3 p-3 me-3"><i class="fas fa-house-circle-check fa-2x"></i></div>
+                        <div>
+                            <h5 class="fw-bold mb-0 card-title-theme">Condición Vivienda</h5>
+                            <small style="color: var(--text-muted);">Tenencia</small>
+                        </div>
+                    </div>
+                    <p class="small mb-4" style="color: var(--text-muted);">Ej: Propia, Alquilada, Traspasada.</p>
+                    <a href="#" class="btn w-100 fw-bold mt-auto btn-outline-theme">Gestionar</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm overflow-hidden card-hover">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-shape text-white rounded-3 p-3 me-3"><i class="fas fa-graduation-cap fa-2x"></i></div>
+                        <div>
+                            <h5 class="fw-bold mb-0 card-title-theme">Niveles Académicos</h5>
+                            <small style="color: var(--text-muted);">Grado de Instrucción</small>
+                        </div>
+                    </div>
+                    <p class="small mb-4" style="color: var(--text-muted);">Ej: Bachiller, TSU, Licenciatura.</p>
+                    <a href="#" class="btn w-100 fw-bold mt-auto btn-outline-theme">Gestionar</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm overflow-hidden card-hover">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-shape text-white rounded-3 p-3 me-3"><i class="fas fa-user-graduate fa-2x"></i></div>
+                        <div>
+                            <h5 class="fw-bold mb-0 card-title-theme">Estatus Académico</h5>
+                            <small style="color: var(--text-muted);">Condición de Estudio</small>
+                        </div>
+                    </div>
+                    <p class="small mb-4" style="color: var(--text-muted);">Ej: Culminado, En Curso, Congelado.</p>
+                    <a href="#" class="btn w-100 fw-bold mt-auto btn-outline-theme">Gestionar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* =======================================================================
+       ESTILOS ADAPTATIVOS PARA EL MENÚ (Claro / Oscuro)
+       ======================================================================= */
+       
+    .card-hover { 
+        transition: all 0.3s ease; 
+        background-color: var(--bg-card); /* Fondo dinámico */
+        border: 1px solid var(--border-color) !important;
+    }
+    .card-hover:hover { 
+        transform: translateY(-5px); 
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        border: 1px solid var(--brand-primary) !important;
+    }
+    
+    /* ¡AQUÍ ESTÁ LA SOLUCIÓN! El título usa el color que cambia con la luna/sol */
+    .card-title-theme {
+        color: var(--text-main);
+    }
+
+    /* Íconos con el gradiente corporativo que usamos en los modales */
+    .icon-shape { 
+        width: 60px; 
+        height: 60px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    /* Botón adaptativo: Se ve elegante en claro y resalta en oscuro */
+    .btn-outline-theme {
+        color: var(--brand-primary);
+        border: 1px solid var(--brand-primary);
+        background-color: transparent;
+        transition: all 0.3s;
+    }
+    .btn-outline-theme:hover {
+        background-color: var(--brand-primary);
+        color: #ffffff;
+    }
+    
+    /* Pequeño ajuste visual para cuando se active el modo oscuro */
+    [data-bs-theme="dark"] .btn-outline-theme {
+        color: var(--text-main);
+        border-color: var(--border-color);
+        background-color: var(--bg-body);
+    }
+    [data-bs-theme="dark"] .btn-outline-theme:hover {
+        background-color: var(--brand-primary);
+        border-color: var(--brand-primary);
+        color: #ffffff;
+    }
+</style>
+{% endblock %}

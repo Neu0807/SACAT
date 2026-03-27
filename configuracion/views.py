@@ -230,13 +230,14 @@ def toggle_estado(request, estado_id):
 # --- GESTIÓN DE IDENTIFICACIÓN ---
 
 @login_required
-def configuracion_identificacion(request):
-    return render(request, 'configuracion/identificacion_menu.html')
+def configuracion_identidad(request):
+    return render(request, 'configuracion/identidad_menu.html')
 
 @login_required
 def listar_tipos_docs(request):
     documentos = TipoDocIdentificacion.objects.all().order_by('id')
-    return render(request, 'configuracion/identificacion/listar_tipos_docs.html', {'documentos': documentos})
+    # CAMBIO: 'identificacion' -> 'identidad'
+    return render(request, 'configuracion/identidad/listar_tipos_docs.html', {'documentos': documentos})
 
 @login_required
 @require_POST
@@ -274,17 +275,20 @@ def crear_tipo_documento(request):
 @login_required
 def listar_sexos(request):
     sexos = Sexo.objects.all().order_by('id')
-    return render(request, 'configuracion/identificacion/listar_sexos.html', {'sexos': sexos})
+    # CAMBIO: 'identificacion' -> 'identidad'
+    return render(request, 'configuracion/identidad/listar_sexos.html', {'sexos': sexos})
 
 @login_required
 def listar_estados_civiles(request):
     estados_civiles = EstadoCivil.objects.all().order_by('id')
-    return render(request, 'configuracion/identificacion/listar_estados_civiles.html', {'estados_civiles': estados_civiles})
+    # CAMBIO: 'identificacion' -> 'identidad'
+    return render(request, 'configuracion/identidad/listar_estados_civiles.html', {'estados_civiles': estados_civiles})
 
 @login_required
 def listar_tipos_contactos(request):
     contactos = TipoContacto.objects.all().order_by('id')
-    return render(request, 'configuracion/identificacion/listar_tipos_contactos.html', {'contactos': contactos})
+    # CAMBIO: 'identificacion' -> 'identidad'
+    return render(request, 'configuracion/identidad/listar_tipos_contactos.html', {'contactos': contactos})
 
 @login_required
 @require_POST
@@ -308,3 +312,70 @@ def toggle_parroquia(request, parroquia_id):
         return JsonResponse({'success': False, 'mensaje': 'La parroquia no existe.'})
     except Exception as e:
         return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+
+@login_required
+def configuracion_institucion(request):
+    return render(request, 'configuracion/institucion_menu.html')
+
+@login_required
+def configuracion_estructura(request):
+    return render(request, 'configuracion/estructura_menu.html')
+
+@login_required
+def configuracion_laboral(request):
+    return render(request, 'configuracion/laboral_menu.html')
+
+@login_required
+def configuracion_entorno(request):
+    return render(request, 'configuracion/entorno_menu.html')
+
+@login_required
+def configuracion_dotacion(request):
+    return render(request, 'configuracion/dotacion_menu.html')
+
+@login_required
+def configuracion_electoral(request):
+    return render(request, 'configuracion/electoral_menu.html')
+
+
+@login_required
+@require_POST
+def toggle_tipo_doc(request, doc_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    
+    try:
+        documento = TipoDocIdentificacion.objects.get(id=doc_id)
+        data = json.loads(request.body)
+        nuevo_estatus = data.get('esta_activo', True)
+        
+        documento.esta_activo = nuevo_estatus
+        documento.actualizado_por = request.user.id
+        documento.save()
+        
+        estado_texto = "habilitado" if nuevo_estatus else "inhabilitado"
+        return JsonResponse({'success': True, 'mensaje': f'El documento ha sido {estado_texto}.'})
+        
+    except TipoDocIdentificacion.DoesNotExist:
+        return JsonResponse({'success': False, 'mensaje': 'El tipo de documento no existe.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+    
+@login_required
+@require_POST
+def editar_tipo_documento(request, doc_id):
+    try:
+        documento = TipoDocIdentificacion.objects.get(id=doc_id)
+        documento.sigla = request.POST.get('sigla', '').strip().upper()
+        documento.descripcion = request.POST.get('descripcion', '').strip()
+        documento.ente_emisor = request.POST.get('ente_emisor', '').strip()
+        documento.aplica_a = request.POST.get('aplica_a', '').strip()
+        
+        documento.actualizado_por = request.user.id
+        documento.save()
+        
+        return JsonResponse({'success': True, 'message': 'Documento actualizado con éxito.'})
+    except TipoDocIdentificacion.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'El documento no existe.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
