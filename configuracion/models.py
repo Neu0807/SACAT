@@ -5,7 +5,6 @@ from django.db import models
 # ==============================================================================
 
 class Estado(models.Model):
-    # id se crea automático por Django al ser SERIAL PRIMARY KEY en SQL
     nombre_estado = models.CharField(max_length=50)
     esta_activo = models.BooleanField(default=True)
     
@@ -17,15 +16,18 @@ class Estado(models.Model):
 
     class Meta:
         db_table = 'estados'
-        managed = False # Muy importante: Django no toca tu tabla real
+        managed = False 
+
+    def save(self, *args, **kwargs):
+        if self.nombre_estado:
+            self.nombre_estado = self.nombre_estado.strip().upper()
+        super(Estado, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.nombre_estado
 
 
 class Municipio(models.Model):
-    # Aquí definimos la relación con Estado
-    # db_column='estado_id' es vital para que coincida con tu SQL
     estado = models.ForeignKey(
         Estado, 
         on_delete=models.CASCADE, 
@@ -45,12 +47,16 @@ class Municipio(models.Model):
         db_table = 'municipios'
         managed = False
 
+    def save(self, *args, **kwargs):
+        if self.nombre_municipio:
+            self.nombre_municipio = self.nombre_municipio.strip().upper()
+        super(Municipio, self).save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.nombre_municipio} - {self.estado.nombre_estado}"
 
 
 class Parroquia(models.Model):
-    # Relación con Municipio
     municipio = models.ForeignKey(
         Municipio, 
         on_delete=models.CASCADE, 
@@ -69,6 +75,11 @@ class Parroquia(models.Model):
     class Meta:
         db_table = 'parroquias'
         managed = False
+
+    def save(self, *args, **kwargs):
+        if self.nombre_parroquia:
+            self.nombre_parroquia = self.nombre_parroquia.strip().upper()
+        super(Parroquia, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.nombre_parroquia} ({self.municipio.nombre_municipio})"
@@ -92,6 +103,13 @@ class TipoDocIdentificacion(models.Model):
         db_table = 'tipos_docs_identificacion'
         managed = False
 
+    def save(self, *args, **kwargs):
+        if self.sigla: self.sigla = self.sigla.strip().upper()
+        if self.descripcion: self.descripcion = self.descripcion.strip().upper()
+        if self.ente_emisor: self.ente_emisor = self.ente_emisor.strip().upper()
+        if self.aplica_a: self.aplica_a = self.aplica_a.strip().upper()
+        super(TipoDocIdentificacion, self).save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.sigla} - {self.descripcion}"
 
@@ -107,6 +125,11 @@ class Sexo(models.Model):
     class Meta:
         db_table = 'sexos'
         managed = False
+
+    def save(self, *args, **kwargs):
+        if self.sigla: self.sigla = self.sigla.strip().upper()
+        if self.descripcion: self.descripcion = self.descripcion.strip().upper()
+        super(Sexo, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.descripcion
@@ -124,6 +147,11 @@ class EstadoCivil(models.Model):
         db_table = 'estados_civiles'
         managed = False
 
+    def save(self, *args, **kwargs):
+        if self.sigla: self.sigla = self.sigla.strip().upper()
+        if self.descripcion: self.descripcion = self.descripcion.strip().upper()
+        super(EstadoCivil, self).save(*args, **kwargs)
+
     def __str__(self):
         return self.descripcion
 
@@ -139,6 +167,10 @@ class TipoContacto(models.Model):
     class Meta:
         db_table = 'tipos_contactos'
         managed = False
+
+    def save(self, *args, **kwargs):
+        if self.descripcion: self.descripcion = self.descripcion.strip().upper()
+        super(TipoContacto, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.descripcion

@@ -16,4 +16,7 @@ urlpatterns = [
     path('identificacion/estados-civiles/', views.listar_estados_civiles, name='listar_estados_civiles'),
     path('identificacion/tipos-contactos/', views.listar_tipos_contactos, name='listar_tipos_contactos'),
     path('identificacion/documentos/crear/', views.crear_tipo_documento, name='crear_tipo_documento'),
+    path('estados/toggle/<int:estado_id>/', views.toggle_estado, name='toggle_estado'),
+    path('municipios/toggle/<int:municipio_id>/', views.toggle_municipio, name='toggle_municipio'),
+    path('parroquias/toggle/<int:parroquia_id>/', views.toggle_parroquia, name='toggle_parroquia'),
 ]

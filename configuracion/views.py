@@ -1,6 +1,7 @@
 import csv
 import io
 import openpyxl
+import json  # <--- Aquí está el salvavidas para el error
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -35,18 +36,24 @@ def obtener_datos_archivo(archivo):
     """Función auxiliar para normalizar la lectura de Excel y CSV"""
     nombre_archivo = archivo.name.lower()
     if nombre_archivo.endswith(('.xlsx', '.xls')):
-        wb = openpyxl.load_workbook(archivo)
-        hoja = wb.active
-        return hoja.iter_rows(min_row=2, values_only=True)
+        try:
+            wb = openpyxl.load_workbook(archivo, data_only=True)
+            hoja = wb.active
+            # iter_rows con min_row=2 salta el encabezado
+            return list(hoja.iter_rows(min_row=2, values_only=True))
+        except Exception:
+            return None
     elif nombre_archivo.endswith('.csv'):
         try:
-            contenido = archivo.read().decode('utf-8')
+            # utf-8-sig maneja archivos guardados desde Excel con BOM
+            contenido = archivo.read().decode('utf-8-sig')
         except UnicodeDecodeError:
             archivo.seek(0)
             contenido = archivo.read().decode('latin-1')
+        
         lector = csv.reader(io.StringIO(contenido))
-        next(lector)  # Saltar encabezado
-        return lector
+        next(lector, None)  # Saltar encabezado
+        return list(lector)
     return None
 
 
@@ -65,13 +72,19 @@ def importar_estados(request):
         contador = 0
         try:
             for fila in datos:
-                if fila and fila[0]:
+                # fila[0] es NOMBRE en tu CSV
+                if fila and len(fila) >= 1 and fila[0]:
+                    nombre = str(fila[0]).strip().upper()
                     Estado.objects.get_or_create(
-                        nombre_estado=str(fila[0]).strip(),
-                        defaults={'creado_por': request.user.id}
+                        nombre_estado=nombre,
+                        defaults={
+                            'creado_por': request.user.id,
+                            'actualizado_por': request.user.id,
+                            'esta_activo': True
+                        }
                     )
                     contador += 1
-            return JsonResponse({'success': True, 'mensaje': f'Se procesaron {contador} registros de estados.'})
+            return JsonResponse({'success': True, 'mensaje': f'¡Fino! Se procesaron {contador} estados.'})
         except Exception as e:
             return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
     return JsonResponse({'success': False, 'mensaje': 'Solicitud inválida.'})
@@ -84,24 +97,37 @@ def importar_municipios(request):
     
     if request.method == 'POST' and request.FILES.get('archivo'):
         datos = obtener_datos_archivo(request.FILES['archivo'])
-        if datos is None: return JsonResponse({'success': False, 'mensaje': 'Formato no soportado.'})
+        if datos is None: 
+            return JsonResponse({'success': False, 'mensaje': 'Formato no soportado.'})
 
         contador = 0
+        errores = 0
         try:
             for fila in datos:
+                # Tu CSV tiene: ESTADO (fila[0]), NOMBRE (fila[1])
                 if fila and len(fila) >= 2:
-                    nom_mun = str(fila[0]).strip()
-                    nom_est = str(fila[1]).strip()
+                    nom_est = str(fila[0]).strip()
+                    nom_mun = str(fila[1]).strip().upper()
                     
                     obj_estado = Estado.objects.filter(nombre_estado__iexact=nom_est).first()
                     if obj_estado:
                         Municipio.objects.get_or_create(
                             nombre_municipio=nom_mun,
                             estado=obj_estado,
-                            defaults={'creado_por': request.user.id}
+                            defaults={
+                                'creado_por': request.user.id,
+                                'actualizado_por': request.user.id
+                            }
                         )
                         contador += 1
-            return JsonResponse({'success': True, 'mensaje': f'Se importaron {contador} municipios exitosamente.'})
+                    else:
+                        errores += 1
+            
+            msj = f'Se importaron {contador} municipios.'
+            if errores > 0:
+                msj += f' No se encontraron {errores} estados referenciados.'
+                
+            return JsonResponse({'success': True, 'mensaje': msj})
         except Exception as e:
             return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
     return JsonResponse({'success': False, 'mensaje': 'Error en la petición.'})
@@ -117,12 +143,14 @@ def importar_parroquias(request):
         if datos is None: return JsonResponse({'success': False, 'mensaje': 'Formato no soportado.'})
 
         contador = 0
+        errores = 0
         try:
             for fila in datos:
+                # Estructura de TU archivo: ESTADO(0), MUNICIPIO(1), PARROQUIA(2)
                 if fila and len(fila) >= 3:
-                    nom_par = str(fila[0]).strip()
+                    nom_est = str(fila[0]).strip()
                     nom_mun = str(fila[1]).strip()
-                    nom_est = str(fila[2]).strip()
+                    nom_par = str(fila[2]).strip().upper()
                     
                     obj_mun = Municipio.objects.filter(
                         nombre_municipio__iexact=nom_mun,
@@ -136,10 +164,68 @@ def importar_parroquias(request):
                             defaults={'creado_por': request.user.id}
                         )
                         contador += 1
-            return JsonResponse({'success': True, 'mensaje': f'Se importaron {contador} parroquias exitosamente.'})
+                    else:
+                        errores += 1
+                        
+            msj = f'¡Fino! Se importaron {contador} parroquias exitosamente.'
+            if errores > 0:
+                msj += f' Hubo {errores} filas ignoradas por no coincidir el Municipio/Estado.'
+                
+            return JsonResponse({'success': True, 'mensaje': msj})
         except Exception as e:
             return JsonResponse({'success': False, 'mensaje': f'Error en procesamiento: {str(e)}'})
     return JsonResponse({'success': False, 'mensaje': 'Archivo no recibido.'})
+
+
+# --- VISTAS DE ACCIONES AJAX (TOGGLE ESTATUS) ---
+
+@login_required
+@require_POST
+def toggle_municipio(request, municipio_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    
+    try:
+        municipio = Municipio.objects.get(id=municipio_id)
+        # Obtenemos el nuevo estado del body del fetch
+        data = json.loads(request.body)
+        nuevo_estatus = data.get('esta_activo', True)
+        
+        municipio.esta_activo = nuevo_estatus
+        municipio.actualizado_por = request.user.id
+        municipio.save()
+        
+        estado_texto = "habilitado" if nuevo_estatus else "inhabilitado"
+        return JsonResponse({'success': True, 'mensaje': f'El municipio ha sido {estado_texto}.'})
+        
+    except Municipio.DoesNotExist:
+        return JsonResponse({'success': False, 'mensaje': 'El municipio no existe.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+
+@login_required
+@require_POST
+def toggle_estado(request, estado_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    
+    try:
+        estado = Estado.objects.get(id=estado_id)
+        data = json.loads(request.body)
+        nuevo_estatus = data.get('esta_activo', True)
+        
+        estado.esta_activo = nuevo_estatus
+        estado.actualizado_por = request.user.id
+        estado.save()
+        
+        estado_texto = "habilitado" if nuevo_estatus else "inhabilitado"
+        return JsonResponse({'success': True, 'mensaje': f'El estado ha sido {estado_texto}.'})
+        
+    except Estado.DoesNotExist:
+        return JsonResponse({'success': False, 'mensaje': 'El estado no existe.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+
 
 # --- GESTIÓN DE IDENTIFICACIÓN ---
 
@@ -155,7 +241,6 @@ def listar_tipos_docs(request):
 @login_required
 @require_POST
 def crear_tipo_documento(request):
-    """Lógica AJAX para guardar un nuevo tipo de documento de identidad"""
     try:
         sigla = request.POST.get('sigla', '').strip().upper()
         descripcion = request.POST.get('descripcion', '').strip()
@@ -165,11 +250,9 @@ def crear_tipo_documento(request):
         if not sigla or not descripcion:
             return JsonResponse({'success': False, 'error': 'Sigla y Descripción son obligatorios.'})
 
-        # Evitar duplicados por Sigla
         if TipoDocIdentificacion.objects.filter(sigla=sigla).exists():
             return JsonResponse({'success': False, 'error': f'La sigla "{sigla}" ya está registrada.'})
 
-        # Guardado en DB (Ajustado a tu esquema SQL)
         TipoDocIdentificacion.objects.create(
             sigla=sigla,
             descripcion=descripcion,
@@ -202,3 +285,26 @@ def listar_estados_civiles(request):
 def listar_tipos_contactos(request):
     contactos = TipoContacto.objects.all().order_by('id')
     return render(request, 'configuracion/identificacion/listar_tipos_contactos.html', {'contactos': contactos})
+
+@login_required
+@require_POST
+def toggle_parroquia(request, parroquia_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    
+    try:
+        parroquia = Parroquia.objects.get(id=parroquia_id)
+        data = json.loads(request.body)
+        nuevo_estatus = data.get('esta_activo', True)
+        
+        parroquia.esta_activo = nuevo_estatus
+        parroquia.actualizado_por = request.user.id
+        parroquia.save()
+        
+        estado_texto = "habilitado" if nuevo_estatus else "inhabilitado"
+        return JsonResponse({'success': True, 'mensaje': f'La parroquia ha sido {estado_texto}.'})
+        
+    except Parroquia.DoesNotExist:
+        return JsonResponse({'success': False, 'mensaje': 'La parroquia no existe.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})

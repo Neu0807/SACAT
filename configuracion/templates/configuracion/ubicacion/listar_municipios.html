@@ -1,85 +1,241 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<style>
+    /* =======================================================================
+       ESTILOS DEL MÓDULO (Integrados con variables del Login)
+       ======================================================================= */
+    
+    .dataTables_wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* 1. Panel Superior: El Buscador */
+    .search-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 15px 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        display: flex;
+        justify-content: flex-start;
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+    
+    .dataTables_filter { text-align: left !important; width: 100%; }
+    .dataTables_filter label { width: 100%; max-width: 350px; margin: 0; color: var(--text-muted); }
+    .dataTables_filter input {
+        width: 100% !important;
+        border-radius: 8px !important;
+        padding: 10px 15px !important;
+        border: 1px solid var(--border-color) !important;
+        background-color: var(--bg-body) !important;
+        color: var(--text-main) !important;
+        margin-left: 0 !important;
+        transition: all 0.3s ease;
+    }
+    .dataTables_filter input:focus {
+        border-color: var(--brand-primary) !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.2) !important;
+        outline: none;
+    }
+
+    /* 2. Panel Central: La Tabla */
+    .table-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    /* Encabezado Fijo */
+    .dataTables_scrollHeadInner table { margin-bottom: 0 !important; }
+    
+    .dataTables_scrollHead { 
+        background-color: var(--brand-primary) !important;
+        border-bottom: none !important; 
+        transition: background-color 0.3s;
+    }
+    
+    .dataTables_scrollHead th {
+        background-color: var(--brand-primary) !important;
+        color: #ffffff !important; 
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        border: none !important;
+        padding: 15px !important;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* Celdas de la tabla (Cuerpo) */
+    table.dataTable tbody td {
+        vertical-align: middle;
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+        background-color: var(--bg-card);
+        transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+    }
+    table.dataTable tbody tr:hover td { 
+        background-color: var(--brand-light) !important; 
+    }
+
+    /* 3. Panel Inferior: Paginación */
+    .pagination-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 10px 20px;
+        box-shadow: 0 -2px 4px rgba(0,0,0,0.02);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .dataTables_info { padding-top: 0 !important; font-size: 0.85rem; color: var(--text-muted) !important; }
+    .dataTables_paginate { margin: 0 !important; }
+    
+    .page-link {
+        color: var(--text-main);
+        background-color: var(--bg-body);
+        border-color: var(--border-color);
+        transition: all 0.3s;
+    }
+    .page-link:hover {
+        background-color: var(--border-color);
+        color: var(--text-main);
+    }
+    .page-item.active .page-link { 
+        background-color: var(--brand-primary) !important; 
+        border-color: var(--brand-primary) !important; 
+        color: #ffffff !important; 
+    }
+    .page-item.disabled .page-link {
+        color: var(--text-muted);
+        background-color: var(--bg-body);
+        border-color: var(--border-color);
+    }
+
+    /* 4. Estilos de Botones Globales */
+    .btn-primary {
+        background-color: var(--brand-primary);
+        border-color: var(--brand-primary);
+        color: #ffffff !important;
+        transition: all 0.3s;
+    }
+    .btn-primary:hover {
+        background-color: var(--brand-dark);
+        border-color: var(--brand-dark);
+    }
+
+    /* Estilos para el Estatus (Minimalista) */
+    .text-status-active { color: var(--color-success); font-weight: 600; letter-spacing: 0.5px; }
+    .text-status-inactive { color: var(--color-error); font-weight: 600; letter-spacing: 0.5px; }
+
+    /* Responsividad */
+    @media (max-width: 768px) {
+        .pagination-panel { flex-direction: column; justify-content: center; text-align: center; }
+        .dataTables_filter label { max-width: 100%; }
+    }
+</style>
+
 <div class="container-fluid py-4">
     <div class="mb-4">
-        <a href="{% url 'configuracion_ubicacion' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+        <a href="{% url 'configuracion_ubicacion' %}" class="btn btn-link text-decoration-none p-0 mb-2" style="color: var(--text-muted);">
             <i class="fas fa-arrow-left me-2"></i>Volver a Ubicación
         </a>
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <h2 class="fw-bold mb-0" style="color: var(--brand-primary);">
                 <i class="fas fa-city me-2"></i>Gestión de Municipios
             </h2>
             <div class="d-flex gap-2">
                 {% if request.user.is_superuser %}
                     <button class="btn btn-outline-success rounded-pill px-4 shadow-sm" onclick="abrirModalImportar()">
-                        <i class="fas fa-file-excel me-2"></i>Importar
+                        <i class="fas fa-file-excel me-2"></i><span class="d-none d-sm-inline">Importar</span>
                     </button>
                 {% endif %}
                 <button class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="abrirModalCrear()">
-                    <i class="fas fa-plus-circle me-2"></i>Crear
+                    <i class="fas fa-plus-circle me-2"></i><span class="d-none d-sm-inline">Crear</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0 align-middle">
-                <thead class="bg-primary text-white text-uppercase small">
-                    <tr>
-                        <th class="ps-4 py-3">Municipio</th>
-                        <th class="py-3">Estado Perteneciente</th>
-                        <th class="py-3 text-center">Estado Registro</th>
-                        <th class="py-3 text-end pe-4">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for m in municipios %}
-                    <tr>
-                        <td class="ps-4 fw-bold">{{ m.nombre_municipio }}</td>
-                        <td><span class="badge bg-light text-dark border">{{ m.estado.nombre_estado }}</span></td>
-                        <td class="text-center">
-                            {% if m.esta_activo %}<span class="text-success small fw-bold">ACTIVO</span>
-                            {% else %}<span class="text-danger small fw-bold">INACTIVO</span>{% endif %}
-                        </td>
-                        <td class="text-end pe-4">
-                            <button class="btn btn-sm btn-outline-primary border-0"><i class="fas fa-edit"></i></button>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="4" class="text-center py-5 text-muted">No hay municipios registrados.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <table id="tablaMunicipios" class="table w-100 m-0 display nowrap">
+        <thead>
+            <tr>
+                <th>Municipio</th>
+                <th>Estado Perteneciente</th>
+                <th class="text-center">Estatus</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in municipios %}
+            <tr>
+                <td class="fw-bold">{{ m.nombre_municipio }}</td>
+                <td>{{ m.estado.nombre_estado }}</td>
+                <td class="text-center">
+                    {% if m.esta_activo %}
+                        <span class="text-status-active"><i class="fas fa-circle ms-1 small"></i> ACTIVO</span>
+                    {% else %}
+                        <span class="text-status-inactive"><i class="fas fa-circle ms-1 small"></i> INACTIVO</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-link text-primary border-0 me-1" title="Editar"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-link {% if m.esta_activo %}text-danger{% else %}text-success{% endif %} border-0 btn-toggle-estatus" 
+                            data-id="{{ m.id }}" 
+                            data-nombre="{{ m.nombre_municipio }}"
+                            data-activo="{{ m.esta_activo|yesno:'true,false' }}"
+                            title="{% if m.esta_activo %}Inhabilitar{% else %}Habilitar{% endif %}">
+                        <i class="fas fa-power-off"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 <div class="modal fade" id="modalImportarMunicipios" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
-            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, #1E3A8A 0%, #172554 100%); color: white;">
+        <div class="modal-content border-0 shadow-lg" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden; transition: background-color 0.3s;">
+            
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%); color: white;">
                 <div class="d-flex align-items-center">
                     <div class="bg-white bg-opacity-25 rounded-circle p-2 me-3" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-city fs-5"></i>
                     </div>
                     <div>
                         <h5 class="modal-title fw-bold mb-0">Importar Municipios</h5>
-                        <small class="opacity-75">Relación por Estados</small>
+                        <small class="opacity-75">Carga masiva 2026</small>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
 
-            <div class="modal-body p-4" style="background-color: var(--bg-card);">
-                <div class="p-3 rounded-3 mb-4" style="background-color: #FFFBEB; border-left: 4px solid #F59E0B;">
-                    <div class="d-flex small text-dark">
+            <div class="modal-body p-4">
+                <div class="p-3 rounded-3 mb-4" style="background-color: rgba(245, 158, 11, 0.1); border-left: 4px solid #F59E0B;">
+                    <div class="d-flex small" style="color: var(--text-main);">
                         <i class="fas fa-exclamation-triangle mt-1 me-2 text-warning"></i>
                         <div>
                             <strong>Estructura requerida:</strong><br>
-                            Columna A: <b>Municipio</b> | Columna B: <b>Estado Exacto</b><br>
-                            <span class="text-muted">El Estado debe estar registrado previamente.</span>
+                            Columna A: <b>Estado</b> | Columna B: <b>Municipio</b><br>
+                            <span style="color: var(--text-muted);">Asegúrese de que el Estado exista en el sistema.</span>
                         </div>
                     </div>
                 </div>
@@ -87,29 +243,104 @@
                 <form id="formImportarMunicipios" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="mb-4 text-center">
-                        <div class="upload-area p-4 border border-2 border-dashed rounded-3" id="dropZoneMun" style="border-color: var(--border-color) !important; cursor: pointer;">
+                        <div class="upload-area p-4 border border-2 border-dashed rounded-3" id="dropZoneMun" style="border-color: var(--border-color) !important; cursor: pointer; transition: all 0.3s ease; background-color: var(--bg-body);">
                             <i class="fas fa-file-csv fa-3x mb-2" style="color: var(--brand-primary); opacity: 0.5;"></i>
-                            <p class="small text-muted mb-0">Arrastre aquí su archivo .xlsx o .csv</p>
+                            <p class="small mb-0" style="color: var(--text-muted);">Arrastre aquí su archivo .xlsx o .csv</p>
                             <input type="file" name="archivo" id="archivoMun" class="form-control d-none" accept=".xlsx, .xls, .csv" required>
-                            <div id="file-name-mun" class="mt-2 fw-bold small text-primary"></div>
+                            <div id="file-name-mun" class="mt-2 fw-bold small" style="color: var(--brand-primary);"></div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 py-3 shadow-sm fw-bold">
-                        <i class="fas fa-upload me-2"></i> Cargar Municipios
-                    </button>
+                    <button type="submit" class="btn btn-primary w-100 py-3 shadow-sm fw-bold">PROCESAR ARCHIVO</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    .upload-area:hover { background-color: var(--brand-light); border-color: var(--brand-primary) !important; transition: all 0.3s ease; }
-</style>
 {% endblock %}
 
 {% block scripts %}
 <script>
+    $(document).ready(function() {
+        $('#tablaMunicipios').DataTable({
+            // responsive: true, <-- Lo quitamos para que no ponga el "+" verde
+            scrollX: true,    // <-- Agregamos scroll horizontal para celulares
+            scrollY: "35vh",
+            scrollCollapse: true,
+            paging: true,
+            pageLength: 15,
+            dom: '<"search-panel"f><"table-panel"t><"pagination-panel"ip>',
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
+                search: "", 
+                searchPlaceholder: "🔍 Filtrar municipio o estado..."
+            }
+        });
+
+        // ==========================================
+        // Lógica AJAX para Cambiar Estatus
+        // ==========================================
+        $('.btn-toggle-estatus').on('click', function() {
+            const btn = $(this);
+            const id = btn.data('id');
+            const nombre = btn.data('nombre');
+            const estaActivo = btn.data('activo') === true; // Convertimos a booleano
+            const accionTexto = estaActivo ? 'inhabilitar' : 'habilitar';
+            const nuevoEstatus = !estaActivo;
+            
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const swalBg = isDark ? '#1E293B' : '#ffffff';
+            const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
+            Swal.fire({
+                title: `¿Desea ${accionTexto} el municipio?`,
+                text: nombre,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: 'var(--brand-primary)',
+                cancelButtonColor: 'var(--text-muted)',
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'Cancelar',
+                background: swalBg, color: swalColor
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    
+                    Swal.fire({
+                        title: 'Procesando...',
+                        allowOutsideClick: false, showConfirmButton: false,
+                        background: swalBg, color: swalColor,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    // Petición AJAX al servidor
+                    fetch(`/configuracion/municipios/toggle/${id}/`, {
+                        method: 'POST',
+                        headers: { 
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ esta_activo: nuevoEstatus })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({ 
+                                icon: 'success', title: '¡Actualizado!', text: data.mensaje,
+                                confirmButtonColor: 'var(--brand-primary)', background: swalBg, color: swalColor
+                            }).then(() => { location.reload(); }); // Recargamos para ver los cambios
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje, background: swalBg, color: swalColor });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire('Error crítico', 'No se pudo conectar con el servidor.', 'error');
+                    });
+                }
+            });
+        });
+    });
+
+    // --- Lógica de Importación (Intacta) ---
     const dropZone = document.getElementById('dropZoneMun');
     const fileInput = document.getElementById('archivoMun');
     const fileName = document.getElementById('file-name-mun');
@@ -122,6 +353,8 @@
                 dropZone.style.backgroundColor = 'var(--brand-light)';
             }
         };
+        dropZone.addEventListener('mouseover', () => dropZone.style.borderColor = 'var(--brand-primary)');
+        dropZone.addEventListener('mouseout', () => dropZone.style.borderColor = 'var(--border-color)');
     }
 
     document.getElementById('formImportarMunicipios').addEventListener('submit', function(e) {
@@ -140,40 +373,23 @@
         });
 
         fetch("{% url 'importar_municipios' %}", {
-            method: 'POST', 
-            body: formData, 
-            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            method: 'POST', body: formData, headers: { 'X-CSRFToken': '{{ csrf_token }}' }
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 Swal.fire({ 
-                    icon: 'success', 
-                    title: '¡Éxito!', 
-                    text: data.mensaje, 
-                    confirmButtonColor: 'var(--brand-primary)',
-                    background: isDark ? '#1E293B' : '#ffffff',
-                    color: isDark ? '#F8FAFC' : '#0F172A'
+                    icon: 'success', title: '¡Éxito!', text: data.mensaje, 
+                    confirmButtonColor: 'var(--brand-primary)', background: isDark ? '#1E293B' : '#ffffff', color: isDark ? '#F8FAFC' : '#0F172A'
                 }).then(() => { location.reload(); });
             } else {
-                Swal.fire({ 
-                    icon: 'error', 
-                    title: 'Error', 
-                    text: data.mensaje,
-                    background: isDark ? '#1E293B' : '#ffffff',
-                    color: isDark ? '#F8FAFC' : '#0F172A'
-                });
+                Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje, background: isDark ? '#1E293B' : '#ffffff', color: isDark ? '#F8FAFC' : '#0F172A' });
             }
-        })
-        .catch(error => {
-            Swal.fire('Error crítico', 'No se pudo conectar con el servidor.', 'error');
         });
     });
 
     function abrirModalImportar() {
-        const modalEl = document.getElementById('modalImportarMunicipios');
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
+        new bootstrap.Modal(document.getElementById('modalImportarMunicipios')).show();
     }
 </script>
 {% endblock %}
