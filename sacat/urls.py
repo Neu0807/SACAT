@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('seguridad.urls')), # <--- Conectamos la app de seguridad
     path('configuracion/', include('configuracion.urls')), # Configuración con su prefijo
+    path('trabajadores/', include('trabajadores.urls')),
 ]

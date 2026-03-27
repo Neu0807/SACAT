@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row justify-content-center mb-3">
+        <div class="col-12 col-lg-11">
+            <div class="card border-0 shadow-sm p-3" style="background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-body) 100%); border-radius: 15px;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-shape bg-primary-soft text-primary rounded-3 p-2 me-3">
+                            <i class="fas fa-user-plus fa-lg"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0" style="color: var(--brand-primary);">Registro de Trabajador</h5>
+                            <small class="text-muted">Paso 1: Identificación e Información Básica</small>
+                        </div>
+                    </div>
+                    <div class="text-end" style="min-width: 200px;">
+                        <div class="d-flex align-items-center justify-content-end mb-1">
+                            <span class="badge bg-primary-soft text-primary rounded-pill px-3 py-1 small fw-bold">10% Completado</span>
+                        </div>
+                        <div class="progress" style="height: 6px; background-color: rgba(0,0,0,0.05);">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 10%; background-color: var(--brand-primary);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-11">
+            <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden;">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-id-card text-primary me-2"></i>
+                        <h6 class="fw-bold mb-0" style="color: var(--text-main);">DATOS DE IDENTIDAD</h6>
+                    </div>
+                    <hr class="mt-2 mb-0 opacity-10">
+                </div>
+
+                <form id="formDatosPersonales" class="p-4 pt-3" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold small">Tipo <span class="text-danger">*</span></label>
+                            <select name="tipo_doc" class="form-select custom-input" required>
+                                <option value="" selected disabled>...</option>
+                                {% for td in tipos_docs %}
+                                <option value="{{ td.id }}">{{ td.sigla }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold small">Cédula / Pasaporte <span class="text-danger">*</span></label>
+                            <input type="text" name="cedula" class="form-control custom-input" placeholder="Solo números" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold small">Fecha Nacimiento <span class="text-danger">*</span></label>
+                            <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control custom-input" required>
+                        </div>
+
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold small">Lugar de Nacimiento <span class="text-danger">*</span></label>
+                            <input type="text" name="lugar_nacimiento" class="form-control custom-input" placeholder="Ej: CARACAS, DISTRITO CAPITAL" required>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <div class="p-2 rounded-3 border bg-light w-100 d-flex align-items-center" style="height: 48px;">
+                                <div class="form-check form-switch mb-0 ms-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" name="es_naturalizado" id="checkNaturalizado">
+                                    <label class="form-check-label fw-bold small ms-2" for="checkNaturalizado">¿Naturalizado?</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="divGaceta" class="col-12" style="display: none;">
+                            <div class="row g-3 p-3 rounded-3 border-start border-primary border-4 bg-light mx-0 shadow-sm">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small text-primary">Nro. de Gaceta <span class="text-danger">*</span></label>
+                                    <input type="text" name="nro_gaceta" id="inputGaceta" class="form-control custom-input" placeholder="Nro. Gaceta">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small text-primary">Fecha de Gaceta <span class="text-danger">*</span></label>
+                                    <input type="date" name="fecha_gaceta" id="inputFechaGaceta" class="form-control custom-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small">Primer Nombre <span class="text-danger">*</span></label>
+                            <input type="text" name="nombre1" class="form-control custom-input" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small text-muted">Segundo Nombre</label>
+                            <input type="text" name="nombre2" class="form-control custom-input">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small">Primer Apellido <span class="text-danger">*</span></label>
+                            <input type="text" name="apellido1" class="form-control custom-input" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small text-muted">Segundo Apellido</label>
+                            <input type="text" name="apellido2" class="form-control custom-input">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Sexo <span class="text-danger">*</span></label>
+                            <select name="sexo" class="form-select custom-input" required>
+                                <option value="" selected disabled>Seleccione...</option>
+                                {% for s in sexos %}
+                                <option value="{{ s.id }}">{{ s.descripcion }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Estado Civil <span class="text-danger">*</span></label>
+                            <select name="estado_civil" class="form-select custom-input" required>
+                                <option value="" selected disabled>Seleccione...</option>
+                                {% for ec in estados_civiles %}
+                                <option value="{{ ec.id }}">{{ ec.descripcion }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-between">
+                        <a href="{% url 'inicio' %}" class="btn btn-light px-4 fw-bold text-muted border">
+                            <i class="fas fa-chevron-left me-2"></i>Inicio
+                        </a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold shadow" id="btnSiguiente">
+                            SIGUIENTE PASO <i class="fas fa-chevron-right ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-primary-soft { background-color: rgba(30, 58, 138, 0.1); }
+    .custom-input { 
+        background-color: var(--bg-body) !important; 
+        border: 1px solid #e2e8f0 !important; 
+        border-radius: 10px !important; 
+        padding: 10px 15px !important; 
+        font-size: 0.95rem !important;
+        transition: all 0.2s;
+    }
+    .custom-input:focus { border-color: var(--brand-primary) !important; box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1) !important; background-color: #fff !important; }
+    .btn-primary { background: linear-gradient(135deg, var(--brand-primary) 0%, #3b82f6 100%) !important; border: none !important; border-radius: 10px !important; padding: 12px 30px !important; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2) !important; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('formDatosPersonales');
+    const inputFecha = document.getElementById('fecha_nacimiento');
+    const checkNat = document.getElementById('checkNaturalizado');
+    const divGaceta = document.getElementById('divGaceta');
+    const inputGaceta = document.getElementById('inputGaceta');
+    const inputFechaGaceta = document.getElementById('inputFechaGaceta');
+    
+    // Colores dinámicos para SweetAlert
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    const swalBg = isDark ? '#1E293B' : '#ffffff';
+    const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
+    // 1. Regla de Negocio: Mínimo 16 años
+    if (inputFecha) {
+        const hoy = new Date();
+        const hace16años = new Date(hoy.getFullYear() - 16, hoy.getMonth(), hoy.getDate());
+        inputFecha.setAttribute('max', hace16años.toISOString().split('T')[0]);
+    }
+
+    // 2. Manejo dinámico de Naturalización
+    checkNat.addEventListener('change', function() {
+        if (this.checked) {
+            divGaceta.style.display = 'block';
+            inputGaceta.setAttribute('required', '');
+            inputFechaGaceta.setAttribute('required', '');
+        } else {
+            divGaceta.style.display = 'none';
+            inputGaceta.removeAttribute('required');
+            inputFechaGaceta.removeAttribute('required');
+            inputGaceta.value = '';
+            inputFechaGaceta.value = '';
+        }
+    });
+
+    // 3. Envío y Validación Global
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Validar campos requeridos dinámicos y estáticos
+        const camposRequeridos = form.querySelectorAll('[required]');
+        let faltanCampos = false;
+
+        camposRequeridos.forEach(campo => {
+            if (!campo.value || campo.value.trim() === "") {
+                faltanCampos = true;
+                campo.classList.add('is-invalid');
+            } else {
+                campo.classList.remove('is-invalid');
+            }
+        });
+
+        if (faltanCampos) {
+            Swal.fire({
+                icon: 'warning', title: 'Atención', text: 'Por favor, rellene todos los campos obligatorios (*).',
+                background: swalBg, color: swalColor, confirmButtonColor: 'var(--brand-primary)'
+            });
+            return;
+        }
+
+        const btn = document.getElementById('btnSiguiente');
+        const originalContent = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Guardando...';
+
+        fetch("{% url 'guardar_paso1' %}", {
+            method: "POST",
+            body: new FormData(this),
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({ 
+                    icon: 'success', title: '¡Excelente!', text: data.message, 
+                    timer: 2000, showConfirmButton: false, background: swalBg, color: swalColor 
+                }).then(() => window.location.href = data.next_url);
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: data.error, background: swalBg, color: swalColor });
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        })
+        .catch(err => {
+            Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo conectar con el servidor.', background: swalBg, color: swalColor });
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -174,3 +174,62 @@ class TipoContacto(models.Model):
 
     def __str__(self):
         return self.descripcion
+    
+# ==============================================================================
+# CATEGORÍA 3: VIVIENDA Y DOMICILIO (Paso 2)
+# ==============================================================================
+
+class Direccion(models.Model):
+    parroquia = models.ForeignKey(Parroquia, on_delete=models.PROTECT, db_column='parroquia_id')
+    direccion_exacta = models.TextField()
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'direcciones'
+        managed = False
+
+    def save(self, *args, **kwargs):
+        if self.direccion_exacta:
+            self.direccion_exacta = self.direccion_exacta.strip().upper()
+        super(Direccion, self).save(*args, **kwargs)
+
+# ... (lo que ya tenías de Estado, Municipio, Parroquia, Sexo, etc.)
+
+class UnidadesOrganizativas(models.Model):
+    nombre_unidad = models.CharField(max_length=150)
+    esta_activo = models.BooleanField(default=True)
+    class Meta:
+        db_table = 'unidades_organizativas'
+        managed = False
+
+class CargosGenerico(models.Model):
+    nombre_cargo = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    class Meta:
+        db_table = 'cargos_genericos'
+        managed = False
+
+class CargosEstructural(models.Model):
+    nombre_cargo_estruct = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    class Meta:
+        db_table = 'cargos_estructurales'
+        managed = False
+
+class TiposTrabajadore(models.Model):
+    descripcion = models.CharField(max_length=50)
+    esta_activo = models.BooleanField(default=True)
+    class Meta:
+        db_table = 'tipos_trabajadores'
+        managed = False
+
+class EstatusTrabajadore(models.Model):
+    descripcion = models.CharField(max_length=50)
+    esta_activo = models.BooleanField(default=True)
+    class Meta:
+        db_table = 'estatus_trabajadores'
+        managed = False
