@@ -233,3 +233,46 @@ class EstatusTrabajadore(models.Model):
     class Meta:
         db_table = 'estatus_trabajadores'
         managed = False
+
+# ==============================================================================
+# CATEGORÍA 4: TABLAS MAESTRAS DE VIVIENDA (Lo que faltaba)
+# ==============================================================================
+
+class TiposVivienda(models.Model):
+    descripcion = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    
+    # Auditoría
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tipos_viviendas'
+        managed = False
+
+    def save(self, *args, **kwargs):
+        if self.descripcion:
+            self.descripcion = self.descripcion.strip().upper()
+        super(TiposVivienda, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.descripcion
+
+class CondicionesVivienda(models.Model):
+    descripcion = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    
+    # Añadimos estos para que la BD no rebote el insert
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'condiciones_viviendas'
+        managed = False
+
+    def __str__(self): 
+        return self.descripcion.upper()

@@ -1,5 +1,6 @@
 from django.db import models
-# Importamos los modelos maestros de la app configuracion
+
+# Importamos lo que sí sabemos que existe en configuracion
 from configuracion.models import (
     TipoDocIdentificacion, Sexo, EstadoCivil, 
     UnidadesOrganizativas, CargosGenerico, CargosEstructural,
@@ -15,7 +16,6 @@ class Persona(models.Model):
     primer_apellido = models.CharField(max_length=50)
     segundo_apellido = models.CharField(max_length=50, null=True, blank=True)
     
-    # Datos de Nacionalidad y Nacimiento
     es_naturalizado = models.BooleanField(default=False)
     nro_gaceta = models.CharField(max_length=50, null=True, blank=True)
     fecha_gaceta = models.DateField(null=True, blank=True)
@@ -26,7 +26,6 @@ class Persona(models.Model):
     estado_civil = models.ForeignKey(EstadoCivil, on_delete=models.PROTECT, db_column='estado_civil_id')
     esta_activo = models.BooleanField(default=True)
     
-    # Auditoría
     creado_por = models.IntegerField(null=True, blank=True)
     actualizado_por = models.IntegerField(null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -52,6 +51,40 @@ class PersonaDireccion(models.Model):
         db_table = 'personas_direcciones'
         managed = False
 
+# --- MODELO VIVIENDA (Tabla: viviendas) ---
+
+# En trabajadores/models.py
+class Vivienda(models.Model):
+    direccion = models.ForeignKey(Direccion, on_delete=models.CASCADE, db_column='direccion_id')
+    tipo_vivienda = models.ForeignKey('configuracion.TiposVivienda', on_delete=models.PROTECT, db_column='tipo_vivienda_id')
+    
+    # IMPORTANTE: db_column debe ser igualito al nombre que pusiste en el ALTER TABLE
+    condicion_vivienda = models.ForeignKey(
+        'configuracion.CondicionesVivienda', 
+        on_delete=models.PROTECT, 
+        db_column='condicion_vivienda_id' 
+    )
+    
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'viviendas'
+        managed = False
+
+# --- RELACIÓN PERSONA-VIVIENDA (Tabla: personas_viviendas) ---
+class PersonaVivienda(models.Model):
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE, db_column='persona_id')
+    vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE, db_column='vivienda_id')
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'personas_viviendas'
+        managed = False
+
 # --- MODELO TRABAJADOR (Tabla: trabajadores) ---
 class Trabajador(models.Model):
     persona = models.OneToOneField(Persona, on_delete=models.CASCADE, db_column='persona_id')
@@ -64,7 +97,6 @@ class Trabajador(models.Model):
     fecha_ingreso_inst = models.DateField()
     esta_activo = models.BooleanField(default=True)
     
-    # Auditoría
     creado_por = models.IntegerField(null=True, blank=True)
     actualizado_por = models.IntegerField(null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -73,3 +105,18 @@ class Trabajador(models.Model):
     class Meta:
         db_table = 'trabajadores'
         managed = False
+
+class CondicionesVivienda(models.Model):
+    descripcion = models.CharField(max_length=50)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'condiciones_viviendas'
+        managed = False
+
+    def __str__(self):
+        return self.descripcion.upper()
