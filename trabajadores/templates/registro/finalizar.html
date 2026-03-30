@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    /* =======================================================================
+       ESTILOS UNIFICADOS SACAT - PASO FINAL CON SEGURIDAD
+       ======================================================================= */
+    .card-success { 
+        background-color: var(--bg-card); 
+        border: 1px solid var(--border-color); 
+        border-radius: 12px; 
+    }
+    .header-success {
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%);
+        border-radius: 12px 12px 0 0;
+        padding: 40px 20px;
+    }
+    .credential-box {
+        background-color: var(--bg-body);
+        border: 1px dashed var(--brand-primary);
+        border-radius: 10px;
+    }
+    .decision-card {
+        background-color: var(--brand-light);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    .text-brand { color: var(--brand-primary); }
+    .fw-800 { font-weight: 800; }
+
+    /* Animación del Check */
+    .check-anim {
+        color: var(--color-success);
+        filter: drop-shadow(0 0 10px rgba(14, 159, 110, 0.3));
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-7">
+            
+            <div class="card card-success shadow-sm overflow-hidden border-0">
+                <div class="header-success text-center text-white">
+                    <div class="mb-3">
+                        <i class="fas fa-check-circle fa-4x check-anim animate__animated animate__bounceIn"></i>
+                    </div>
+                    <h3 class="fw-800 mb-1 text-uppercase" style="letter-spacing: 1px;">¡Registro Exitoso!</h3>
+                    <p class="mb-0 opacity-75" style="font-size: 0.85rem;">EL TRABAJADOR HA SIDO INCORPORADO AL SACAT</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5 text-center">
+                    <div class="mb-4">
+                        <h5 class="text-main fw-bold mb-1 text-uppercase">
+                            {{ persona.primer_nombre }} {{ persona.primer_apellido }}
+                        </h5>
+                        <p class="text-muted small">C.I: {{ persona.cedula }}</p>
+                        <p class="text-muted" style="font-size: 0.8rem;">
+                            Los datos laborales se han guardado. A continuación, configure el acceso al sistema si es necesario.
+                        </p>
+                    </div>
+
+                    <form id="formFinalizar">
+                        {% csrf_token %}
+                        <input type="hidden" name="email_envio" value="{{ correo }}">
+                        <input type="hidden" name="password_generada" value="{{ password_generada }}">
+
+                        <div class="decision-card p-3 mb-4 text-start">
+                            <div class="form-check form-switch d-flex justify-content-between align-items-center m-0">
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-brand" style="font-size: 0.85rem;">¿ACTIVAR ACCESO AL SISTEMA?</h6>
+                                    <p class="text-muted mb-0" style="font-size: 0.65rem;">Crea un usuario y envía credenciales por correo electrónico.</p>
+                                </div>
+                                <input class="form-check-input" type="checkbox" id="check_crear_usuario" name="check_crear_usuario" style="width: 3em; height: 1.5em; cursor: pointer;">
+                            </div>
+                        </div>
+
+                        <div id="seccion_seguridad" style="display: none;" class="animate__animated animate__fadeIn">
+                            <div class="row g-3 mb-4 text-start">
+                                <div class="col-md-12">
+                                    <label class="form-label" style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted);">ASIGNAR ROL DE USUARIO <span class="text-danger">*</span></label>
+                                    <select name="rol_id" id="select_rol" class="form-select custom-input">
+                                        <option value="" selected disabled>Seleccione el nivel de acceso...</option>
+                                        {% for rol in roles %}
+                                            <option value="{{ rol.id }}">{{ rol.nombre_rol }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="credential-box p-4 mb-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-shield-alt text-brand me-2"></i>
+                                    <h6 class="fw-800 text-brand mb-0" style="font-size: 0.75rem; text-transform: uppercase;">Credenciales de Acceso</h6>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-sm-6 text-start text-sm-center">
+                                        <label class="text-muted d-block mb-1" style="font-size: 0.65rem; font-weight: 700;">USUARIO</label>
+                                        <div class="p-2 border rounded bg-white fw-bold text-main" style="font-size: 0.9rem;">
+                                            {{ persona.cedula }}
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 text-start text-sm-center">
+                                        <label class="text-muted d-block mb-1" style="font-size: 0.65rem; font-weight: 700;">CONTRASEÑA TEMPORAL</label>
+                                        <div class="p-2 border rounded bg-white fw-bold text-brand" style="font-size: 0.8rem; font-family: monospace;">
+                                            {{ password_generada }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 pt-3 border-top border-secondary border-opacity-10 text-center">
+                                    <small class="text-muted" style="font-size: 0.7rem;">
+                                        <i class="fas fa-envelope-open-text me-1 text-primary"></i> 
+                                        Se enviará el acceso al correo: <b class="text-main">{{ correo }}</b>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center mt-2 pt-3 border-top border-opacity-10">
+                            <button type="button" 
+                                    onclick="window.open('{% url 'imprimir_ficha_pdf' persona.id %}', '_blank')" 
+                                    class="btn btn-outline-secondary px-4 fw-bold shadow-sm" 
+                                    style="font-size: 0.8rem; border-radius: 8px;">
+                                <i class="fas fa-print me-2"></i>IMPRIMIR FICHA
+                            </button>
+                            <button type="button" id="btnFinalizar" onclick="procesarFinalizacion()" class="btn btn-primary px-5 fw-bold shadow-sm">
+                                FINALIZAR REGISTRO <i class="fas fa-check-double ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <p class="text-muted" style="font-size: 0.7rem;">¿Desea subir los documentos ahora? 
+                    <a href="#" class="text-brand fw-bold text-decoration-none">PASO 9: RECAUDOS <i class="fas fa-arrow-right ms-1"></i></a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Mostrar/Ocultar sección de seguridad dinámicamente
+    document.getElementById('check_crear_usuario').addEventListener('change', function() {
+        const seccion = document.getElementById('seccion_seguridad');
+        seccion.style.display = this.checked ? 'block' : 'none';
+        if(this.checked) {
+            seccion.classList.add('animate__fadeIn');
+        }
+    });
+
+    function procesarFinalizacion() {
+        const btn = document.getElementById('btnFinalizar');
+        const crearUsuario = document.getElementById('check_crear_usuario').checked;
+        const rolId = document.getElementById('select_rol').value;
+
+        // Validación si se marcó crear usuario
+        if (crearUsuario && !rolId) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Rol Requerido',
+                text: 'Debe asignar un rol al usuario para poder continuar.',
+                confirmButtonColor: 'var(--brand-primary)'
+            });
+            return;
+        }
+
+        // Efecto de carga
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> PROCESANDO...';
+
+        const form = document.getElementById('formFinalizar');
+        const formData = new FormData(form);
+        
+        // Añadimos manualmente los valores del switch y el select al formData
+        formData.append('crear_usuario', crearUsuario);
+        formData.append('rol_id', rolId);
+
+        fetch("{% url 'finalizar_registro' %}", {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Todo Listo!',
+                    text: 'El expediente ha sido cerrado exitosamente.',
+                    confirmButtonColor: 'var(--brand-primary)',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = "{% url 'registro_paso1' %}";
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.error,
+                    confirmButtonColor: 'var(--brand-primary)'
+                });
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo contactar con el servidor.' });
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        });
+    }
+</script>
+{% endblock %}

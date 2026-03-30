@@ -1,0 +1,333 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<style>
+    /* =======================================================================
+       ESTILOS DEL MÓDULO (Estandarizados SACAT)
+       ======================================================================= */
+    
+    .dataTables_wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .search-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 15px 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        display: flex;
+        justify-content: flex-start;
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+    
+    .dataTables_filter { text-align: left !important; width: 100%; }
+    .dataTables_filter label { width: 100%; max-width: 400px; margin: 0; color: var(--text-muted); }
+    .dataTables_filter input {
+        width: 100% !important;
+        border-radius: 8px !important;
+        padding: 10px 15px !important;
+        border: 1px solid var(--border-color) !important;
+        background-color: var(--bg-body) !important;
+        color: var(--text-main) !important;
+        margin-left: 0 !important;
+        transition: all 0.3s ease;
+    }
+    .dataTables_filter input:focus {
+        border-color: var(--brand-primary) !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.2) !important;
+        outline: none;
+    }
+
+    .table-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .dataTables_scrollHeadInner table { margin-bottom: 0 !important; }
+    
+    .dataTables_scrollHead { 
+        background-color: var(--brand-primary) !important;
+        border-bottom: none !important; 
+        transition: background-color 0.3s;
+    }
+    
+    .dataTables_scrollHead th {
+        background-color: var(--brand-primary) !important;
+        color: #ffffff !important; 
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        border: none !important;
+        padding: 15px !important;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    table.dataTable tbody td {
+        vertical-align: middle;
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+        background-color: var(--bg-card);
+        transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+    }
+    table.dataTable tbody tr:hover td { 
+        background-color: var(--brand-light) !important; 
+    }
+
+    .pagination-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 10px 20px;
+        box-shadow: 0 -2px 4px rgba(0,0,0,0.02);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .dataTables_info { padding-top: 0 !important; font-size: 0.85rem; color: var(--text-muted) !important; }
+    
+    .page-item.active .page-link { 
+        background-color: var(--brand-primary) !important; 
+        border-color: var(--brand-primary) !important; 
+        color: #ffffff !important; 
+    }
+
+    .text-status-active { color: var(--color-success); font-weight: 600; letter-spacing: 0.5px; }
+    .text-status-inactive { color: var(--color-error); font-weight: 600; letter-spacing: 0.5px; }
+
+    @media (max-width: 768px) {
+        .pagination-panel { flex-direction: column; justify-content: center; text-align: center; }
+        .dataTables_filter label { max-width: 100%; }
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <a href="{% url 'configuracion_ubicacion' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+            <i class="fas fa-arrow-left me-2"></i>Volver a Ubicación
+        </a>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <h2 class="fw-bold mb-0" style="color: var(--brand-primary);">
+                <i class="fas fa-vote-yea me-2"></i>Gestión de Centros de Votación
+            </h2>
+            <div class="d-flex gap-2">
+                {% if request.user.is_superuser %}
+                    <button class="btn btn-outline-success rounded-pill px-4 shadow-sm" onclick="abrirModalImportar()">
+                        <i class="fas fa-file-csv me-2"></i><span class="d-none d-sm-inline">Importar</span>
+                    </button>
+                {% endif %}
+                <button class="btn btn-primary rounded-pill px-4 shadow-sm">
+                    <i class="fas fa-plus-circle me-2"></i><span class="d-none d-sm-inline">Crear</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <table id="tablaCentros" class="table w-100 m-0 display nowrap">
+        <thead>
+            <tr>
+                <th>Código CNE</th>
+                <th>Centro de Votación</th>
+                <th>Parroquia</th>
+                <th>Municipio</th>
+                <th>Estado</th>
+                <th class="text-center">Estatus</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in centros %}
+            <tr>
+                <td class="fw-bold text-primary">{{ c.codigo_cne }}</td>
+                <td class="fw-bold text-wrap" style="max-width: 300px;">{{ c.nombre_centro }}</td>
+                <td>{{ c.parroquia.nombre_parroquia }}</td>
+                <td>{{ c.parroquia.municipio.nombre_municipio }}</td>
+                <td>{{ c.parroquia.municipio.estado.nombre_estado }}</td>
+                <td class="text-center">
+                    {% if c.esta_activo %}
+                        <span class="text-status-active"> ACTIVO</span>
+                    {% else %}
+                        <span class="text-status-inactive">INACTIVO</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-link text-primary border-0 me-1" title="Editar"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-link {% if c.esta_activo %}text-danger{% else %}text-success{% endif %} border-0 btn-toggle-estatus" 
+                            data-id="{{ c.id }}" 
+                            data-nombre="{{ c.nombre_centro }}"
+                            data-activo="{{ c.esta_activo|yesno:'true,false' }}"
+                            title="{% if c.esta_activo %}Inhabilitar{% else %}Habilitar{% endif %}">
+                        <i class="fas fa-power-off"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="modalImportarCentros" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden; transition: background-color 0.3s;">
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%); color: white;">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white bg-opacity-25 rounded-circle p-2 me-3" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-upload fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0">Importar Centros</h5>
+                        <small class="opacity-75">Carga Masiva Electoral</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-4">
+                <div class="p-3 rounded-3 mb-4" style="background-color: rgba(245, 158, 11, 0.1); border-left: 4px solid #F59E0B;">
+                    <div class="d-flex small" style="color: var(--text-main);">
+                        <i class="fas fa-info-circle mt-1 me-2 text-warning"></i>
+                        <div>
+                            <strong>Orden de Columnas:</strong><br>
+                            A: <b>Estado</b> | B: <b>Municipio</b> | C: <b>Parroquia</b><br>
+                            D: <b>Nombre del Centro</b> | E: <b>Código CNE</b><br>
+                            <span style="color: var(--text-muted);" class="font-italic text-xs">Asegúrese de que la parroquia ya exista en el sistema.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="formImportarCentros" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-4 text-center">
+                        <div class="upload-area p-4 border border-2 border-dashed rounded-3" id="dropZoneCentros" style="border-color: var(--border-color) !important; cursor: pointer; transition: all 0.3s ease; background-color: var(--bg-body);">
+                            <i class="fas fa-file-csv fa-3x mb-2" style="color: var(--brand-primary); opacity: 0.5;"></i>
+                            <p class="small mb-0" style="color: var(--text-muted);">Seleccione el archivo CSV o Excel</p>
+                            <input type="file" name="archivo" id="archivoCentros" class="form-control d-none" accept=".xlsx, .xls, .csv" required>
+                            <div id="file-name-centros" class="mt-2 fw-bold small" style="color: var(--brand-primary);"></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-3 shadow-sm fw-bold">PROCESAR ARCHIVO</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // Inicializar DataTables para Centros
+        $('#tablaCentros').DataTable({
+            scrollX: true,
+            scrollY: "45vh",
+            scrollCollapse: true,
+            paging: true,
+            pageLength: 25,
+            dom: '<"search-panel"f><"table-panel"t><"pagination-panel"ip>',
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
+                search: "", 
+                searchPlaceholder: "🔍 Filtrar por código, nombre, parroquia o estado..."
+            }
+        });
+
+        // Cambiar Estatus Centro (AJAX)
+        $('.btn-toggle-estatus').on('click', function() {
+            const btn = $(this);
+            const id = btn.data('id');
+            const nombre = btn.data('nombre');
+            const estaActivo = btn.data('activo') === true; 
+            const accion = estaActivo ? 'inhabilitar' : 'habilitar';
+            
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const swalConfig = {
+                background: isDark ? '#1E293B' : '#ffffff',
+                color: isDark ? '#F8FAFC' : '#0F172A'
+            };
+
+            Swal.fire({
+                title: `¿Desea ${accion} este centro?`,
+                text: nombre,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: 'var(--brand-primary)',
+                confirmButtonText: 'Sí, continuar',
+                ...swalConfig
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let urlToggle = "{% url 'toggle_centro_votacion' 0 %}".replace('0', id);
+                    fetch(urlToggle, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ esta_activo: !estaActivo })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) location.reload();
+                        else Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje, ...swalConfig });
+                    });
+                }
+            });
+        });
+    });
+
+    // Lógica de Importación
+    const dropZone = document.getElementById('dropZoneCentros');
+    const fileInput = document.getElementById('archivoCentros');
+    const fileName = document.getElementById('file-name-centros');
+
+    if(dropZone){
+        dropZone.onclick = () => fileInput.click();
+        fileInput.onchange = () => {
+            if(fileInput.files.length > 0) fileName.innerHTML = `<i class="fas fa-check-circle me-1"></i> ${fileInput.files[0].name}`;
+        };
+    }
+
+    document.getElementById('formImportarCentros').addEventListener('submit', function(e) {
+        e.preventDefault();
+        let formData = new FormData(this);
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
+        Swal.fire({
+            title: 'Importando Centros...',
+            text: 'Estamos procesando la data electoral, por favor espere.',
+            allowOutsideClick: false, showConfirmButton: false,
+            background: isDark ? '#1E293B' : '#ffffff', color: isDark ? '#F8FAFC' : '#0F172A',
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        fetch("{% url 'importar_centros_votaciones' %}", {
+            method: 'POST', body: formData, headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: '¡Fino!', text: data.mensaje, confirmButtonColor: 'var(--brand-primary)', background: isDark ? '#1E293B' : '#ffffff', color: isDark ? '#F8FAFC' : '#0F172A' }).then(() => location.reload());
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje, background: isDark ? '#1E293B' : '#ffffff', color: isDark ? '#F8FAFC' : '#0F172A' });
+            }
+        });
+    });
+
+    function abrirModalImportar() {
+        new bootstrap.Modal(document.getElementById('modalImportarCentros')).show();
+    }
+</script>
+{% endblock %}

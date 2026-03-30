@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: letter;
+            /* Margen izquierdo de 2.5cm para encuadernar / Otros de 1cm */
+            margin: 1cm 1cm 1cm 2.5cm; 
+            
+            @frame footer {
+                -pdf-frame-content: footer_content;
+                bottom: 0.5cm;
+                margin-left: 2.5cm;
+                margin-right: 1cm;
+                height: 1cm;
+            }
+        }
+
+        body { 
+            font-family: 'Helvetica', sans-serif; 
+            font-size: 8.5pt; 
+            color: #0F172A; 
+        }
+        
+        /* Evita que los bloques se corten entre páginas */
+        .bloque-contenedor {
+            page-break-inside: avoid;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .header-table { width: 100%; border-bottom: 2px solid #1E3A8A; margin-bottom: 15px; }
+        .titulo-ficha { font-size: 14pt; font-weight: bold; color: #1E3A8A; text-transform: uppercase; }
+        
+        .seccion-titulo { 
+            background-color: #1E3A8A; color: white; padding: 4px 10px; 
+            font-weight: bold; text-transform: uppercase; font-size: 8pt;
+        }
+        
+        .tabla-datos { width: 100%; border: 0.5pt solid #E2E8F0; }
+        .tabla-datos td { padding: 5px; border: 0.2pt solid #F1F5F9; vertical-align: top; }
+        
+        .label { font-size: 6.5pt; font-weight: bold; color: #64748B; text-transform: uppercase; display: block; }
+        .valor { font-size: 9pt; color: #0F172A; margin-top: 2px; }
+        
+        .tabla-listado { width: 100%; border-collapse: collapse; }
+        .tabla-listado th { background-color: #F8FAFC; font-size: 7pt; text-align: left; padding: 5px; border-bottom: 1pt solid #CBD5E1; }
+        .tabla-listado td { padding: 5px; border-bottom: 0.5pt solid #F1F5F9; font-size: 8pt; }
+        
+        .no-posee { color: #94A3B8; font-style: italic; text-align: center; padding: 10px; }
+    </style>
+</head>
+<body>
+
+    <table class="header-table">
+        <tr>
+            <td width="15%"><img src="data:image/png;base64,{{ qr_code }}" style="width: 75px;"></td>
+            <td width="85%" style="text-align: center; vertical-align: middle;">
+                <div class="titulo-ficha">Ficha Integral del Trabajador</div>
+                <div style="font-size: 9pt; color: #64748B;">ALMACENADORA CARACAS, C.A. - SISTEMA SACAT</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo">1. Datos Personales</div>
+        <table class="tabla-datos">
+            <tr>
+                <td width="50%"><span class="label">Nombres y Apellidos</span><div class="valor">{{ persona.primer_nombre }} {{ persona.segundo_nombre|default:"" }} {{ persona.primer_apellido }} {{ persona.segundo_apellido|default:"" }}</div></td>
+                <td width="25%"><span class="label">Cédula</span><div class="valor">{{ persona.cedula }}</div></td>
+                <td width="25%"><span class="label">Fecha Nac.</span><div class="valor">{{ persona.fecha_nacimiento|date:"d/m/Y" }}</div></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo">2. Ubicación de Vivienda</div>
+        <table class="tabla-datos">
+            <tr>
+                <td><span class="label">Dirección Exacta</span><div class="valor">{{ direccion.direccion.direccion_exacta }} (EDO. {{ direccion.direccion.parroquia.municipio.estado.nombre_estado }})</div></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo">3. Detalles de Vivienda</div>
+        <table class="tabla-datos">
+            <tr>
+                <td width="50%"><span class="label">Tipo de Vivienda</span><div class="valor">{{ vivienda.vivienda.tipo_vivienda.descripcion|default:"No registrado" }}</div></td>
+                <td width="50%"><span class="label">Condición de la Vivienda</span><div class="valor">{{ vivienda.vivienda.condicion_vivienda.descripcion|default:"No registrado" }}</div></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo">4. Datos Electorales</div>
+        <table class="tabla-datos">
+            <tr>
+                <td><span class="label">Centro de Votación</span><div class="valor">{% if electoral %}{{ electoral.centro_votacion.nombre_centro }}{% else %}<span class="no-posee">Dato no suministrado</span>{% endif %}</div></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo">5. Formación Académica</div>
+        <table class="tabla-listado">
+            <thead>
+                <tr><th width="20%">Nivel</th><th width="40%">Institución</th><th width="30%">Título/Especialidad</th><th width="10%">Estatus</th></tr>
+            </thead>
+            <tbody>
+                {% for aca in academicos %}
+                <tr><td>{{ aca.nivel_formacion.descripcion }}</td><td>{{ aca.institucion }}</td><td>{{ aca.especialidad }}</td><td>{{ aca.estatus_formacion.descripcion }}</td></tr>
+                {% empty %}<tr><td colspan="4" class="no-posee">No posee registros académicos.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo">6. Formación Adicional</div>
+        <table class="tabla-listado">
+            <thead>
+                <tr><th>Nombre de Formación</th><th>Institución</th><th>Horas</th><th>Culminación</th></tr>
+            </thead>
+            <tbody>
+                {% for cur in cursos %}
+                <tr><td>{{ cur.nombre_formacion_ad }}</td><td>{{ cur.institucion }}</td><td>{{ cur.duracion_horas }}h</td><td>{{ cur.fecha_culminacion|date:"m/Y" }}</td></tr>
+                {% empty %}<tr><td colspan="4" class="no-posee">No posee cursos o talleres registrados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo">7. Contactos Personales</div>
+        <table class="tabla-datos">
+            <tr>
+                <td><span class="label">Medios de Contacto</span>
+                    <div class="valor">
+                        {% for c in contactos %}
+                            <b>{{ c.contacto_personal.tipo_contacto.descripcion }}:</b> {{ c.contacto_personal.valor_contacto }}{% if not forloop.last %} | {% endif %}
+                        {% empty %}
+                            <span class="no-posee">No registra contactos.</span>
+                        {% endfor %}
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo">8. Contactos de Emergencia</div>
+        <table class="tabla-datos">
+            <tr>
+                <td><span class="label">Información de Emergencia</span>
+                    <div class="valor">
+                        {% if emergencia %}
+                            {{ emergencia.contacto_emergencia.primer_nombre }} {{ emergencia.contacto_emergencia.primer_apellido }} - <b>Telf:</b> {{ emergencia.contacto_emergencia.telefono }}
+                        {% else %}
+                            <span class="no-posee">No registrado</span>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo">9. Carga Familiar</div>
+        <table class="tabla-listado">
+            <thead>
+                <tr><th>Parentesco</th><th>Nombre y Apellido</th><th>Cédula</th><th>F. Nacimiento</th></tr>
+            </thead>
+            <tbody>
+                {% for fam in familia %}
+                <tr><td>{{ fam.parentesco.descripcion }}</td><td>{{ fam.carga_familiar.primer_nombre }} {{ fam.carga_familiar.primer_apellido }}</td><td>{{ fam.carga_familiar.cedula|default:"S/C" }}</td><td>{{ fam.carga_familiar.fecha_nacimiento|date:"d/m/Y" }}</td></tr>
+                {% empty %}<tr><td colspan="4" class="no-posee">No registra carga familiar.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo" style="background-color: #172554;">10. Información Laboral Institucional</div>
+        <table class="tabla-datos" style="background-color: #F8FAFC;">
+            <tr>
+                <td width="25%"><span class="label">Código Nómina</span><div class="valor">{{ laboral.codigo_nomina }}</div></td>
+                <td width="50%"><span class="label">Unidad Organizativa</span><div class="valor">{{ laboral.unidad_org.nombre_unidad }}</div></td>
+                <td width="25%"><span class="label">Fecha Ingreso</span><div class="valor">{{ laboral.fecha_ingreso_inst|date:"d/m/Y" }}</div></td>
+            </tr>
+            <tr>
+                <td colspan="3"><span class="label">Cargo Estructural</span><div class="valor">{{ laboral.cargo_estructural.nombre_cargo_estruct }}</div></td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="footer_content">
+        Expediente Digital SACAT | Trabajador: {{ persona.cedula }} | Generado el: {{ hoy|date:"d/m/Y" }} | Pág. <pdf:pagenumber>
+    </div>
+
+</body>
+</html>

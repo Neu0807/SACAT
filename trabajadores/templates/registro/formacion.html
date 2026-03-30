@@ -1,0 +1,359 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* =======================================================================
+       1. SISTEMA DE DISEÑO
+       ======================================================================= */
+    :root {
+        --bg-body: #F8FAFC; --bg-card: #ffffff; --text-main: #0F172A; 
+        --text-muted: #64748B; --border-color: #E2E8F0; 
+        --brand-primary: #1E3A8A; --brand-dark: #172554; --brand-light: #EEF2FF; 
+        --color-error: #C81E1E; --color-success: #0E9F6E;
+    }
+
+    [data-bs-theme="dark"] {
+        --bg-body: #0F172A; --bg-card: #1E293B; --text-main: #F8FAFC; 
+        --text-muted: #E2E8F0; --border-color: #64748B; 
+        --brand-primary: #0D9488; --brand-dark: #0F766E; --brand-light: #1E293B; 
+    }
+
+    /* =======================================================================
+       2. WIDGET DE PASOS (STEPPER RECTANGULAR)
+       ======================================================================= */
+    .stepper-box { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px 15px 35px 15px; transition: all 0.3s ease; }
+    .sacat-stepper { display: flex; justify-content: space-between; align-items: center; position: relative; }
+    .sacat-stepper::before { content: ''; position: absolute; top: 28px; left: 5%; right: 5%; height: 2px; background-color: var(--border-color); z-index: 1; }
+    .sacat-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+    
+    .step-circle { width: 18px; height: 18px; border-radius: 50%; background-color: var(--border-color); border: 2px solid var(--bg-card); transition: all 0.3s ease; }
+    .step-text { position: absolute; top: 40px; font-size: 0.65rem; font-weight: 800; color: var(--brand-primary); text-transform: uppercase; }
+    .step-title { font-weight: 800; color: var(--text-muted); margin-bottom: 4px; font-size: 0.8rem; }
+
+    .sacat-step.completed .step-circle { background-color: var(--brand-primary); border-color: var(--brand-primary); color: white; display: flex; align-items: center; justify-content: center; }
+    .sacat-step.completed .step-circle::after { content: '✓'; font-size: 0.6rem; font-weight: bold; }
+    
+    .sacat-step.current .step-title { font-size: 0.65rem; text-transform: uppercase; color: var(--brand-primary); }
+    .sacat-step.current .step-circle { background-color: var(--bg-card); border: 3px solid var(--brand-primary); transform: scale(1.6); box-shadow: 0 4px 8px rgba(0,0,0, 0.1); }
+
+    /* =======================================================================
+       3. FORMULARIO, INPUTS Y BOTONES
+       ======================================================================= */
+    .custom-input { background-color: var(--bg-body) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; border-radius: 6px !important; padding: 6px 10px !important; font-size: 0.8rem !important; transition: all 0.3s ease; }
+    .custom-input:focus { border-color: var(--brand-primary) !important; box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.2) !important; background-color: var(--bg-body) !important; }
+    
+    .custom-input.is-invalid { border: 2px solid var(--color-error) !important; box-shadow: 0 0 8px rgba(200, 30, 30, 0.2) !important; }
+    .custom-input.is-valid { border: 2px solid var(--color-success) !important; }
+    
+    .custom-input:disabled { background-color: var(--border-color) !important; opacity: 0.6; cursor: not-allowed; }
+
+    .btn-primary { background-color: var(--brand-primary) !important; border-color: var(--brand-primary) !important; color: #ffffff !important; font-weight: 600 !important; border-radius: 8px !important; padding: 10px 25px !important; font-size: 0.85rem !important; transition: all 0.3s ease; }
+    .btn-primary:hover { background-color: var(--brand-dark) !important; border-color: var(--brand-dark) !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    
+    .btn-circle-add { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--brand-primary); color: var(--brand-primary); background: transparent; transition: all 0.2s; font-size: 0.8rem;}
+    .btn-circle-add:hover { background: var(--brand-light); transform: scale(1.05); }
+
+    .bg-primary-soft { background-color: var(--brand-light); }
+    .text-main { color: var(--text-main); }
+    .text-uppercase { text-transform: uppercase; }
+
+    .lista-estudios { max-height: 160px; overflow-y: auto; overflow-x: hidden; padding-right: 5px; margin-top: 5px; }
+    .lista-estudios::-webkit-scrollbar { width: 5px; }
+    .lista-estudios::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 10px; }
+
+    /* Estilo para la tarjeta de decisión de salto */
+    .decision-card {
+        background-color: var(--brand-light);
+        border: 1px dashed var(--brand-primary);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    .decision-card:hover {
+        background-color: var(--bg-card);
+        border-style: solid;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+</style>
+
+<div class="container-fluid py-2">
+    
+    <div class="row justify-content-center mb-2">
+        <div class="col-12 col-lg-11">
+            <div class="stepper-box shadow-sm">
+                <div class="sacat-stepper">
+                    <div class="sacat-step completed"><div class="step-title">1</div><div class="step-circle"></div></div>
+                    <div class="sacat-step completed"><div class="step-title">2</div><div class="step-circle"></div></div>
+                    <div class="sacat-step completed"><div class="step-title">3</div><div class="step-circle"></div></div>
+
+                    <div class="sacat-step current">
+                        <div class="step-title">Paso 4</div>
+                        <div class="step-circle"></div>
+                        <div class="step-text text-truncate">Académica</div>
+                    </div>
+
+                    {% for i in "56789" %}
+                    <div class="sacat-step future"><div class="step-title">{{ i }}</div><div class="step-circle"></div></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-11">
+            <form id="formFormacion">
+                {% csrf_token %}
+                
+                <div class="card border-0 shadow-sm mb-3" style="background-color: var(--bg-card); border-radius: 12px;">
+                    <div class="card-header bg-transparent border-0 pt-3 px-3 pb-0">
+                        <div class="d-flex align-items-center">
+                            <div class="p-1 px-2 bg-primary-soft rounded-2 me-2"><i class="fas fa-graduation-cap" style="color: var(--brand-primary); font-size: 0.9rem;"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-main" style="font-size: 0.85rem;">DATOS ACADÉMICOS</h6>
+                                <small class="text-muted" style="font-size: 0.65rem;">Agregue todos sus niveles de instrucción utilizando el botón "+".</small>
+                            </div>
+                        </div>
+                        <hr class="mt-2 mb-0 opacity-10" style="border-color: var(--border-color);">
+                    </div>
+                    
+                    <div class="card-body p-3 pt-2">
+                        <div class="p-2 rounded mb-2" style="background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                            <div class="row g-2 align-items-end mb-2">
+                                <div class="col-md-3">
+                                    <label class="form-label" style="font-size: 0.6rem; font-weight: 700; color: var(--text-muted); margin-bottom: 2px;">NIVEL EDUCATIVO <span class="text-danger">*</span></label>
+                                    <select id="temp_nivel" class="form-select custom-input val-temp">
+                                        <option value="" selected disabled>Seleccione...</option>
+                                        {% for n in niveles %}<option value="{{ n.id }}">{{ n.descripcion }}</option>{% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" style="font-size: 0.6rem; font-weight: 700; color: var(--text-muted); margin-bottom: 2px;">ESTATUS <span class="text-danger">*</span></label>
+                                    <select id="temp_estatus" class="form-select custom-input val-temp">
+                                        <option value="" selected disabled>Seleccione...</option>
+                                        {% for e in estatus %}<option value="{{ e.id }}">{{ e.descripcion }}</option>{% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" style="font-size: 0.6rem; font-weight: 700; color: var(--text-muted); margin-bottom: 2px;">INSTITUCIÓN / UNIVERSIDAD <span class="text-danger">*</span></label>
+                                    <input type="text" id="temp_institucion" class="form-control custom-input text-uppercase val-temp" placeholder="Ej: UNESR CARICUAO">
+                                </div>
+                            </div>
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-6">
+                                    <label class="form-label" style="font-size: 0.6rem; font-weight: 700; color: var(--text-muted); margin-bottom: 2px;">TÍTULO OBTENIDO / ESPECIALIDAD <span class="text-danger">*</span></label>
+                                    <input type="text" id="temp_especialidad" class="form-control custom-input text-uppercase val-temp" placeholder="Ej: LIC. EN ADMINISTRACIÓN">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label" style="font-size: 0.6rem; font-weight: 700; color: var(--text-muted); margin-bottom: 2px;">F. INICIO <span class="text-danger">*</span></label>
+                                    <input type="date" id="temp_inicio" class="form-control custom-input val-temp">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" style="font-size: 0.6rem; font-weight: 700; color: var(--text-muted); margin-bottom: 2px;">F. CULMINACIÓN <span class="text-danger" id="req_fin">*</span></label>
+                                    <input type="date" id="temp_fin" class="form-control custom-input val-temp">
+                                </div>
+                                <div class="col-md-1 d-flex justify-content-center align-items-center pb-1">
+                                    <button type="button" class="btn-circle-add" id="btnAddEstudio" title="Añadir Estudio"><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="listaEstudios" class="lista-estudios">
+                            </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4 decision-card">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="p-2 bg-white rounded-circle me-3 shadow-sm">
+                                    <i class="fas fa-question-circle text-primary" style="font-size: 1.1rem;"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0" style="font-size: 0.8rem; color: var(--brand-dark);">¿POSEE FORMACIONES ADICIONALES?</h6>
+                                    <p class="text-muted mb-0" style="font-size: 0.65rem;">Marque "SÍ" para registrar Cursos, Talleres o Diplomados en el siguiente paso.</p>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch m-0 d-flex align-items-center">
+                                <input class="form-check-input" type="checkbox" id="check_tiene_cursos" name="tiene_cursos" checked style="width: 2.8em; height: 1.4em; cursor: pointer;">
+                                <label class="form-check-label fw-800 ms-2" for="check_tiene_cursos" id="label_cursos" style="font-size: 0.75rem; color: var(--brand-primary); min-width: 20px;">SÍ</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'registro_paso3' %}" class="btn px-4 fw-bold" style="font-size: 0.8rem; background-color: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color);">
+                        <i class="fas fa-chevron-left me-2"></i>VOLVER
+                    </a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm" id="btnGuardar">
+                        GUARDAR Y CONTINUAR <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const htmlEl = document.documentElement;
+    const isDark = htmlEl.getAttribute('data-bs-theme') === 'dark';
+    const swalBg = isDark ? '#1E293B' : '#ffffff';
+    const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
+    document.querySelectorAll('.text-uppercase').forEach(input => {
+        input.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+    });
+
+    const checkCursos = document.getElementById('check_tiene_cursos');
+    const labelCursos = document.getElementById('label_cursos');
+
+    checkCursos.addEventListener('change', function() {
+        labelCursos.innerText = this.checked ? 'SÍ' : 'NO';
+    });
+
+    const btnAddEstudio = document.getElementById('btnAddEstudio');
+    const listaE = document.getElementById('listaEstudios');
+
+    const inpNivel = document.getElementById('temp_nivel');
+    const inpEstatus = document.getElementById('temp_estatus');
+    const inpInst = document.getElementById('temp_institucion');
+    const inpEsp = document.getElementById('temp_especialidad');
+    const inpIni = document.getElementById('temp_inicio');
+    const inpFin = document.getElementById('temp_fin');
+    const reqFin = document.getElementById('req_fin'); 
+    const todosTemps = document.querySelectorAll('.val-temp');
+
+    todosTemps.forEach(inp => {
+        inp.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+    });
+
+    inpEstatus.addEventListener('change', function() {
+        const estatusText = this.options[this.selectedIndex].text.toUpperCase();
+        if (estatusText.includes('CURSO') || estatusText.includes('PROCESO') || estatusText.includes('ESTUDIANDO')) {
+            inpFin.value = '';
+            inpFin.disabled = true;
+            inpFin.classList.remove('is-invalid');
+            reqFin.style.display = 'none';
+        } else {
+            inpFin.disabled = false;
+            reqFin.style.display = 'inline';
+        }
+    });
+
+    btnAddEstudio.addEventListener('click', function() {
+        let isValid = true;
+        todosTemps.forEach(inp => {
+            if(!inp.disabled && !inp.value.trim()) {
+                inp.classList.add('is-invalid');
+                isValid = false;
+            }
+        });
+
+        if (!isValid) {
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Debe llenar todos los campos obligatorios del estudio antes de agregarlo.', confirmButtonColor: 'var(--brand-primary)', background: swalBg, color: swalColor });
+            return;
+        }
+
+        const nivelText = inpNivel.options[inpNivel.selectedIndex].text;
+        const estatusText = inpEstatus.options[inpEstatus.selectedIndex].text;
+        const fechaFinMostrar = (inpFin.disabled || !inpFin.value) ? "Presente" : inpFin.value;
+
+        const row = document.createElement('div');
+        row.className = "d-flex justify-content-between align-items-center p-2 mb-2 rounded border item-estudio shadow-sm";
+        row.style.backgroundColor = "var(--bg-body)";
+        row.innerHTML = `
+            <input type="hidden" name="nivel_id[]" value="${inpNivel.value}">
+            <input type="hidden" name="estatus_id[]" value="${inpEstatus.value}">
+            <input type="hidden" name="institucion[]" value="${inpInst.value.trim()}">
+            <input type="hidden" name="especialidad[]" value="${inpEsp.value.trim()}">
+            <input type="hidden" name="fecha_inicio[]" value="${inpIni.value}">
+            <input type="hidden" name="fecha_fin[]" value="${inpFin.value}">
+            
+            <div style="font-size: 0.75rem; color: var(--text-main); line-height: 1.2;">
+                <div class="fw-bold" style="color: var(--brand-primary); font-size: 0.8rem;">
+                    <i class="fas fa-graduation-cap me-1"></i> ${inpInst.value.trim()}
+                </div>
+                <div class="mt-1">
+                    <span class="badge bg-secondary">${nivelText}</span> 
+                    <span class="badge" style="background-color: var(--color-success);">${estatusText}</span> 
+                    <span class="fw-semibold ms-1">${inpEsp.value.trim()}</span>
+                </div>
+                <div class="text-muted mt-1" style="font-size: 0.65rem;">
+                    <i class="far fa-calendar-alt"></i> Desde: ${inpIni.value} | Hasta: <b>${fechaFinMostrar}</b>
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm p-0 text-danger" onclick="this.closest('.item-estudio').remove()"><i class="fas fa-times-circle fa-lg"></i></button>
+        `;
+        listaE.appendChild(row);
+
+        todosTemps.forEach(inp => {
+            inp.value = '';
+            inp.classList.remove('is-valid', 'is-invalid');
+        });
+        inpFin.disabled = false;
+        reqFin.style.display = 'inline';
+        inpEstatus.selectedIndex = 0;
+        inpNivel.selectedIndex = 0;
+    });
+
+    document.getElementById('formFormacion').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (inpInst.value.trim() !== '') {
+            btnAddEstudio.click();
+            if (inpInst.value.trim() !== '') return; 
+        }
+
+        if (listaE.children.length === 0) {
+            Swal.fire({ icon: 'error', title: 'Faltan Datos', text: 'Debe agregar al menos un (1) registro de formación académica utilizando el botón "+".', confirmButtonColor: 'var(--brand-primary)', background: swalBg, color: swalColor });
+            return;
+        }
+
+        const btn = document.getElementById('btnGuardar');
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Guardando...';
+        
+        const formData = new FormData(this);
+        formData.append('ir_a_cursos', checkCursos.checked); 
+
+        fetch("{% url 'guardar_paso4' %}", {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const irACursos = checkCursos.checked;
+                const swalTitle = '¡Formación Guardada!';
+                const swalText = irACursos ? 'Continuando al Paso 5: Formación Adicional.' : 'Paso 5 omitido. Saltando al Paso 6: Salud.';
+                const swalIcon = irACursos ? 'success' : 'info';
+
+                Swal.fire({ 
+                    icon: swalIcon, 
+                    title: swalTitle, 
+                    text: swalText, 
+                    timer: 2000, 
+                    showConfirmButton: false, 
+                    background: swalBg, 
+                    color: swalColor 
+                }).then(() => window.location.href = data.next_url);
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: data.error, confirmButtonColor: 'var(--brand-primary)', background: swalBg, color: swalColor });
+                btn.disabled = false; btn.innerHTML = originalHtml;
+            }
+        })
+        .catch(err => {
+            Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo conectar con el servidor.', background: swalBg, color: swalColor });
+            btn.disabled = false; btn.innerHTML = originalHtml;
+        });
+    });
+});
+</script>
+{% endblock %}

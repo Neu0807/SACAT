@@ -6,7 +6,10 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from .models import Estado, Municipio, Parroquia, TipoDocIdentificacion, Sexo, EstadoCivil, TipoContacto
+from .models import (
+    Estado, Municipio, Parroquia, TipoDocIdentificacion, 
+    Sexo, EstadoCivil, TipoContacto, CentroVotacion  # <--- AGREGA ESTE ÚLTIMO
+)
 
 # --- VISTAS DE NAVEGACIÓN ---
 
@@ -379,3 +382,89 @@ def editar_tipo_documento(request, doc_id):
         return JsonResponse({'success': False, 'error': 'El documento no existe.'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def listar_centros_votaciones(request):
+    # Usamos select_related para traer la jerarquía geográfica en una sola consulta
+    centros = CentroVotacion.objects.select_related('parroquia__municipio__estado').all().order_by('codigo_cne')
+    return render(request, 'configuracion/centros_votaciones/listar_centros_votaciones.html', {'centros': centros})
+
+@login_required
+@require_POST
+def toggle_centro_votacion(request, centro_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    try:
+        centro = CentroVotacion.objects.get(id=centro_id)
+        data = json.loads(request.body)
+        nuevo_estatus = data.get('esta_activo', True)
+        
+        centro.esta_activo = nuevo_estatus
+        centro.actualizado_por = request.user.id
+        centro.save()
+        
+        estado_texto = "habilitado" if nuevo_estatus else "inhabilitado"
+        return JsonResponse({'success': True, 'mensaje': f'El centro ha sido {estado_texto}.'})
+    except CentroVotacion.DoesNotExist:
+        return JsonResponse({'success': False, 'mensaje': 'El centro no existe.'})
+
+@login_required
+def importar_centros_votaciones(request):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    
+    if request.method == 'POST' and request.FILES.get('archivo'):
+        datos = obtener_datos_archivo(request.FILES['archivo'])
+        if datos is None: 
+            return JsonResponse({'success': False, 'mensaje': 'Formato no soportado.'})
+
+        contador = 0
+        errores = 0
+        try:
+            for fila in datos:
+                # Estructura del archivo: ESTADO(0), MUNICIPIO(1), PARROQUIA(2), NOMBRE(3), CODIGO(4)
+                if fila and len(fila) >= 5:
+                    nom_est = str(fila[0]).strip()
+                    nom_mun = str(fila[1]).strip()
+                    nom_par = str(fila[2]).strip()
+                    nom_cen = str(fila[3]).strip().upper()
+                    # zfill(9) para asegurar que el código CNE no pierda el cero inicial
+                    cod_cne = str(fila[4]).strip().zfill(9)
+                    
+                    # Buscamos la parroquia exacta
+                    obj_par = Parroquia.objects.filter(
+                        nombre_parroquia__iexact=nom_par,
+                        municipio__nombre_municipio__iexact=nom_mun,
+                        municipio__estado__nombre_estado__iexact=nom_est
+                    ).first()
+                    
+                    if obj_par:
+                        # Usamos update_or_create para evitar duplicados si se resube el archivo
+                        CentroVotacion.objects.update_or_create(
+                            codigo_cne=cod_cne,
+                            defaults={
+                                'parroquia': obj_par,
+                                'nombre_centro': nom_cen,
+                                'esta_activo': True,
+                                'creado_por': request.user.id,
+                                'actualizado_por': request.user.id
+                            }
+                        )
+                        contador += 1
+                    else:
+                        errores += 1
+                        
+            msj = f'¡Éxito! Se procesaron {contador} centros de votación.'
+            if errores > 0:
+                msj += f' No se encontraron {errores} ubicaciones geográficas referenciadas.'
+                
+            return JsonResponse({'success': True, 'mensaje': msj})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': f'Error en procesamiento: {str(e)}'})
+            
+    return JsonResponse({'success': False, 'mensaje': 'Archivo no recibido.'})
+    
+def get_centros_por_parroquia(request, parroquia_id):
+    from .models import CentroVotacion
+    centros = CentroVotacion.objects.filter(parroquia_id=parroquia_id, esta_activo=True).values('id', 'nombre_centro').order_by('nombre_centro')
+    return JsonResponse(list(centros), safe=False)

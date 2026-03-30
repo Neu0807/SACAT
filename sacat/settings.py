@@ -134,3 +134,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Le decimos a Django que ignore su usuario por defecto y use el nuestro
 AUTH_USER_MODEL = 'seguridad.Usuario'
+
+# settings.py - Configuración de Correo SACAT
+# ==============================================================================
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'info.sacat@gmail.com'
+EMAIL_HOST_PASSWORD = 'gpnwqlydabjpvlrw'  # Tu clave de aplicación sin espacios
+DEFAULT_FROM_EMAIL = 'SACAT - Almacenadora Caracas <info.sacat@gmail.com>'

@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* =======================================================================
+       1. SISTEMA DE DISEÑO (Heredado)
+       ======================================================================= */
+    :root {
+        --bg-body: #F8FAFC; 
+        --bg-card: #ffffff;
+        --text-main: #0F172A; 
+        --text-muted: #64748B; 
+        --border-color: #E2E8F0; 
+        --brand-primary: #1E3A8A; 
+        --brand-dark: #172554; 
+        --brand-light: #EEF2FF; 
+    }
+
+    [data-bs-theme="dark"] {
+        --bg-body: #0F172A; 
+        --bg-card: #1E293B; 
+        --text-main: #F8FAFC; 
+        --text-muted: #E2E8F0; 
+        --border-color: #64748B; 
+        --brand-primary: #0D9488; 
+        --brand-dark: #0F766E; 
+        --brand-light: #1E293B; 
+    }
+
+    /* =======================================================================
+       2. WIDGET DE PASOS (STEPPER RECTANGULAR)
+       ======================================================================= */
+    .stepper-box {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 25px 15px 45px 15px;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .sacat-stepper { display: flex; justify-content: space-between; align-items: center; position: relative; }
+    .sacat-stepper::before { content: ''; position: absolute; top: 31px; left: 5%; right: 5%; height: 2px; background-color: var(--border-color); z-index: 1; }
+    .sacat-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+    
+    .step-circle { width: 18px; height: 18px; border-radius: 50%; background-color: var(--border-color); border: 2px solid var(--bg-card); transition: all 0.3s ease; }
+    .step-text { position: absolute; top: 48px; font-size: 0.7rem; font-weight: 800; color: var(--brand-primary); text-transform: uppercase; }
+    .step-title { font-weight: 800; color: var(--text-muted); margin-bottom: 6px; font-size: 0.85rem; }
+
+    /* Estados del Stepper */
+    /* Paso Completado (Paso 1) */
+    .sacat-step.completed .step-circle { background-color: var(--brand-primary); border-color: var(--brand-primary); color: white; display: flex; align-items: center; justify-content: center; }
+    .sacat-step.completed .step-circle::after { content: '✓'; font-size: 0.6rem; font-weight: bold; }
+    
+    /* Paso Actual (Paso 2) */
+    .sacat-step.current .step-title { font-size: 0.7rem; text-transform: uppercase; color: var(--brand-primary); }
+    .sacat-step.current .step-circle { background-color: var(--bg-card); border: 3px solid var(--brand-primary); transform: scale(1.8); box-shadow: 0 4px 10px rgba(0,0,0, 0.1); }
+
+    /* =======================================================================
+       3. FORMULARIO Y COMPONENTES
+       ======================================================================= */
+    .custom-input-sm { 
+        background-color: var(--bg-body) !important; 
+        border: 1px solid var(--border-color) !important; 
+        color: var(--text-main) !important;
+        border-radius: 8px !important; 
+        padding: 0.5rem 0.75rem !important; 
+        font-size: 0.85rem !important;
+        transition: all 0.3s ease;
+    }
+    .custom-input-sm:focus { border-color: var(--brand-primary) !important; box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.2) !important; background-color: var(--bg-body) !important; }
+    
+    .btn-primary { background-color: var(--brand-primary) !important; border-color: var(--brand-primary) !important; color: #ffffff !important; border-radius: 8px !important; transition: all 0.3s ease; }
+    .btn-primary:hover { background-color: var(--brand-dark) !important; border-color: var(--brand-dark) !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    
+    .mini-title { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: var(--brand-primary); }
+    .mini-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block; }
+    .text-uppercase { text-transform: uppercase; }
+</style>
+
+<div class="container-fluid py-3">
+    
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-lg-11">
+            <div class="stepper-box shadow-sm">
+                <div class="sacat-stepper">
+                    <div class="sacat-step completed">
+                        <div class="step-title">1</div>
+                        <div class="step-circle"></div>
+                    </div>
+
+                    <div class="sacat-step current">
+                        <div class="step-title">Paso 2</div>
+                        <div class="step-circle"></div>
+                    </div>
+
+                    {% for i in "3456789" %}
+                    <div class="sacat-step future">
+                        <div class="step-title">{{ i }}</div>
+                        <div class="step-circle"></div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-11">
+            <form id="formUnificado" novalidate>
+                {% csrf_token %}
+                
+                <div class="card border-0 shadow-sm mb-3" style="background-color: var(--bg-card); border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <p class="mini-title mb-3"><i class="fas fa-map-marker-alt me-2"></i> UBICACIÓN DE HABITACIÓN</p>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="mini-label">ESTADO <span class="text-danger">*</span></label>
+                                <select name="estado" id="id_estado" class="form-select custom-input-sm" required>
+                                    <option value="" selected disabled>...</option>
+                                    {% for e in estados %}<option value="{{ e.id }}">{{ e.nombre_estado }}</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="mini-label">MUNICIPIO <span class="text-danger">*</span></label>
+                                <select name="municipio" id="id_municipio" class="form-select custom-input-sm" required disabled><option value="">...</option></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="mini-label">PARROQUIA <span class="text-danger">*</span></label>
+                                <select name="parroquia" id="id_parroquia" class="form-select custom-input-sm" required disabled><option value="">...</option></select>
+                            </div>
+                            <div class="col-12">
+                                <label class="mini-label">DIRECCIÓN EXACTA <span class="text-danger">*</span></label>
+                                <input type="text" name="direccion_exacta" class="form-control custom-input-sm text-uppercase" placeholder="Ej: Av. Principal, Casa #10..." required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-3" style="background-color: var(--bg-card); border-radius: 12px;">
+                    <div class="card-body p-4">
+                        <p class="mini-title mb-3"><i class="fas fa-house-chimney me-2"></i>CARACTERÍSTICAS DE VIVIENDA</p>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="mini-label">TIPO VIVIENDA <span class="text-danger">*</span></label>
+                                <select name="tipo_vivienda" class="form-select custom-input-sm" required>
+                                    <option value="" selected disabled>...</option>
+                                    {% for tv in tipos_viviendas %}<option value="{{ tv.id }}">{{ tv.descripcion }}</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6"
+                                <label class="mini-label">CONDICIÓN VIVIENDA <span class="text-danger">*</span></label>
+                                <select name="condicion_vivienda" class="form-select custom-input-sm" required>
+                                    <option value="" selected disabled>...</option>
+                                    {% for c in condiciones %}<option value="{{ c.id }}">{{ c.descripcion }}</option>{% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4" style="background-color: var(--bg-card); border-radius: 6x; border-left: 2x solid var(--brand-primary) !important;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <p class="mini-title mb-0"><i class="fas fa-vote-yea me-2"></i>DATOS ELECTORALES</p>
+                            <div class="form-check form-switch m-0 d-flex align-items-center">
+                                <input class="form-check-input mt-0" type="checkbox" id="checkMismaUbicacion" checked>
+                                <label class="form-check-label mini-label fw-bold ms-2 mb-0" style="color: var(--text-main);" for="checkMismaUbicacion">Voto donde vivo</label>
+                            </div>
+                        </div>
+
+                        <div id="divBusquedaElectoral" style="display: none;" class="row g-2 mb-3 p-3 rounded-3 shadow-sm" style="background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                            <div class="col-md-4"><select id="est_elec" class="form-select form-select-sm custom-input-sm"><option value="">Estado...</option>{% for e in estados %}<option value="{{ e.id }}">{{ e.nombre_estado }}</option>{% endfor %}</select></div>
+                            <div class="col-md-4"><select id="mun_elec" class="form-select form-select-sm custom-input-sm" disabled><option value="">Municipio...</option></select></div>
+                            <div class="col-md-4"><select id="par_elec" class="form-select form-select-sm custom-input-sm" disabled><option value="">Parroquia...</option></select></div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="mini-label">CENTRO DE VOTACIÓN <span class="text-danger">*</span></label>
+                            <select name="centro_votacion_id" id="selectCentroVotacion" class="form-select custom-input-sm" required>
+                                <option value="" disabled selected>Indique la ubicación primero...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% url 'registro_paso1' %}" class="btn px-4 fw-bold small" style="background-color: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color);">
+                        <i class="fas fa-chevron-left me-2"></i>VOLVER
+                    </a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm" id="btnSiguiente">
+                        GUARDAR Y CONTINUAR <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selEst = document.getElementById('id_estado');
+    const selMun = document.getElementById('id_municipio');
+    const selPar = document.getElementById('id_parroquia');
+    
+    const estElec = document.getElementById('est_elec');
+    const munElec = document.getElementById('mun_elec');
+    const parElec = document.getElementById('par_elec');
+    
+    const selectCentro = document.getElementById('selectCentroVotacion');
+    const checkMisma = document.getElementById('checkMismaUbicacion');
+    const form = document.getElementById('formUnificado');
+
+    // Estilos SweetAlert adaptables
+    const htmlEl = document.documentElement;
+    const isDark = htmlEl.getAttribute('data-bs-theme') === 'dark';
+    const swalBg = isDark ? '#1E293B' : '#ffffff';
+    const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
+    // 1. Mayúsculas automáticas
+    form.querySelectorAll('.text-uppercase').forEach(input => {
+        input.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+    });
+
+    // 2. Lógica de Cascada (Mantenida intacta)
+    function setupCascade(est, mun, par, callback) {
+        est.addEventListener('change', () => {
+            fetch(`/trabajadores/get-municipios/${est.value}/`).then(r => r.json()).then(data => {
+                mun.innerHTML = '<option value="" selected disabled>Seleccione municipio...</option>';
+                data.forEach(m => mun.innerHTML += `<option value="${m.id}">${m.nombre_municipio}</option>`);
+                mun.disabled = false; par.disabled = true; par.innerHTML = '<option value="">...</option>';
+            });
+        });
+        mun.addEventListener('change', () => {
+            fetch(`/trabajadores/get-parroquias/${mun.value}/`).then(r => r.json()).then(data => {
+                par.innerHTML = '<option value="" selected disabled>Seleccione parroquia...</option>';
+                data.forEach(p => par.innerHTML += `<option value="${p.id}">${p.nombre_parroquia}</option>`);
+                par.disabled = false;
+            });
+        });
+        if(callback) par.addEventListener('change', callback);
+    }
+
+    setupCascade(selEst, selMun, selPar, () => { if(checkMisma.checked) cargarCentros(selPar.value); });
+    setupCascade(estElec, munElec, parElec, () => { cargarCentros(parElec.value); });
+
+    // 3. Toggle de Ubicación Electoral
+    checkMisma.addEventListener('change', function() {
+        const divBusqueda = document.getElementById('divBusquedaElectoral');
+        if (this.checked) {
+            divBusqueda.style.display = 'none';
+            // Limpiar los requeridos de búsqueda alternativa
+            estElec.removeAttribute('required'); munElec.removeAttribute('required'); parElec.removeAttribute('required');
+            if (selPar.value) cargarCentros(selPar.value);
+        } else {
+            divBusqueda.style.display = 'flex';
+            // Hacer requerida la búsqueda alternativa
+            estElec.setAttribute('required', ''); munElec.setAttribute('required', ''); parElec.setAttribute('required', '');
+            selectCentro.innerHTML = '<option value="" disabled selected>Indique la ubicación electoral primero...</option>';
+        }
+    });
+
+    // 4. Cargar Centros de Votación (Mantenida tu ruta API)
+    function cargarCentros(parroquiaId) {
+        selectCentro.innerHTML = '<option value="" disabled selected>Cargando centros...</option>';
+        fetch(`/configuracion/api/centros/${parroquiaId}/`).then(r => r.json()).then(data => {
+            let html = '<option value="" disabled selected>Seleccione el centro de votación...</option>';
+            data.forEach(c => html += `<option value="${c.id}">${c.nombre_centro}</option>`);
+            selectCentro.innerHTML = html;
+        }).catch(() => {
+            selectCentro.innerHTML = '<option value="" disabled selected>Error al cargar centros</option>';
+        });
+    }
+
+    // 5. Envío y Validación (Mejorada con SweetAlert como en el Paso 1)
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let valid = true;
+        form.querySelectorAll('[required]').forEach(input => {
+            if (!input.value || input.value.trim() === "") {
+                input.classList.add('is-invalid');
+                valid = false;
+            } else {
+                input.classList.remove('is-invalid');
+            }
+        });
+
+        if (!valid) {
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor, complete todos los campos marcados como obligatorios (*)', confirmButtonColor: 'var(--brand-primary)', background: swalBg, color: swalColor });
+            return;
+        }
+
+        const btn = document.getElementById('btnSiguiente');
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Guardando...';
+
+        fetch("{% url 'guardar_paso2' %}", {
+            method: "POST",
+            body: new FormData(this),
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Paso 2 completado. Ubicación guardada.', timer: 2000, showConfirmButton: false, background: swalBg, color: swalColor })
+                .then(() => window.location.href = data.next_url);
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: data.error, confirmButtonColor: 'var(--brand-primary)', background: swalBg, color: swalColor });
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        })
+        .catch(err => {
+            Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo conectar con el servidor.', background: swalBg, color: swalColor });
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        });
+    });
+});
+</script>
+{% endblock %}

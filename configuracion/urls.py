@@ -34,4 +34,10 @@ urlpatterns = [
     path('electoral/', views.configuracion_electoral, name='configuracion_electoral'),
     path('identidad/documentos/toggle/<int:doc_id>/', views.toggle_tipo_doc, name='toggle_tipo_doc'),
     path('identidad/documentos/editar/<int:doc_id>/', views.editar_tipo_documento, name='editar_tipo_documento'),
+
+    path('electoral/centros/', views.listar_centros_votaciones, name='listar_centros_votaciones'),
+    path('electoral/importar-centros/', views.importar_centros_votaciones, name='importar_centros_votaciones'),
+    path('electoral/toggle-centro/<int:centro_id>/', views.toggle_centro_votacion, name='toggle_centro_votacion'),
+
+    path('api/centros/<int:parroquia_id>/', views.get_centros_por_parroquia, name='get_centros'),
 ]

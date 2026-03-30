@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* =======================================================================
+       1. SISTEMA DE DISEÑO SACAT
+       ======================================================================= */
+    :root {
+        --bg-body: #F8FAFC; --bg-card: #ffffff; --text-main: #0F172A; 
+        --text-muted: #64748B; --border-color: #E2E8F0; 
+        --brand-primary: #1E3A8A; --brand-dark: #172554; --brand-light: #EEF2FF; 
+        --color-error: #C81E1E; --color-success: #0E9F6E;
+    }
+
+    [data-bs-theme="dark"] {
+        --bg-body: #0F172A; --bg-card: #1E293B; --text-main: #F8FAFC; 
+        --text-muted: #E2E8F0; --border-color: #64748B; 
+        --brand-primary: #0D9488; --brand-dark: #0F766E; --brand-light: #1E293B; 
+    }
+
+    /* =======================================================================
+       2. WIDGET DE PASOS (STEPPER RECTANGULAR ORIGINAL)
+       ======================================================================= */
+    .stepper-box { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px 15px 35px 15px; transition: all 0.3s ease; }
+    .sacat-stepper { display: flex; justify-content: space-between; align-items: center; position: relative; }
+    .sacat-stepper::before { content: ''; position: absolute; top: 28px; left: 5%; right: 5%; height: 2px; background-color: var(--border-color); z-index: 1; }
+    .sacat-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+    
+    .step-circle { width: 18px; height: 18px; border-radius: 50%; background-color: var(--border-color); border: 2px solid var(--bg-card); transition: all 0.3s ease; }
+    .step-text { position: absolute; top: 40px; font-size: 0.65rem; font-weight: 800; color: var(--brand-primary); text-transform: uppercase; }
+    .step-title { font-weight: 800; color: var(--text-muted); margin-bottom: 4px; font-size: 0.8rem; }
+
+    .sacat-step.completed .step-circle { background-color: var(--brand-primary); border-color: var(--brand-primary); color: white; display: flex; align-items: center; justify-content: center; }
+    .sacat-step.completed .step-circle::after { content: '✓'; font-size: 0.6rem; font-weight: bold; }
+    
+    .sacat-step.current .step-title { font-size: 0.65rem; text-transform: uppercase; color: var(--brand-primary); }
+    .sacat-step.current .step-circle { background-color: var(--bg-card); border: 3px solid var(--brand-primary); transform: scale(1.6); box-shadow: 0 4px 8px rgba(0,0,0, 0.1); }
+
+    /* =======================================================================
+       3. INPUTS, BOTONES Y BANDEJA
+       ======================================================================= */
+    .custom-input { background-color: var(--bg-body) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; border-radius: 6px !important; padding: 6px 10px !important; font-size: 0.8rem !important; }
+    .btn-primary { background-color: var(--brand-primary) !important; border-color: var(--brand-primary) !important; color: #ffffff !important; font-weight: 600 !important; border-radius: 8px !important; padding: 10px 25px !important; font-size: 0.85rem !important; }
+    
+    /* Botón Circular Plus Unificado */
+    .btn-circle-add { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--brand-primary); color: var(--brand-primary); background: transparent; transition: all 0.2s; font-size: 0.8rem; }
+    .btn-circle-add:hover { background: var(--brand-light); transform: scale(1.1); }
+
+    .lista-familiares { max-height: 250px; overflow-y: auto; overflow-x: hidden; padding-right: 5px; margin-top: 10px; }
+    .lista-familiares::-webkit-scrollbar { width: 5px; }
+    .lista-familiares::-webkit-scrollbar-thumb { background-color: var(--border-color); border-radius: 10px; }
+
+    .bg-primary-soft { background-color: var(--brand-light); }
+    .text-uppercase { text-transform: uppercase; }
+</style>
+
+<div class="container-fluid py-2">
+    
+    <div class="row justify-content-center mb-2">
+        <div class="col-12 col-lg-11">
+            <div class="stepper-box shadow-sm">
+                <div class="sacat-stepper">
+                    {% for i in "123456" %}<div class="sacat-step completed"><div class="step-title">{{i}}</div><div class="step-circle"></div></div>{% endfor %}
+                    <div class="sacat-step current">
+                        <div class="step-title">Paso 7</div>
+                        <div class="step-circle"></div>
+                        <div class="step-text text-truncate">Familia</div>
+                    </div>
+                    {% for i in "89" %}<div class="sacat-step future"><div class="step-title">{{i}}</div><div class="step-circle"></div></div>{% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-11">
+            <form id="formCargaFamiliar">
+                {% csrf_token %}
+                
+                <div class="card border-0 shadow-sm mb-4" style="background-color: var(--bg-card); border-radius: 12px;">
+                    <div class="card-header bg-transparent border-0 pt-3 px-3 pb-0">
+                        <div class="d-flex align-items-center">
+                            <div class="p-1 px-2 bg-primary-soft rounded-2 me-2"><i class="fas fa-users" style="color: var(--brand-primary); font-size: 0.9rem;"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-main" style="font-size: 0.85rem;">REGISTRO DE CARGA FAMILIAR</h6>
+                                <small class="text-muted" style="font-size: 0.65rem;">Hijos, cónyuge, padres o carga bajo tutela legal.</small>
+                            </div>
+                        </div>
+                        <hr class="mt-2 mb-0 opacity-10">
+                    </div>
+                    
+                    <div class="card-body p-3 pt-2">
+                        <div class="p-3 rounded mb-3" style="background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold" style="font-size: 0.6rem; color: var(--text-muted);">CÉDULA (Opcional)</label>
+                                    <input type="text" id="temp_cedula" class="form-control custom-input" placeholder="V-000000">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold" style="font-size: 0.6rem; color: var(--text-muted);">NOMBRES <span class="text-danger">*</span></label>
+                                    <input type="text" id="temp_nombres" class="form-control custom-input text-uppercase" placeholder="EJ: MARIA ANTONIETA">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label fw-bold" style="font-size: 0.6rem; color: var(--text-muted);">APELLIDOS <span class="text-danger">*</span></label>
+                                    <input type="text" id="temp_apellidos" class="form-control custom-input text-uppercase" placeholder="EJ: RIVAS LOPEZ">
+                                </div>
+                            </div>
+
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold" style="font-size: 0.6rem; color: var(--text-muted);">PARENTESCO <span class="text-danger">*</span></label>
+                                    <select id="temp_parentesco" class="form-select custom-input">
+                                        <option value="" selected disabled>Seleccione...</option>
+                                        {% for p in parentescos %}<option value="{{ p.id }}">{{ p.descripcion }}</option>{% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold" style="font-size: 0.6rem; color: var(--text-muted);">SEXO <span class="text-danger">*</span></label>
+                                    <select id="temp_sexo" class="form-select custom-input">
+                                        <option value="" selected disabled>...</option>
+                                        {% for s in sexos %}<option value="{{ s.id }}">{{ s.descripcion }}</option>{% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold" style="font-size: 0.6rem; color: var(--text-muted);">F. NACIMIENTO <span class="text-danger">*</span></label>
+                                    <input type="date" id="temp_nacimiento" class="form-control custom-input">
+                                </div>
+                                <div class="col-md-1 d-flex justify-content-center pb-1">
+                                    <button type="button" class="btn-circle-add" id="btnAddFamiliar" title="Añadir Familiar"><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="listaFamiliares" class="lista-familiares"></div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'registro_paso6' %}" class="btn px-4 fw-bold" style="background-color: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color); font-size: 0.8rem;">
+                        <i class="fas fa-chevron-left me-2"></i>VOLVER
+                    </a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm" id="btnGuardar">
+                        GUARDAR Y CONTINUAR <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    const swalBg = isDark ? '#1E293B' : '#ffffff';
+    const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
+    const parentescosUnicos = ["MADRE", "PADRE", "ESPOSO", "ESPOSA", "CONYUGE"];
+
+    const btnAddF = document.getElementById('btnAddFamiliar');
+    const listaF = document.getElementById('listaFamiliares');
+    
+    btnAddF.addEventListener('click', function() {
+        const nombres = document.getElementById('temp_nombres').value.trim().toUpperCase();
+        const apellidos = document.getElementById('temp_apellidos').value.trim().toUpperCase();
+        const parentescoId = document.getElementById('temp_parentesco').value;
+        const selParentesco = document.getElementById('temp_parentesco');
+        const parentescoTxt = selParentesco.options[selParentesco.selectedIndex]?.text.toUpperCase();
+        const sexoId = document.getElementById('temp_sexo').value;
+        const selSexo = document.getElementById('temp_sexo');
+        const sexoTxt = selSexo.options[selSexo.selectedIndex]?.text.toUpperCase();
+        const cedula = document.getElementById('temp_cedula').value.trim();
+        const nacimiento = document.getElementById('temp_nacimiento').value;
+
+        if(!nombres || !apellidos || !parentescoId || !sexoId || !nacimiento) {
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Complete los campos obligatorios del familiar.', background: swalBg, color: swalColor });
+            return;
+        }
+
+        if (parentescosUnicos.includes(parentescoTxt)) {
+            const yaExiste = Array.from(listaF.querySelectorAll('.badge-parentesco')).some(el => el.innerText === parentescoTxt);
+            if (yaExiste) {
+                Swal.fire({ icon: 'error', title: 'Error Legal', text: `Ya ha registrado a un familiar con el parentesco: ${parentescoTxt}.`, background: swalBg, color: swalColor });
+                return;
+            }
+        }
+
+        const row = document.createElement('div');
+        row.className = "d-flex justify-content-between align-items-center p-3 mb-2 rounded border item-familiar shadow-sm";
+        row.style.backgroundColor = "var(--bg-body)";
+        row.innerHTML = `
+            <input type="hidden" name="f_cedula[]" value="${cedula}">
+            <input type="hidden" name="f_nombres[]" value="${nombres}">
+            <input type="hidden" name="f_apellidos[]" value="${apellidos}">
+            <input type="hidden" name="f_parentesco_id[]" value="${parentescoId}">
+            <input type="hidden" name="f_sexo[]" value="${sexoId}">
+            <input type="hidden" name="f_nacimiento[]" value="${nacimiento}">
+            <div style="font-size: 0.8rem;">
+                <div class="fw-bold text-primary mb-1"><i class="fas fa-user-circle me-1"></i> ${nombres} ${apellidos}</div>
+                <div class="text-muted" style="font-size: 0.7rem;">
+                    <span class="badge bg-secondary badge-parentesco">${parentescoTxt}</span> | 
+                    <span class="badge bg-light text-dark border" style="font-size: 0.6rem;">${sexoTxt}</span> |
+                    <i class="far fa-id-card ms-1"></i> ${cedula || 'S/C'} | 
+                    <i class="far fa-calendar-alt ms-1"></i> NAC: ${nacimiento}
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm text-danger" onclick="this.closest('.item-familiar').remove()"><i class="fas fa-times-circle fa-xl"></i></button>
+        `;
+        listaF.appendChild(row);
+
+        ['temp_cedula', 'temp_nombres', 'temp_apellidos', 'temp_parentesco', 'temp_sexo', 'temp_nacimiento'].forEach(id => document.getElementById(id).value = '');
+    });
+
+    document.getElementById('formCargaFamiliar').addEventListener('submit', function(e) {
+        e.preventDefault();
+        if(document.getElementById('temp_nombres').value.trim()) btnAddF.click();
+
+        const btn = document.getElementById('btnGuardar');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Guardando...';
+
+        fetch("{% url 'guardar_paso7' %}", {
+            method: 'POST',
+            body: new FormData(this),
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: '¡Guardado!', timer: 1500, showConfirmButton: false, background: swalBg, color: swalColor })
+                .then(() => window.location.href = data.next_url);
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: data.error, background: swalBg, color: swalColor });
+                btn.disabled = false; btn.innerHTML = 'GUARDAR Y CONTINUAR';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
