@@ -487,3 +487,23 @@ class Modalidad(models.Model):
 
     def __str__(self):
         return self.descripcion
+
+
+# configuracion/models.py
+
+class IdentidadInstitucional(models.Model):
+    nombre_oficial = models.CharField(max_length=150) # <-- Antes decía nombre_institucion
+    rif = models.CharField(max_length=20)
+    direccion_fiscal = models.TextField()
+    telefono_contacto = models.CharField(max_length=50, null=True, blank=True)
+    correo_contacto = models.CharField(max_length=100, null=True, blank=True)
+    ruta_logo_institucional = models.CharField(max_length=255, null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'identidad_institucional'
+        managed = False # Django no toca la tabla, solo la lee

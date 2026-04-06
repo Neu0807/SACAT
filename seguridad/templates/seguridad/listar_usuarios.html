@@ -1,186 +1,222 @@
-{% extends 'base.html' %}
+{% extends 'includes/base_standard.html' %}
 
 {% block content %}
-<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 
 <style>
-    /* 1. CONTENEDOR MAESTRO */
-    .tabla-container-wrapper {
-        width: 100%;
-        background-color: var(--bg-card);
-        border-radius: 12px;
-        border: 1px solid var(--border-color);
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-
-    .table-responsive-modern {
-        max-height: 550px;
-        overflow-y: auto;
-        overflow-x: auto;
-        border-radius: 8px;
-        position: relative;
-    }
-
-    /* 2. ESTILO DE CABECERA (Sticky con Azul Corporativo) */
-    .dataTable-table thead th {
-        position: sticky;
-        top: 0;
-        background-color: var(--brand-primary) !important;
-        color: white !important;
-        z-index: 20;
-        white-space: nowrap;
-        padding: 12px 15px !important;
-        border: none !important;
-    }
-
-    .dataTable-table tbody td {
-        white-space: nowrap;
-        vertical-align: middle;
-        padding: 12px 15px !important;
-        color: var(--text-main); /* Texto neutro para profesionalismo */
-    }
-
-    /* 3. BUSCADOR MODERNO SIN LUPA (Minimalista) */
-    .dataTable-top {
+    /* =======================================================================
+       ESTILOS DEL MÓDULO (Estandarizados SACAT - CLON EXACTO)
+       ======================================================================= */
+    
+    .dataTables_wrapper {
         display: flex;
-        justify-content: flex-end;
-        margin-bottom: 1.5rem;
+        flex-direction: column;
+        gap: 15px;
     }
 
-    .dataTable-search {
-        position: relative;
-        width: 100%;
-        max-width: 350px;
+    .search-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 15px 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        display: flex;
+        justify-content: space-between; /* Ajustado para incluir el selector de cantidad */
+        align-items: center;
+        transition: background-color 0.3s, border-color 0.3s;
     }
-
-    .dataTable-search::before { display: none; }
-
-    .dataTable-input {
+    
+    .dataTables_filter { text-align: left !important; width: 100%; }
+    .dataTables_filter label { width: 100%; max-width: 350px; margin: 0; color: var(--text-muted); }
+    .dataTables_filter input {
         width: 100% !important;
-        padding: 10px 20px !important;
-        border-radius: 30px !important;
+        border-radius: 8px !important;
+        padding: 10px 15px !important;
         border: 1px solid var(--border-color) !important;
         background-color: var(--bg-body) !important;
+        color: var(--text-main) !important;
+        margin-left: 0 !important;
         transition: all 0.3s ease;
     }
-
-    /* Ajuste para paginación */
-    .dataTable-pagination .active a {
-        background-color: var(--brand-primary) !important;
-        color: white !important;
+    .dataTables_filter input:focus {
         border-color: var(--brand-primary) !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.2) !important;
+        outline: none;
     }
 
-    /* Colores semánticos sutiles para el estado únicamente */
-    .text-activo { color: #10b981; font-weight: bold; }
-    .text-inactivo { color: #ef4444; font-weight: bold; }
+    /* Estilo para el selector de cantidad de registros */
+    .dataTables_length label { color: var(--text-muted); font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+    .dataTables_length select {
+        border-radius: 8px !important;
+        padding: 5px 10px !important;
+        border: 1px solid var(--border-color) !important;
+        background-color: var(--bg-body) !important;
+        color: var(--text-main) !important;
+    }
 
-    [data-bs-theme="dark"] .dataTable-table thead th { background-color: var(--brand-primary) !important; }
+    .table-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .dataTables_scrollHeadInner table { margin-bottom: 0 !important; }
+    
+    .dataTables_scrollHead { 
+        background-color: var(--brand-primary) !important;
+        border-bottom: none !important; 
+        transition: background-color 0.3s;
+    }
+    
+    .dataTables_scrollHead th {
+        background-color: var(--brand-primary) !important;
+        color: #ffffff !important; 
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        border: none !important;
+        padding: 15px !important;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    table.dataTable tbody td {
+        vertical-align: middle;
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+        background-color: var(--bg-card);
+        transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+    }
+    table.dataTable tbody tr:hover td { 
+        background-color: var(--brand-light) !important; 
+    }
+    .dataTables_empty { color: var(--text-muted) !important; }
+
+    .pagination-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 10px 20px;
+        box-shadow: 0 -2px 4px rgba(0,0,0,0.02);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .dataTables_info { padding-top: 0 !important; font-size: 0.85rem; color: var(--text-muted) !important; }
+    .dataTables_paginate { margin: 0 !important; }
+    
+    .page-link {
+        color: var(--text-main);
+        background-color: var(--bg-body);
+        border-color: var(--border-color);
+        transition: all 0.3s;
+    }
+    .page-item.active .page-link { 
+        background-color: var(--brand-primary) !important; 
+        border-color: var(--brand-primary) !important; 
+        color: #ffffff !important; 
+    }
+
+    .btn-primary {
+        background-color: var(--brand-primary);
+        border-color: var(--brand-primary);
+        color: #ffffff !important;
+        transition: all 0.3s;
+    }
+
+    .text-status-active { color: var(--color-success); font-weight: 600; letter-spacing: 0.5px; }
+    .text-status-inactive { color: var(--color-error); font-weight: 600; letter-spacing: 0.5px; }
+
+    @media (max-width: 768px) {
+        .pagination-panel { flex-direction: column; justify-content: center; text-align: center; }
+        .dataTables_filter label { max-width: 100%; }
+    }
 </style>
 
-<div class="container-fluid">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-        <div>
-            <h2 class="fw-bold mb-1" style="color: var(--brand-primary);">
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <h2 class="fw-bold mb-0" style="color: var(--brand-primary);">
                 <i class="fas fa-users-gear me-2"></i>Gestión de Usuarios
             </h2>
-            <p class="text-muted mb-0">Control de accesos y perfiles del sistema SACAT</p>
+            <div class="d-flex gap-2">
+                <a href="{% url 'crear_superusuario' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                    <i class="fas fa-plus-circle me-2"></i>Crear Usuario
+                </a>
+            </div>
         </div>
-        <a href="{% url 'crear_superusuario' %}" class="btn btn-primary px-4 py-2 shadow-sm rounded-pill">
-            <i class="fas fa-plus-circle me-2"></i>Crear Usuario
-        </a>
     </div>
 
-    <div class="tabla-container-wrapper">
-        <div class="table-responsive-modern">
-            <table id="tablaUsuarios" class="table table-hover m-0">
-                <thead>
-                    <tr>
-                        <th>Usuario</th>
-                        <th>Rol Asignado</th>
-                        <th>Último Acceso</th>
-                        <th>Estado Clave</th>
-                        <th>Estado</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in usuarios %}
-                    <tr>
-                        <td class="fw-bold text-primary">{{ user.nombre_usuario }}</td>
-                        <td class="text-muted">
-                            {% if user.is_superuser %}
-                                Superusuario
-                            {% elif user.rol %}
-                                {{ user.rol.nombre_rol }}
-                            {% else %}
-                                Sin Rol
-                            {% endif %}
-                        </td>
-                        <td class="text-muted small">
-                            {% if user.last_login %}
-                                {{ user.last_login|date:"d/m/Y H:i" }}
-                            {% else %}
-                                <span class="italic small text-muted-opacity">Sin ingresos</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-muted small">
-                            {% if user.requiere_cambio_clave %}
-                                Pendiente
-                            {% else %}
-                                Al día
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if user.esta_activo %}
-                                <span class="text-activo small">ACTIVO</span>
-                            {% else %}
-                                <span class="text-inactivo small">INACTIVO</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            <div class="btn-group shadow-sm">
-                                <button class="btn btn-outline-primary btn-sm" onclick="abrirModalGestionUser('/usuarios/editar/{{ user.nombre_usuario }}/', 'Editar Usuario')" title="Editar Datos">
-                                    <i class="fas fa-user-edit"></i>
-                                </button>
-                                
-                                {% if user.esta_activo %}
-                                <button class="btn btn-outline-danger btn-sm" onclick="cambiarEstadoUsuario('{{ user.nombre_usuario }}', 'inhabilitar')" title="Inhabilitar">
-                                    <i class="fas fa-user-slash"></i>
-                                </button>
-                                {% else %}
-                                <button class="btn btn-outline-success btn-sm" onclick="cambiarEstadoUsuario('{{ user.nombre_usuario }}', 'habilitar')" title="Habilitar">
-                                    <i class="fas fa-user-check"></i>
-                                </button>
-                                {% endif %}
-                                
-                                <button class="btn btn-outline-warning btn-sm" onclick="confirmarResetClave('{{ user.nombre_usuario }}')" title="Reset Clave">
-                                    <i class="fas fa-key"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">No hay usuarios registrados.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <table id="tablaUsuarios" class="table w-100 m-0 display nowrap">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Rol Asignado</th>
+                <th>Último Acceso</th>
+                <th>Estado Clave</th>
+                <th class="text-center">Estatus</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in usuarios %}
+            <tr>
+                <td class="fw-bold">{{ user.nombre_usuario }}</td>
+                <td>
+                    {% if user.is_superuser %} SUPERUSUARIO 
+                    {% elif user.rol %} {{ user.rol.nombre_rol|upper }} 
+                    {% else %} SIN ROL {% endif %}
+                </td>
+                <td class="small text-muted">
+                    {% if user.last_login %} {{ user.last_login|date:"d/m/Y H:i" }} 
+                    {% else %} --/--/---- {% endif %}
+                </td>
+                <td class="small">
+                    {% if user.requiere_cambio_clave %} <span class="text-warning fw-bold">PENDIENTE</span>
+                    {% else %} <span class="text-success fw-bold">AL DÍA</span> {% endif %}
+                </td>
+                <td class="text-center">
+                    {% if user.esta_activo %}
+                        <span class="text-status-active"> ACTIVO</span>
+                    {% else %}
+                        <span class="text-status-inactive">INACTIVO</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-link text-primary border-0 me-1" onclick="abrirModalGestionUser('/usuarios/editar/{{ user.nombre_usuario }}/', 'Editar Usuario')" title="Editar"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-link {% if user.esta_activo %}text-danger{% else %}text-success{% endif %} border-0 btn-toggle-estatus" 
+                            data-id="{{ user.nombre_usuario }}" 
+                            data-nombre="{{ user.nombre_usuario }}"
+                            data-activo="{{ user.esta_activo|yesno:'true,false' }}"
+                            title="{% if user.esta_activo %}Inhabilitar{% else %}Habilitar{% endif %}">
+                        <i class="fas fa-power-off"></i>
+                    </button>
+                    <button class="btn btn-sm btn-link text-warning border-0 ms-1" onclick="confirmarResetClave('{{ user.nombre_usuario }}')" title="Reset Clave"><i class="fas fa-key"></i></button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 <div class="modal fade" id="modalGestionUser" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-primary text-white">
+        <div class="modal-content border-0 shadow-lg" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden; transition: background-color 0.3s;">
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%); color: white;">
                 <h5 class="modal-title fw-bold" id="tituloModalUser">Gestión</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="location.reload()"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0" id="contenidoDinamicoUser">
-                </div>
+            <div class="modal-body p-0" id="contenidoDinamicoUser"></div>
         </div>
     </div>
 </div>
@@ -188,103 +224,90 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const myTable = document.querySelector("#tablaUsuarios");
-        if (myTable) {
-            new simpleDatatables.DataTable(myTable, {
-                searchable: true,
-                perPage: 10,
-                labels: {
-                    placeholder: "Buscar usuario...",
-                    perPage: "registros",
-                    noRows: "No se encontraron resultados",
-                    info: "Registros del {start} al {end} (Total: {rows})",
+    $(document).ready(function() {
+        // Inicializar DataTables con exactamente el mismo dom y configuración
+        $('#tablaUsuarios').DataTable({
+            scrollX: true,
+            scrollY: "35vh",
+            scrollCollapse: true,
+            paging: true,
+            pageLength: 15,
+            dom: '<"search-panel"lf><"table-panel"t><"pagination-panel"ip>',
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json',
+                search: "", 
+                searchPlaceholder: "🔍 Filtrar usuarios..."
+            }
+        });
+
+        // Lógica AJAX para Cambiar Estatus (Heredada y Adaptada)
+        $('.btn-toggle-estatus').on('click', function() {
+            const btn = $(this);
+            const username = btn.data('id');
+            const estaActivo = btn.data('activo') === true; 
+            const accionTexto = estaActivo ? 'inhabilitar' : 'habilitar';
+            const nuevoEstatus = !estaActivo;
+            
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const swalBg = isDark ? '#1E293B' : '#ffffff';
+            const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
+            Swal.fire({
+                title: `¿Desea ${accionTexto} al usuario?`,
+                text: username,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: 'var(--brand-primary)',
+                confirmButtonText: 'Sí, continuar',
+                background: swalBg, color: swalColor
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/usuarios/cambiar-estado/${username}/`, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ esta_activo: nuevoEstatus })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({ icon: 'success', title: '¡Éxito!', text: data.mensaje, confirmButtonColor: 'var(--brand-primary)', background: swalBg, color: swalColor })
+                            .then(() => location.reload());
+                        }
+                    });
                 }
             });
-        }
+        });
     });
 
+    // Lógica de Modal Dinámico
     const modalUser = new bootstrap.Modal(document.getElementById('modalGestionUser'));
-    
     function abrirModalGestionUser(url, titulo) {
         document.getElementById('tituloModalUser').innerText = titulo;
         const contenido = document.getElementById('contenidoDinamicoUser');
-        
-        // Efecto de carga
         contenido.innerHTML = '<div class="p-5 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
         modalUser.show();
-
-        fetch(url)
-            .then(res => res.text())
-            .then(html => {
-                contenido.innerHTML = html;
-                // Re-ejecutar scripts cargados dinámicamente en el modal
-                const scripts = contenido.querySelectorAll("script");
-                scripts.forEach(s => eval(s.innerHTML));
-            })
-            .catch(err => {
-                contenido.innerHTML = '<div class="p-4 text-center text-danger">Error al cargar la información.</div>';
-            });
-    }
-
-    function cambiarEstadoUsuario(username, accion) {
-        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-        Swal.fire({
-            title: accion === 'habilitar' ? '¿Habilitar Usuario?' : '¿Inhabilitar Usuario?',
-            text: `El usuario ${username} ${accion === 'habilitar' ? 'podrá' : 'no podrá'} acceder al sistema.`,
-            icon: accion === 'habilitar' ? 'success' : 'warning',
-            showCancelButton: true,
-            confirmButtonColor: 'var(--brand-primary)',
-            cancelButtonColor: 'var(--color-error)',
-            confirmButtonText: 'Sí, confirmar',
-            background: isDark ? '#1E293B' : '#ffffff',
-            color: isDark ? '#F8FAFC' : '#0F172A'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                fetch(`/usuarios/cambiar-estado/${username}/`, {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire('¡Éxito!', data.mensaje, 'success').then(() => location.reload());
-                    } else {
-                        Swal.fire('Error', data.mensaje, 'error');
-                    }
-                });
-            }
+        fetch(url).then(res => res.text()).then(html => {
+            contenido.innerHTML = html;
+            contenido.querySelectorAll("script").forEach(s => eval(s.innerHTML));
         });
     }
 
+    // Lógica para Reset Clave
     function confirmarResetClave(username) {
         const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
         Swal.fire({
-            title: '¿Resetear Contraseña?',
-            text: `Se generará una nueva clave para ${username}`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: 'var(--brand-primary)',
-            confirmButtonText: 'Sí, generar',
-            background: isDark ? '#1E293B' : '#ffffff',
-            color: isDark ? '#F8FAFC' : '#0F172A'
+            title: '¿Resetear Contraseña?', text: `Se generará una nueva clave para ${username}`,
+            icon: 'question', showCancelButton: true, confirmButtonColor: 'var(--brand-primary)',
+            confirmButtonText: 'Sí, generar', background: isDark ? '#1E293B' : '#ffffff', color: isDark ? '#F8FAFC' : '#0F172A'
         }).then((result) => {
             if (result.isConfirmed) {
                 fetch(`/usuarios/reset-clave/${username}/`, {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
-                })
-                .then(res => res.json())
-                .then(data => {
+                    method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
+                }).then(res => res.json()).then(data => {
                     if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Nueva Clave',
-                            html: `<div class="alert alert-warning py-3"><strong style="font-size: 1.5rem;">${data.clave}</strong></div>`,
-                            confirmButtonColor: 'var(--brand-primary)'
-                        });
+                        Swal.fire({ icon: 'success', title: 'Nueva Clave', html: `<div class='alert alert-warning py-3'><strong>${data.clave}</strong></div>`, confirmButtonColor: 'var(--brand-primary)' });
                     }
                 });
             }

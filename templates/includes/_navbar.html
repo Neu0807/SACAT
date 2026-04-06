@@ -1,0 +1,66 @@
+<nav class="sacat-navbar shadow-sm">
+    <style>
+        .sacat-navbar {
+            height: var(--navbar-height);
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; padding: 0 1.5rem;
+            flex-shrink: 0;
+        }
+        .toggle-icon-style {
+            color: var(--text-main) !important;
+            transition: all 0.2s ease;
+        }
+        #toggleSidebar:hover .toggle-icon-style { opacity: 0.7; }
+    </style>
+
+    <div class="d-flex align-items-center justify-content-between w-100">
+        <div class="d-flex align-items-center">
+            <button type="button" id="toggleSidebar" class="btn border-0 p-0 me-3 bg-transparent">
+                <i class="fas fa-bars-staggered fs-4 toggle-icon-style"></i>
+            </button>
+            <div class="lh-1 d-none d-md-block text-start">
+                <div class="fw-bold text-main" style="font-size: 0.95rem;">
+                    {{ identidad.nombre_oficial|upper }}
+                </div>
+                {% if identidad.rif %}
+                <small class="text-muted" style="font-size: 0.75rem;">RIF: {{ identidad.rif }}</small>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="text-center mx-auto d-none d-md-block">
+            <div id="digitalDate" class="text-muted fw-medium" style="font-size: 0.75rem; margin-bottom: -2px;">-- --/--/----</div>
+            <div id="digitalClock" class="fw-bold text-main" style="font-size: 1.15rem; line-height: 1.1;">00:00 --</div>
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn border-0 rounded-circle" id="btnTheme"><i class="fas fa-moon fs-5 text-muted"></i></button>
+            <div class="vr opacity-10" style="height: 30px;"></div>
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-main" data-bs-toggle="dropdown">
+                    <div class="text-end me-2 lh-1">
+                        <div class="fw-bold" style="font-size: 0.85rem;">{{ request.user.nombre_usuario }}</div>
+                        <small class="text-muted" style="font-size: 0.7rem;">{{ request.user.rol.nombre_rol }}</small>
+                    </div>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                    <li><a class="dropdown-item py-2 text-danger fw-bold" href="{% url 'salir_sistema' %}"><i class="fas fa-power-off me-2"></i> Salir</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+    function updateClock() {
+        const now = new Date();
+        const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const fechaStr = `${dias[now.getDay()]} ${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+        let h = now.getHours(), m = String(now.getMinutes()).padStart(2,'0'), am = h >= 12 ? 'p.m.' : 'a.m.';
+        h = h % 12 || 12;
+        document.getElementById('digitalDate').textContent = fechaStr;
+        document.getElementById('digitalClock').textContent = `${String(h).padStart(2,'0')}:${m} ${am}`;
+    }
+    setInterval(updateClock, 1000); updateClock();
+</script>

@@ -1,70 +1,120 @@
-{% extends 'base.html' %}
+{% extends 'includes/base_standard.html' %}
+
+{% block title %} SACAT | Registrar Superusuario {% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilos específicos para la tarjeta de registro */
+    .card-custom {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .header-gradient {
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%);
+        color: white;
+    }
+
+    .input-group-text {
+        background-color: var(--bg-body);
+        border-color: var(--border-color);
+        color: var(--text-muted);
+    }
+
+    .form-control {
+        background-color: var(--bg-body);
+        border-color: var(--border-color);
+        color: var(--text-main);
+    }
+
+    .form-control:focus {
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 0.25rem rgba(30, 58, 138, 0.1);
+    }
+
+    /* Estilo para el switch de Staff */
+    .bg-staff-check {
+        background-color: var(--bg-body);
+        border: 1px solid var(--border-color);
+    }
+    /* Botón con el azul oscuro del encabezado */
+    .btn-brand-dark {
+        background-color: var(--brand-dark) !important;
+        border-color: var(--brand-dark) !important;
+        color: #ffffff !important;
+        transition: all 0.3s ease;
+    }
+
+    .btn-brand-dark:hover {
+        background-color: #0c142e !important; /* Un pelito más oscuro para el efecto click */
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(23, 37, 84, 0.3);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container py-4">
     <div class="mb-4">
         <a href="{% url 'listar_usuarios' %}" class="btn btn-link text-decoration-none text-muted p-0">
-            <i class="fas fa-arrow-left me-2"></i>Volver al Listado
+            <i class="fas fa-arrow-left me-2"></i>Volver al Listado de Usuarios
         </a>
     </div>
 
     <div class="row justify-content-center">
-        <div class="col-12 col-lg-8">
+        <div class="col-12 col-lg-7">
             <div class="card card-custom shadow-sm border-0">
-                <div class="card-header bg-primary text-white py-3">
-                    <h4 class="mb-0 fw-bold text-center">
-                        <i class="fas fa-user-shield me-2"></i>Registrar Superusuario
-                    </h4>
-                </div>
-                <div class="card-body p-4 p-md-5">
-                    
-                    <div class="alert alert-info border-0 shadow-sm mb-4 d-flex align-items-center">
-                        <i class="fas fa-info-circle fa-2x me-3"></i>
-                        <div>
-                            <strong>Información Importante:</strong><br>
-                            Este usuario es para fines de desarrollo. El sistema generará una <strong>contraseña aleatoria segura</strong> que se mostrará al finalizar.
+                <div class="card-header header-gradient py-4 border-0">
+                    <div class="text-center">
+                        <div class="bg-white bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                            <i class="fas fa-user-shield fs-3"></i>
                         </div>
+                        <h4 class="mb-0 fw-bold">Registrar Superusuario</h4>
+                        <small class="opacity-75 text-uppercase letter-spacing-1">Acceso de Alto Nivel</small>
                     </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
 
                     <form id="formCrearSuperusuario">
                         {% csrf_token %}
                         
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Cédula de Identidad (Usuario)</label>
+                            <label class="form-label fw-bold small text-main">CÉDULA DE IDENTIDAD (USUARIO) <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0">
-                                    <i class="fas fa-id-card text-muted"></i>
-                                </span>
-                                <input type="text" name="nombre_usuario" id="cedula_input" class="form-control border-start-0" 
-                                       placeholder="Ej: 20123456" required autocomplete="off">
+                                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                <input type="text" name="nombre_usuario" id="cedula_input" class="form-control" 
+                                       placeholder="Solo números" required autocomplete="off">
                             </div>
-                            <div class="form-text small">La cédula será el identificador de acceso al sistema.</div>
+                            <div class="form-text small opacity-75">La cédula será el identificador de acceso.</div>
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Nivel de Acceso</label>
+                            <label class="form-label fw-bold small text-main">NIVEL DE ACCESO</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0">
-                                    <i class="fas fa-user-shield text-primary"></i>
-                                </span>
-                                <input type="text" class="form-control border-start-0 bg-light" value="Superusuario" readonly>
+                                <span class="input-group-text"><i class="fas fa-shield-alt text-primary"></i></span>
+                                <input type="text" class="form-control bg-light opacity-75" value="Superusuario" readonly>
                                 <input type="hidden" name="tipo_acceso" value="superuser">
                             </div>
                         </div>
 
-                        <div class="form-check form-switch mb-4 p-3 border rounded-3 bg-light-subtle">
+                        <div class="form-check form-switch mb-5 p-3 border rounded-3 bg-staff-check">
                             <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <label class="form-check-label fw-bold d-block" for="isStaff">Habilitar Staff</label>
-                                    <small class="text-muted">Permite ingresar al panel de administración de Django.</small>
+                                <div class="pe-3">
+                                    <label class="form-check-label fw-bold d-block text-main" for="isStaff">Habilitar Staff</label>
+                                    <small class="text-muted small">Permite el acceso al panel administrativo de Django.</small>
                                 </div>
-                                <input class="form-check-input" type="checkbox" name="is_staff" id="isStaff" checked style="width: 3em; height: 1.5em;">
+                                <input class="form-check-input" type="checkbox" name="is_staff" id="isStaff" checked style="width: 2.8em; height: 1.4em; cursor:pointer;">
                             </div>
                         </div>
 
-                        <div class="d-grid mt-5">
-                            <button type="submit" class="btn btn-primary btn-lg shadow fw-bold">
-                                <i class="fas fa-save me-2"></i>Generar y Guardar Usuario
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-brand-dark btn-lg shadow fw-bold py-3">
+                                <i class="fas fa-save me-2"></i>GENERAR Y GUARDAR ACCESO
                             </button>
                         </div>
                     </form>
@@ -75,7 +125,8 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.getElementById('formCrearSuperusuario').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -84,10 +135,17 @@ document.getElementById('formCrearSuperusuario').addEventListener('submit', func
     const data = Object.fromEntries(formData.entries());
     data.is_staff = document.getElementById('isStaff').checked;
 
+    // Estilos SweetAlert adaptados al tema actual
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    const swalBg = isDark ? '#1E293B' : '#ffffff';
+    const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
     Swal.fire({
         title: 'Procesando...',
-        text: 'Estamos generando el acceso seguro',
+        text: 'Generando credenciales seguras',
         allowOutsideClick: false,
+        background: swalBg,
+        color: swalColor,
         didOpen: () => { Swal.showLoading(); }
     });
 
@@ -104,17 +162,19 @@ document.getElementById('formCrearSuperusuario').addEventListener('submit', func
         if (result.success) {
             Swal.fire({
                 icon: 'success',
-                title: '¡Usuario Creado!',
+                title: '¡Superusuario Creado!',
+                background: swalBg,
+                color: swalColor,
                 html: `
-                        <p>${result.mensaje}</p>
-                        <div class="alert alert-warning py-3" style="border: 2px dashed #f59e0b; background-color: #fffbeb;">
-                            <small class="d-block text-muted mb-1">Contraseña Temporal (¡Cópiala con cuidado!):</small>
-                            <code style="font-size: 1.6rem; letter-spacing: 3px; color: #b45309; font-family: 'Courier New', monospace; font-weight: bold;">
-                                ${result.clave}
-                            </code>
-                        </div>
-                    `,
-                confirmButtonText: 'Entendido, volver al listado',
+                    <p class="mb-3">${result.mensaje}</p>
+                    <div class="p-3 rounded-3" style="border: 2px dashed #f59e0b; background-color: rgba(245, 158, 11, 0.1);">
+                        <small class="d-block text-muted mb-2">Contraseña Generada (Cópiala ahora):</small>
+                        <code style="font-size: 1.8rem; letter-spacing: 2px; color: #f59e0b; font-family: 'Courier New', monospace; font-weight: bold;">
+                            ${result.clave}
+                        </code>
+                    </div>
+                `,
+                confirmButtonText: 'Ir al Listado',
                 confirmButtonColor: 'var(--brand-primary)',
             }).then(() => {
                 window.location.href = "{% url 'listar_usuarios' %}";
@@ -122,15 +182,22 @@ document.getElementById('formCrearSuperusuario').addEventListener('submit', func
         } else {
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
+                title: 'Error de Registro',
                 text: result.mensaje,
-                confirmButtonColor: 'var(--brand-primary)'
+                confirmButtonColor: 'var(--brand-primary)',
+                background: swalBg,
+                color: swalColor
             });
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de Conexión',
+            text: 'No se pudo comunicar con el servidor.',
+            background: swalBg,
+            color: swalColor
+        });
     });
 });
 </script>

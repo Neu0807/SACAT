@@ -66,6 +66,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'configuracion.context_processors.info_institucion',
             ],
         },
     },
@@ -129,7 +130,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 # ==============================================================================
 # ARCHIVOS MULTIMEDIA (Recaudos, PDFs, subidas por los usuarios)
 # ==============================================================================
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Le decimos a Django que ignore su usuario por defecto y use el nuestro

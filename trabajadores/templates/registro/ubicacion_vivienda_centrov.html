@@ -1,9 +1,11 @@
-{% extends 'base.html' %}
+{% extends 'includes/base_standard.html' %}
 
-{% block content %}
+{% block title %} SACAT | Registro - Paso 2 {% endblock %}
+
+{% block extra_css %}
 <style>
     /* =======================================================================
-       1. SISTEMA DE DISEÑO (Heredado)
+       1. SISTEMA DE DISEÑO (Tu diseño original intacto)
        ======================================================================= */
     :root {
         --bg-body: #F8FAFC; 
@@ -47,11 +49,9 @@
     .step-title { font-weight: 800; color: var(--text-muted); margin-bottom: 6px; font-size: 0.85rem; }
 
     /* Estados del Stepper */
-    /* Paso Completado (Paso 1) */
     .sacat-step.completed .step-circle { background-color: var(--brand-primary); border-color: var(--brand-primary); color: white; display: flex; align-items: center; justify-content: center; }
     .sacat-step.completed .step-circle::after { content: '✓'; font-size: 0.6rem; font-weight: bold; }
     
-    /* Paso Actual (Paso 2) */
     .sacat-step.current .step-title { font-size: 0.7rem; text-transform: uppercase; color: var(--brand-primary); }
     .sacat-step.current .step-circle { background-color: var(--bg-card); border: 3px solid var(--brand-primary); transform: scale(1.8); box-shadow: 0 4px 10px rgba(0,0,0, 0.1); }
 
@@ -76,7 +76,9 @@
     .mini-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block; }
     .text-uppercase { text-transform: uppercase; }
 </style>
+{% endblock %}
 
+{% block content %}
 <div class="container-fluid py-3">
     
     <div class="row justify-content-center mb-4">
@@ -147,7 +149,7 @@
                                     {% for tv in tipos_viviendas %}<option value="{{ tv.id }}">{{ tv.descripcion }}</option>{% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-6"
+                            <div class="col-md-6">
                                 <label class="mini-label">CONDICIÓN VIVIENDA <span class="text-danger">*</span></label>
                                 <select name="condicion_vivienda" class="form-select custom-input-sm" required>
                                     <option value="" selected disabled>...</option>
@@ -158,7 +160,7 @@
                     </div>
                 </div>
 
-                <div class="card border-0 shadow-sm mb-4" style="background-color: var(--bg-card); border-radius: 6x; border-left: 2x solid var(--brand-primary) !important;">
+                <div class="card border-0 shadow-sm mb-4" style="background-color: var(--bg-card); border-radius: 12px; border-left: 2px solid var(--brand-primary) !important;">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <p class="mini-title mb-0"><i class="fas fa-vote-yea me-2"></i>DATOS ELECTORALES</p>
@@ -195,7 +197,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -249,12 +253,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const divBusqueda = document.getElementById('divBusquedaElectoral');
         if (this.checked) {
             divBusqueda.style.display = 'none';
-            // Limpiar los requeridos de búsqueda alternativa
             estElec.removeAttribute('required'); munElec.removeAttribute('required'); parElec.removeAttribute('required');
             if (selPar.value) cargarCentros(selPar.value);
         } else {
             divBusqueda.style.display = 'flex';
-            // Hacer requerida la búsqueda alternativa
             estElec.setAttribute('required', ''); munElec.setAttribute('required', ''); parElec.setAttribute('required', '');
             selectCentro.innerHTML = '<option value="" disabled selected>Indique la ubicación electoral primero...</option>';
         }
@@ -272,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 5. Envío y Validación (Mejorada con SweetAlert como en el Paso 1)
+    // 5. Envío y Validación
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -304,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Paso 2 completado. Ubicación guardada.', timer: 2000, showConfirmButton: false, background: swalBg, color: swalColor })
+                Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Paso 2 completado correctamente.', timer: 2000, showConfirmButton: false, background: swalBg, color: swalColor })
                 .then(() => window.location.href = data.next_url);
             } else {
                 Swal.fire({ icon: 'error', title: 'Error', text: data.error, confirmButtonColor: 'var(--brand-primary)', background: swalBg, color: swalColor });
