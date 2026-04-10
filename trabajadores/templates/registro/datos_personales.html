@@ -5,30 +5,22 @@
 {% block extra_css %}
 <style>
     /* =======================================================================
-       1. SISTEMA DE DISEÑO (Tu diseño pro mantenido)
+       1. SISTEMA DE DISEÑO (Mantenemos tu estilo actual al 100%)
        ======================================================================= */
     :root {
-        --bg-body: #F8FAFC;
-        --bg-card: #ffffff;
-        --text-main: #0F172A;
-        --text-muted: #64748B;
+        --bg-body: #F8FAFC; --bg-card: #ffffff;
+        --text-main: #0F172A; --text-muted: #64748B;
         --border-color: #E2E8F0;
-        --brand-primary: #1E3A8A;
-        --brand-dark: #172554;
+        --brand-primary: #1E3A8A; --brand-dark: #172554;
         --brand-light: #EEF2FF;
         --accent-teal: #0D9488;
-        --color-success: #0E9F6E;
-        --color-error: #C81E1E;
+        --color-success: #0E9F6E; --color-error: #C81E1E;
     }
-
     [data-bs-theme="dark"] {
-        --bg-body: #0F172A;
-        --bg-card: #1E293B;
-        --text-main: #F8FAFC;
-        --text-muted: #E2E8F0;
+        --bg-body: #0F172A; --bg-card: #1E293B;
+        --text-main: #F8FAFC; --text-muted: #E2E8F0;
         --border-color: #64748B;
-        --brand-primary: #0D9488;
-        --brand-dark: #0F766E;
+        --brand-primary: #0D9488; --brand-dark: #0F766E;
         --brand-light: #1E293B;
     }
 
@@ -38,27 +30,39 @@
         border: 1px solid var(--border-color);
         border-radius: 15px;
         padding: 25px 15px 45px 15px;
-        transition: background-color 0.3s ease, border-color 0.3s ease;
+        transition: background-color 0.3s ease;
     }
-
     .sacat-stepper { display: flex; justify-content: space-between; align-items: center; position: relative; }
-    .sacat-stepper::before { content: ''; position: absolute; top: 31px; left: 5%; right: 5%; height: 2px; background-color: var(--border-color); z-index: 1; transition: background-color 0.3s ease; }
+    .sacat-stepper::before { content: ''; position: absolute; top: 31px; left: 5%; right: 5%; height: 2px; background-color: var(--border-color); z-index: 1; }
     .sacat-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
     .step-circle { width: 18px; height: 18px; border-radius: 50%; background-color: var(--border-color); border: 2px solid var(--bg-card); transition: all 0.3s ease; }
-    .step-title { font-weight: 800; color: var(--text-muted); margin-bottom: 6px; transition: color 0.3s ease; }
+    .step-title { font-weight: 800; color: var(--text-muted); margin-bottom: 6px; font-size: 0.85rem; }
     .sacat-step.current .step-title { font-size: 0.7rem; text-transform: uppercase; color: var(--brand-primary); }
     .sacat-step.current .step-circle { background-color: var(--bg-card); border: 3px solid var(--brand-primary); transform: scale(1.8); box-shadow: 0 4px 10px rgba(0,0,0, 0.1); }
-    .sacat-step.future .step-title { font-size: 0.85rem; }
 
-    /* 3. FORMULARIO */
-    .custom-input { background-color: var(--bg-body) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; border-radius: 8px !important; padding: 10px 15px !important; transition: all 0.3s ease; }
-    .custom-input:focus { border-color: var(--brand-primary) !important; box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.2) !important; background-color: var(--bg-body) !important; }
-    .btn-primary { background-color: var(--brand-primary) !important; border-color: var(--brand-primary) !important; color: #ffffff !important; font-weight: 600 !important; border-radius: 8px !important; padding: 12px 30px !important; transition: all 0.3s ease; }
-    .btn-primary:hover { background-color: var(--brand-dark) !important; border-color: var(--brand-dark) !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    /* 3. COMPONENTES */
+    .custom-input { background-color: var(--bg-body) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; border-radius: 8px !important; padding: 10px 15px !important; }
+    .custom-input:focus { border-color: var(--brand-primary) !important; box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.2) !important; }
     .bg-primary-soft { background-color: var(--brand-light); }
-    .text-main { color: var(--text-main); }
-    .card-header h6 { color: var(--text-main) !important; }
     .italic { font-style: italic; }
+    
+    /* Botón Estilo Actual Pro */
+    .btn-primary {
+        background-color: var(--brand-primary) !important;
+        border-color: var(--brand-primary) !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        padding: 12px 30px !important;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--brand-dark) !important;
+        border-color: var(--brand-dark) !important;
+        transform: translateY(-2px); /* El efecto de levantado */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2); /* Sombra más profunda */
+    }
 </style>
 {% endblock %}
 
@@ -68,16 +72,8 @@
         <div class="col-12 col-lg-11">
             <div class="stepper-box shadow-sm">
                 <div class="sacat-stepper">
-                    <div class="sacat-step current">
-                        <div class="step-title">Paso 1</div>
-                        <div class="step-circle"></div>
-                    </div>
-                    {% for i in "23456789" %}
-                    <div class="sacat-step future">
-                        <div class="step-title">{{ i }}</div>
-                        <div class="step-circle"></div>
-                    </div>
-                    {% endfor %}
+                    <div class="sacat-step current"><div class="step-title">Paso 1</div><div class="step-circle"></div></div>
+                    {% for i in "23456789" %}<div class="sacat-step future"><div class="step-title">{{ i }}</div><div class="step-circle"></div></div>{% endfor %}
                 </div>
             </div>
         </div>
@@ -88,47 +84,43 @@
             <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden;">
                 <div class="card-header bg-transparent border-0 pt-4 px-4">
                     <div class="d-flex align-items-center">
-                        <div class="p-2 bg-primary-soft rounded-3 me-3">
-                            <i class="fas fa-user-check" style="color: var(--brand-primary);"></i>
-                        </div>
+                        <div class="p-2 bg-primary-soft rounded-3 me-3"><i class="fas fa-user-check" style="color: var(--brand-primary);"></i></div>
                         <div>
                             <h6 class="fw-bold mb-0 text-main">DATOS PERSONALES</h6>
                             <small class="text-muted small italic">Campos marcados con (*) son obligatorios</small>
                         </div>
                     </div>
-                    <hr class="mt-3 mb-0 opacity-10" style="border-color: var(--border-color);">
+                    <hr class="mt-3 mb-0 opacity-10">
                 </div>
 
                 <form id="formPaso1" class="p-4 pt-3" novalidate>
                     {% csrf_token %}
                     <div class="row g-3">
                         <div class="col-md-2">
-                            <label class="form-label fw-bold small text-main">Tipo <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold small">Tipo *</label>
                             <select name="tipo_doc" class="form-select custom-input" required>
                                 <option value="" selected disabled>...</option>
-                                {% for td in tipos_docs %}
-                                <option value="{{ td.id }}">{{ td.sigla }}</option>
-                                {% endfor %}
+                                {% for td in tipos_docs %}<option value="{{ td.id }}">{{ td.sigla }}</option>{% endfor %}
                             </select>
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label fw-bold small text-main">Cédula / Pasaporte <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold small">Cédula / Pasaporte *</label>
                             <input type="text" name="cedula" class="form-control custom-input" placeholder="Solo números" required>
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label fw-bold small text-main">Fecha Nacimiento <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold small">Fecha Nacimiento *</label>
                             <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control custom-input" required>
                         </div>
 
                         <div class="col-md-8">
-                            <label class="form-label fw-bold small text-main">Lugar de Nacimiento <span class="text-danger">*</span></label>
-                            <input type="text" name="lugar_nacimiento" class="form-control custom-input text-uppercase" placeholder="EJ: CARACAS, DISTRITO CAPITAL" required>
+                            <label class="form-label fw-bold small">Lugar de Nacimiento *</label>
+                            <input type="text" name="lugar_nacimiento" class="form-control custom-input text-uppercase" required>
                         </div>
                         <div class="col-md-4 d-flex align-items-end">
                             <div class="p-2 rounded-3 border w-100 d-flex align-items-center" style="height: 48px; background-color: var(--bg-body);">
                                 <div class="form-check form-switch mb-0 ms-2">
-                                    <input class="form-check-input" type="checkbox" role="switch" name="es_naturalizado" id="checkNaturalizado">
-                                    <label class="form-check-label fw-bold small ms-2 text-main" for="checkNaturalizado">¿Naturalizado?</label>
+                                    <input class="form-check-input" type="checkbox" name="es_naturalizado" id="checkNaturalizado">
+                                    <label class="form-check-label fw-bold small ms-2" for="checkNaturalizado">¿Naturalizado?</label>
                                 </div>
                             </div>
                         </div>
@@ -136,56 +128,52 @@
                         <div id="divGaceta" class="col-12" style="display: none;">
                             <div class="row g-3 p-3 rounded-3 shadow-sm" style="background-color: var(--bg-body); border-left: 4px solid var(--brand-primary);">
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small" style="color: var(--brand-primary);">Nro. de Gaceta <span class="text-danger">*</span></label>
+                                    <label class="form-label fw-bold small">Nro. de Gaceta *</label>
                                     <input type="text" name="nro_gaceta" id="inputGaceta" class="form-control custom-input text-uppercase">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold small" style="color: var(--brand-primary);">Fecha de Gaceta <span class="text-danger">*</span></label>
+                                    <label class="form-label fw-bold small">Fecha de Gaceta *</label>
                                     <input type="date" name="fecha_gaceta" id="inputFechaGaceta" class="form-control custom-input">
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-md-3">
-                            <label class="form-label fw-bold small text-main">Primer Nombre <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold small">Primer Nombre *</label>
                             <input type="text" name="nombre1" class="form-control custom-input text-uppercase" required>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-bold small text-muted italic">Segundo Nombre</label>
+                            <label class="form-label fw-bold small text-muted">Segundo Nombre</label>
                             <input type="text" name="nombre2" class="form-control custom-input text-uppercase">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-bold small text-main">Primer Apellido <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold small">Primer Apellido *</label>
                             <input type="text" name="apellido1" class="form-control custom-input text-uppercase" required>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-bold small text-muted italic">Segundo Apellido</label>
+                            <label class="form-label fw-bold small text-muted">Segundo Apellido</label>
                             <input type="text" name="apellido2" class="form-control custom-input text-uppercase">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-main">Sexo <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold small">Sexo *</label>
                             <select name="sexo" class="form-select custom-input" required>
                                 <option value="" selected disabled>Seleccione...</option>
-                                {% for s in sexos %}
-                                <option value="{{ s.id }}">{{ s.descripcion }}</option>
-                                {% endfor %}
+                                {% for s in sexos %}<option value="{{ s.id }}">{{ s.descripcion }}</option>{% endfor %}
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-main">Estado Civil <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold small">Estado Civil *</label>
                             <select name="estado_civil" class="form-select custom-input" required>
                                 <option value="" selected disabled>Seleccione...</option>
-                                {% for ec in estados_civiles %}
-                                <option value="{{ ec.id }}">{{ ec.descripcion }}</option>
-                                {% endfor %}
+                                {% for ec in estados_civiles %}<option value="{{ ec.id }}">{{ ec.descripcion }}</option>{% endfor %}
                             </select>
                         </div>
                     </div>
 
                     <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
                         <a href="{% url 'inicio' %}" class="btn px-4 fw-bold small" style="background-color: var(--bg-body); color: var(--text-muted); border: 1px solid var(--border-color);">
-                            <i class="fas fa-times me-2"></i>CANCELAR
+                            <i class="fas fa-arrow-left me-2"></i> CANCELAR
                         </a>
                         <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm" id="btnSiguiente">
                             GUARDAR Y CONTINUAR <i class="fas fa-arrow-right ms-2"></i>
@@ -196,110 +184,103 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Usamos una función autoejecutable para aislar el código
-    (function() {
-        console.log("SACAT: Cargando lógica del Paso 1...");
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('formPaso1');
+        const btnSiguiente = document.getElementById('btnSiguiente');
+        const checkNat = document.getElementById('checkNaturalizado');
+        const divGaceta = document.getElementById('divGaceta');
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('formPaso1');
-            const btnSiguiente = document.getElementById('btnSiguiente');
+        // Detectar tema para SweetAlert
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const swalBg = isDark ? '#1E293B' : '#ffffff';
+        const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
+        // 1. Mayúsculas automáticas
+        form.querySelectorAll('.text-uppercase').forEach(input => {
+            input.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+        });
+
+        // 2. Manejo de Naturalización (Regla de negocio)
+        checkNat.addEventListener('change', function() {
+            if (this.checked) {
+                divGaceta.style.display = 'block';
+                divGaceta.querySelectorAll('input').forEach(i => i.setAttribute('required', ''));
+            } else {
+                divGaceta.style.display = 'none';
+                divGaceta.querySelectorAll('input').forEach(i => { i.removeAttribute('required'); i.value = ''; });
+            }
+        });
+
+        // 3. ENVÍO AJAX (El que sí guardaba el 30-03)
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // BLOQUEO DE REFRESH GARANTIZADO
             
-            if (!form) {
-                console.error("SACAT: No se encontró el formulario 'formPaso1'.");
+            // Validación manual rápida
+            let isInvalid = false;
+            form.querySelectorAll('[required]').forEach(input => {
+                if (!input.value || !input.value.trim()) {
+                    input.classList.add('is-invalid');
+                    isInvalid = true;
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+
+            if (isInvalid) {
+                Swal.fire({ 
+                    icon: 'warning', title: 'Atención', 
+                    text: 'Por favor complete todos los campos obligatorios (*)',
+                    background: swalBg, color: swalColor 
+                });
                 return;
             }
 
-            // --- 1. Lógica Visual (Opcional pero ayuda) ---
-            const checkNat = document.getElementById('checkNaturalizado');
-            const divGaceta = document.getElementById('divGaceta');
-            if (checkNat && divGaceta) {
-                checkNat.addEventListener('change', function() {
-                    divGaceta.style.display = this.checked ? 'block' : 'none';
-                    divGaceta.querySelectorAll('input').forEach(i => {
-                        if(this.checked) i.setAttribute('required', '');
-                        else { i.removeAttribute('required'); i.value = ''; }
+            // Efecto Visual
+            const originalText = btnSiguiente.innerHTML;
+            btnSiguiente.disabled = true;
+            btnSiguiente.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> PROCESANDO...';
+
+            // ENVÍO AL BACKEND
+            fetch("{% url 'guardar_paso1' %}", {
+                method: "POST",
+                body: new FormData(form),
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success', title: '¡Éxito!',
+                        text: 'Datos personales registrados.',
+                        timer: 1500, showConfirmButton: false,
+                        background: swalBg, color: swalColor
+                    }).then(() => {
+                        window.location.href = data.next_url || "{% url 'registro_paso2' %}";
                     });
-                });
-            }
-
-            // Mayúsculas automáticas
-            form.querySelectorAll('.text-uppercase').forEach(input => {
-                input.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
-            });
-
-            // --- 2. EL EVENTO QUE EVITA EL REFRESH ---
-            form.addEventListener('submit', function(e) {
-                e.preventDefault(); // <-- ESTO ES LO QUE EVITA QUE SE RECARGUE
-                e.stopPropagation();
-
-                console.log("SACAT: Enviando datos...");
-
-                // Validación de campos requeridos
-                let isInvalid = false;
-                form.querySelectorAll('[required]').forEach(input => {
-                    if (!input.value.trim()) {
-                        input.classList.add('is-invalid');
-                        isInvalid = true;
-                    } else {
-                        input.classList.remove('is-invalid');
-                    }
-                });
-
-                if (isInvalid) {
-                    Swal.fire({ icon: 'warning', title: 'Atención', text: 'Completa los campos obligatorios.' });
-                    return;
-                }
-
-                // Animación del botón
-                const originalContent = btnSiguiente.innerHTML;
-                btnSiguiente.disabled = true;
-                btnSiguiente.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Guardando...';
-
-                // Captura de datos
-                const formData = new FormData(form);
-                const htmlEl = document.documentElement;
-                const isDark = htmlEl.getAttribute('data-bs-theme') === 'dark';
-                const swalBg = isDark ? '#1E293B' : '#ffffff';
-                const swalColor = isDark ? '#F8FAFC' : '#0F172A';
-
-                // Envío AJAX
-                fetch("{% url 'guardar_paso1' %}", {
-                    method: "POST",
-                    body: formData,
-                    headers: { "X-CSRFToken": "{{ csrf_token }}" }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log("SACAT: Respuesta recibida", data);
-                    if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: '¡Éxito!',
-                            text: 'Datos guardados correctamente.',
-                            timer: 1500,
-                            showConfirmButton: false,
-                            background: swalBg, color: swalColor
-                        }).then(() => {
-                            // Redirección forzada al paso 2
-                            window.location.href = data.next_url || "{% url 'registro_paso2' %}";
-                        });
-                    } else {
-                        throw new Error(data.error || "Error al procesar");
-                    }
-                })
-                .catch(error => {
-                    console.error("SACAT: Error en envío", error);
-                    Swal.fire({ icon: 'error', title: 'Error', text: error.message, background: swalBg, color: swalColor });
+                } else {
+                    Swal.fire({ 
+                        icon: 'error', title: 'Error', 
+                        text: data.error || 'Ocurrió un error al guardar.',
+                        background: swalBg, color: swalColor 
+                    });
                     btnSiguiente.disabled = false;
-                    btnSiguiente.innerHTML = originalContent;
+                    btnSiguiente.innerHTML = originalText;
+                }
+            })
+            .catch(err => {
+                console.error("Error en Step 1:", err);
+                Swal.fire({ 
+                    icon: 'error', title: 'Error de Red', 
+                    text: 'No se pudo conectar con el servidor.',
+                    background: swalBg, color: swalColor 
                 });
+                btnSiguiente.disabled = false;
+                btnSiguiente.innerHTML = originalText;
             });
         });
-    })();
+    });
 </script>
 {% endblock %}

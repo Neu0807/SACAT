@@ -1,0 +1,590 @@
+{% extends 'includes/base_standard.html' %}
+
+{% block title %} SACAT | Fase 1 - Identidad {% endblock %}
+
+{% block extra_css %}
+<style>
+    /* VARIABLES DE DISEÑO SACAT */
+    :root {
+        --bg-body: #F8FAFC;
+        --bg-card: #ffffff;
+        --text-main: #0F172A;
+        --text-muted: #64748B;
+        --border-color: #E2E8F0;
+        --brand-primary: #1E3A8A;
+        --brand-dark: #172554;
+        --brand-light: #EEF2FF;
+        --color-success: #0E9F6E;
+        --color-error: #C81E1E;
+    }
+
+    /* BLOQUES DE FEEDBACK VISUAL */
+    .feedback-box {
+        font-size: 0.65rem;
+        font-weight: 700;
+        margin-top: 2px;
+        display: block;
+        min-height: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .custom-input.is-invalid {
+        border-color: var(--color-error) !important;
+        box-shadow: 0 0 0 0.2rem rgba(200, 30, 30, 0.1) !important;
+    }
+
+    .custom-input.is-valid {
+        border-color: var(--color-success) !important;
+    }
+
+    /* STEPPER: ALINEACIÓN LÁSER MATEMÁTICA */
+    .stepper-box {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 20px 10px 15px 10px;
+    }
+
+    .sacat-stepper {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        position: relative;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    /* La línea atraviesa exactamente el centro de los círculos (14px / 2 = 7px) */
+    .sacat-stepper::before {
+        content: '';
+        position: absolute;
+        bottom: 7px;
+        left: 12.5%;
+        right: 12.5%;
+        height: 2px;
+        background-color: var(--border-color);
+        z-index: 1;
+    }
+
+    .sacat-step {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .step-circle {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background-color: var(--border-color);
+        border: 2px solid var(--bg-card);
+        transition: all 0.3s ease;
+    }
+
+    .step-title {
+        font-weight: 800;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+    }
+
+    @media (max-width: 576px) {
+        .step-title { display: none; }
+    }
+
+    /* Estado Activo del Stepper */
+    .sacat-step.current .step-circle {
+        background-color: var(--bg-card);
+        border: 3px solid var(--brand-primary);
+        transform: scale(1.6);
+        box-shadow: 0 4px 10px rgba(30, 58, 138, 0.15);
+    }
+
+    .sacat-step.current .step-title {
+        color: var(--brand-primary);
+    }
+
+    /* INPUTS Y FORMULARIO */
+    .custom-input {
+        background-color: var(--bg-body) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-main) !important;
+        border-radius: 8px !important;
+        padding: 8px 12px !important;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+
+    .custom-input:focus {
+        background-color: #ffffff !important;
+        border-color: var(--brand-primary) !important;
+        outline: none !important;
+    }
+
+    .form-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 0.3rem;
+    }
+
+    .req-pin {
+        color: var(--color-error);
+        font-weight: bold;
+        margin-left: 2px;
+    }
+
+    /* DIVISORES DE SECCIÓN */
+    .section-divider {
+        width: 100%;
+        border-bottom: 1px solid var(--border-color);
+        margin: 1.2rem 0 0.8rem 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .section-tag {
+        font-size: 0.65rem;
+        font-weight: 800;
+        color: var(--brand-primary);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        background: var(--bg-card);
+        padding-right: 12px;
+    }
+
+    .btn-primary {
+        background-color: var(--brand-primary) !important;
+        border-color: var(--brand-primary) !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        padding: 12px 30px !important;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(30, 58, 138, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-xl-11">
+            <div class="stepper-box shadow-sm">
+                <div class="sacat-stepper">
+                    <div class="sacat-step current"><div class="step-title">1. Identidad</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">2. Contacto</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">3. Laboral</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">4. Emisión</div><div class="step-circle"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-11">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px; overflow: hidden;">
+                
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 rounded-3 me-3" style="background-color: var(--brand-light);">
+                            <i class="fas fa-id-card fa-lg" style="color: var(--brand-primary);"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-main text-uppercase" style="letter-spacing: 0.5px;">Información de Identidad</h6>
+                            <small class="text-muted italic">Fase 1: Carga de Datos Iniciales del Trabajador</small>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="formPaso1" class="p-4 pt-2" novalidate enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+
+                        <div class="col-12 col-md-4 col-lg-3">
+                            <label class="form-label">Tipo de Documento <span class="req-pin">*</span></label>
+                            <select name="tipo_doc" id="tipo_doc" class="form-select custom-input" required>
+                                <option value="" selected disabled>...</option>
+                                {% for td in tipos_docs %}
+                                    <option value="{{ td.id }}" data-sigla="{{ td.sigla }}">{{ td.sigla }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="feedback-box text-danger"></div>
+                        </div>
+
+                        <div class="col-12 col-md-8 col-lg-6">
+                            <label class="form-label">Nro. de Documento <span class="req-pin">*</span></label>
+                            <input type="text" name="cedula" id="cedula" class="form-control custom-input" 
+                                   placeholder="Elija tipo primero" required disabled autocomplete="off">
+                            <div id="feedback_cedula" class="feedback-box text-danger"></div>
+                        </div>
+
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <label class="form-label">F.Vencimiento del Documento <span class="req-pin">*</span></label>
+                            <input type="text" name="fecha_vencimiento_id" id="fecha_vencimiento_id" 
+                                class="form-control custom-input" placeholder="MM/AAAA" 
+                                maxlength="7" required autocomplete="off">
+                            <div class="feedback-box text-danger" id="feedback_vencimiento"></div>
+                        </div>
+
+                        <div class="col-12 col-md-6 col-lg-6">
+                            <label class="form-label">Documento Digital (PDF/JPG/PNG) <span class="req-pin">*</span></label>
+                            <input type="file" name="archivo_cedula" id="archivo_cedula" class="form-control custom-input" 
+                                   accept=".pdf,image/*" required>
+                            <div id="feedback_archivo" class="feedback-box text-danger"></div>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                            <div class="px-3 rounded-3 border bg-light d-flex align-items-center" 
+                                 style="height: 38px; margin-top: 26px;">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" name="es_naturalizado" id="checkNaturalizado" 
+                                           style="cursor:pointer; transform: scale(1.15);">
+                                    <label class="form-check-label fw-bold ms-2" style="font-size: 0.7rem; cursor:pointer;" for="checkNaturalizado">
+                                        ¿EL TRABAJADOR ES NATURALIZADO?
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="divGaceta" class="col-12" style="display: none;">
+                            <div class="row g-2 p-3 pt-0 border-start border-3 border-primary bg-light rounded-end">
+                                <div class="col-12 col-md-4">
+                                    <label class="form-label">Nro. de Gaceta <span class="req-pin">*</span></label>
+                                    <input type="text" name="nro_gaceta" id="nro_gaceta" class="form-control custom-input text-uppercase">
+                                    <div id="feedback_gaceta" class="feedback-box text-danger"></div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <label class="form-label">Tipo de Gaceta <span class="req-pin">*</span></label>
+                                    <select name="es_extraordinaria" id="es_extraordinaria" class="form-select custom-input">
+                                        <option value="false">ORDINARIA</option>
+                                        <option value="true">EXTRAORDINARIA</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <label class="form-label">Fecha de Gaceta <span class="req-pin">*</span></label>
+                                    <input type="date" name="fecha_gaceta" id="fecha_gaceta" class="form-control custom-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <label class="form-label">Primer Nombre <span class="req-pin">*</span></label>
+                            <input type="text" name="nombre1" id="nombre1" class="form-control custom-input text-uppercase val-name" required>
+                            <div class="feedback-box text-danger"></div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <label class="form-label text-muted">Segundo Nombre</label>
+                            <input type="text" name="nombre2" id="nombre2" class="form-control custom-input text-uppercase val-name">
+                            <div class="feedback-box text-danger"></div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <label class="form-label">Primer Apellido <span class="req-pin">*</span></label>
+                            <input type="text" name="apellido1" id="apellido1" class="form-control custom-input text-uppercase val-name" required>
+                            <div class="feedback-box text-danger"></div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <label class="form-label text-muted">Segundo Apellido</label>
+                            <input type="text" name="apellido2" id="apellido2" class="form-control custom-input text-uppercase val-name">
+                            <div class="feedback-box text-danger"></div>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-3">
+                            <label class="form-label">Fecha de Nacimiento <span class="req-pin">*</span></label>
+                            <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control custom-input" required>
+                            <div id="feedback_nacimiento" class="feedback-box text-danger"></div>
+                        </div>
+                        <div class="col-12 col-md-8 col-lg-3">
+                            <label class="form-label">Lugar de Nacimiento <span class="req-pin">*</span></label>
+                            <input type="text" name="lugar_nacimiento" id="lugar_nacimiento" class="form-control custom-input text-uppercase" placeholder="..." required>
+                            <div class="feedback-box text-danger"></div>
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <label class="form-label">Sexo <span class="req-pin">*</span></label>
+                            <select name="sexo" id="sexo" class="form-select custom-input" required>
+                                <option value="" selected disabled>Seleccione...</option>
+                                {% for s in sexos %}<option value="{{ s.id }}">{{ s.descripcion }}</option>{% endfor %}
+                            </select>
+                            <div class="feedback-box text-danger"></div>
+                        </div>
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <label class="form-label">Estado Civil <span class="req-pin">*</span></label>
+                            <select name="estado_civil" id="estado_civil" class="form-select custom-input" required>
+                                <option value="" selected disabled>Seleccione...</option>
+                                {% for ec in estados_civiles %}<option value="{{ ec.id }}">{{ ec.descripcion }}</option>{% endfor %}
+                            </select>
+                            <div class="feedback-box text-danger"></div>
+                        </div>
+
+                    </div>
+
+                    <div class="mt-5 pt-3 border-top d-flex flex-column flex-md-row justify-content-between gap-3">
+                        <a href="{% url 'inicio' %}" class="btn px-4 fw-bold small border text-muted bg-light order-2 order-md-1">
+                            <i class="fas fa-times-circle me-2"></i> ABORTAR REGISTRO
+                        </a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm order-1 order-md-2" id="btnSiguiente">
+                            GUARDAR Y CONTINUAR <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // --- [1. REFERENCIAS TOTALES DEL DOM] ---
+        const form = document.getElementById('formPaso1');
+        const tipoDoc = document.getElementById('tipo_doc');
+        const inpCedula = document.getElementById('cedula');
+        const inpVencimiento = document.getElementById('fecha_vencimiento_id');
+        const inpArchivo = document.getElementById('archivo_cedula');
+        const inpNacimiento = document.getElementById('fecha_nacimiento');
+        const checkNat = document.getElementById('checkNaturalizado');
+        const divGaceta = document.getElementById('divGaceta');
+        const btnSiguiente = document.getElementById('btnSiguiente');
+        const feedbackArchivo = document.getElementById('feedback_archivo');
+
+        const fields = {
+            'nombre1': document.getElementById('nombre1'),
+            'nombre2': document.getElementById('nombre2'),
+            'apellido1': document.getElementById('apellido1'),
+            'apellido2': document.getElementById('apellido2'),
+            'lugar_nacimiento': document.getElementById('lugar_nacimiento'),
+            'sexo': document.querySelector('[name="sexo"]'),
+            'estado_civil': document.querySelector('[name="estado_civil"]'),
+            'nro_gaceta': document.getElementById('nro_gaceta'),
+            'fecha_gaceta': document.querySelector('[name="fecha_gaceta"]'),
+            'es_extraordinaria': document.querySelector('[name="es_extraordinaria"]')
+        };
+
+        // --- FUNCIONES AUXILIARES DE ESTADO (EL CORAZÓN DE LA SOLUCIÓN) ---
+        
+        function setValid(el) {
+            if (!el) return;
+            el.classList.remove('is-invalid');
+            el.classList.add('is-valid');
+            const fb = el.nextElementSibling;
+            if (fb && fb.classList.contains('feedback-box')) fb.innerText = "";
+        }
+
+        function setInvalid(el, msg) {
+            if (!el) return;
+            el.classList.remove('is-valid');
+            el.classList.add('is-invalid');
+            const fb = el.nextElementSibling;
+            if (fb && fb.classList.contains('feedback-box')) fb.innerText = msg;
+        }
+
+        // --- [2. REGLA DE EDAD] ---
+        const hoy = new Date();
+        const maxFechaNac = new Date(hoy.getFullYear() - 16, hoy.getMonth(), hoy.getDate());
+        if (inpNacimiento) inpNacimiento.max = maxFechaNac.toISOString().split("T")[0];
+
+        // --- [3. MÁSCARA MM/AAAA] ---
+        inpVencimiento.addEventListener('input', function() {
+            let val = this.value.replace(/\D/g, ''); 
+            if (val.length > 2) this.value = val.substring(0, 2) + '/' + val.substring(2, 6);
+            else this.value = val;
+            
+            // Validación manual mientras escribe
+            if (val.length === 6) setValid(this);
+        });
+
+        // --- [4. RESETEO AL CAMBIAR TIPO] ---
+        tipoDoc.addEventListener('change', function() {
+            inpCedula.readOnly = false;
+            inpCedula.disabled = false;
+            inpCedula.value = '';
+            inpCedula.style.backgroundColor = '';
+            inpCedula.style.pointerEvents = 'auto';
+            const sigla = this.options[this.selectedIndex].getAttribute('data-sigla');
+            inpCedula.placeholder = (sigla === 'P') ? "Alfanumérico (Pasaporte)" : "Solo números (Mín 6)";
+            inpArchivo.required = true;
+            if(feedbackArchivo) feedbackArchivo.innerHTML = '';
+            
+            // Limpiar estados de todo el form para empezar de cero
+            document.querySelectorAll('.is-valid, .is-invalid').forEach(el => el.classList.remove('is-valid', 'is-invalid'));
+        });
+
+        // --- [5. FORMATEO CÉDULA] ---
+        inpCedula.addEventListener('input', function() {
+            if (this.readOnly) return;
+            const sigla = tipoDoc.options[tipoDoc.selectedIndex]?.getAttribute('data-sigla');
+            if (sigla === 'V' || sigla === 'E') {
+                this.value = this.value.replace(/\D/g, '').substring(0, 9);
+            } else if (sigla === 'P') {
+                this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 12);
+            }
+        });
+
+        // --- [6. BÚSQUEDA Y AUTOCOMPLETADO (ESCENARIO 2: DATA EXISTENTE)] ---
+        inpCedula.addEventListener('change', function() {
+            const val = this.value.trim();
+            const feedbackCedula = document.getElementById('feedback_cedula');
+            
+            if (val.length >= 6 && !this.readOnly) {
+                if(feedbackCedula) feedbackCedula.innerText = "Buscando...";
+
+                fetch(`{% url 'verificar_cedula_ajax' %}?cedula=${val}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.exists) {
+                        const p = data.persona;
+                        this.readOnly = true;
+                        tipoDoc.style.pointerEvents = 'none';
+                        tipoDoc.style.backgroundColor = '#f8f9fa';
+
+                        // Llenado de campos y forzado de estado VÁLIDO (Sin alertas rojas)
+                        const autoLlenar = (id, valor) => {
+                            const field = fields[id];
+                            if (field) {
+                                field.value = valor || '';
+                                setValid(field); // Forzamos el verde porque viene de DB
+                            }
+                        };
+
+                        autoLlenar('nombre1', p.nombre1);
+                        autoLlenar('nombre2', p.nombre2);
+                        autoLlenar('apellido1', p.apellido1);
+                        autoLlenar('apellido2', p.apellido2);
+                        autoLlenar('lugar_nacimiento', p.lugar_nacimiento);
+                        
+                        if(inpNacimiento) { inpNacimiento.value = p.fecha_nacimiento || ''; setValid(inpNacimiento); }
+                        if(inpVencimiento) { inpVencimiento.value = p.vencimiento || ''; setValid(inpVencimiento); }
+                        
+                        autoLlenar('sexo', p.sexo);
+                        autoLlenar('estado_civil', p.estado_civil);
+
+                        // Archivo Digital
+                        if (p.url_archivo && feedbackArchivo) {
+                            feedbackArchivo.innerHTML = `
+                                <div class="alert alert-info py-2 mt-2 shadow-sm border-0" style="background-color: #e0f2fe; color: #0369a1;">
+                                    <i class="fas fa-file-check me-2"></i> <strong>Cédula cargada:</strong> 
+                                    <a href="${p.url_archivo}" target="_blank" class="fw-bold text-decoration-underline">Ver Archivo</a>
+                                </div>`;
+                            inpArchivo.required = false; 
+                            setValid(inpArchivo);
+                        }
+
+                        // Gaceta / Naturalización
+                        if (p.es_naturalizado) {
+                            checkNat.checked = true;
+                            divGaceta.style.display = 'block';
+                            autoLlenar('nro_gaceta', p.nro_gaceta);
+                            autoLlenar('fecha_gaceta', p.fecha_gaceta);
+                            autoLlenar('es_extraordinaria', p.es_extraordinaria);
+                        }
+
+                        Swal.fire({ 
+                            icon: 'success', 
+                            title: '¡Datos Recuperados!', 
+                            text: `Se cargó la información de ${p.nombre1}. El registro pasará a modo actualización.`,
+                            confirmButtonColor: '#1E3A8A'
+                        });
+                        if(feedbackCedula) feedbackCedula.innerText = "";
+                    } else {
+                        if(feedbackCedula) feedbackCedula.innerText = "";
+                    }
+                })
+                .catch(err => console.error("Error AJAX:", err));
+            }
+        });
+
+        // --- [7. VALIDACIÓN ARCHIVO (ESCENARIO 1: MANUAL)] ---
+        inpArchivo.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                if (this.files[0].size > 5 * 1024 * 1024) {
+                    setInvalid(this, "El archivo supera los 5MB.");
+                    this.value = ""; 
+                } else {
+                    setValid(this);
+                }
+            }
+        });
+
+        // --- [8. MAYÚSCULAS Y VALIDACIÓN MANUAL MIENTRAS ESCRIBE] ---
+        form.querySelectorAll('.val-name').forEach(input => {
+            input.addEventListener('input', function() { 
+                this.value = this.value.toUpperCase();
+                if (this.value.trim().length >= 2) setValid(this);
+            });
+            input.addEventListener('blur', function() {
+                if (this.required && !this.value.trim()) setInvalid(this, "Campo obligatorio");
+            });
+        });
+
+        // --- [9. TOGGLE GACETA] ---
+        checkNat.addEventListener('change', function() {
+            divGaceta.style.display = this.checked ? 'block' : 'none';
+            divGaceta.querySelectorAll('input, select').forEach(i => {
+                i.required = this.checked;
+                if(!this.checked) i.classList.remove('is-invalid', 'is-valid');
+            });
+        });
+
+        // --- [10. RESET MANUAL] ---
+        function resetManualCapa8() {
+            inpCedula.readOnly = false;
+            inpCedula.value = '';
+            tipoDoc.style.pointerEvents = 'auto';
+            tipoDoc.style.backgroundColor = '';
+            form.reset();
+            divGaceta.style.display = 'none';
+            if(feedbackArchivo) feedbackArchivo.innerHTML = '';
+            document.querySelectorAll('.is-valid, .is-invalid').forEach(el => el.classList.remove('is-valid', 'is-invalid'));
+        }
+
+        // --- [11. SUBMIT FINAL (EL ÚLTIMO FILTRO)] ---
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            let esValido = true;
+            
+            form.querySelectorAll('[required]').forEach(i => {
+                if (!i.value.trim() && (i.type !== 'file' || i.required)) {
+                    setInvalid(i, "Campo obligatorio");
+                    esValido = false;
+                }
+            });
+
+            if (!esValido) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor, revise los campos marcados en rojo.' });
+
+            btnSiguiente.disabled = true;
+            btnSiguiente.innerHTML = '<span class="spinner-border spinner-border-sm"></span> PROCESANDO...';
+
+            fetch("{% url 'guardar_paso1_v2' %}", {
+                method: "POST",
+                body: new FormData(form),
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = "{% url 'paso2_contactos_f1' %}";
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Falla al Guardar', text: data.error });
+                    btnSiguiente.disabled = false;
+                    btnSiguiente.innerHTML = 'GUARDAR Y CONTINUAR';
+                }
+            })
+            .catch(err => {
+                Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo contactar al servidor SACAT.' });
+                btnSiguiente.disabled = false;
+                btnSiguiente.innerHTML = 'GUARDAR Y CONTINUAR';
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,8 +1,12 @@
-{% extends 'base.html' %}
+{% extends 'includes/base_standard.html' %}
 
-{% block content %}
+{% block title %} SACAT | Registro - Paso 3 {% endblock %}
+
+{% block extra_css %}
 <style>
-    /* SISTEMA DE DISEÑO */
+    /* =======================================================================
+       1. SISTEMA DE DISEÑO (SACAT PRO)
+       ======================================================================= */
     :root {
         --bg-body: #F8FAFC; --bg-card: #ffffff; --text-main: #0F172A; 
         --text-muted: #64748B; --border-color: #E2E8F0; 
@@ -16,54 +20,48 @@
         --brand-primary: #0D9488; --brand-dark: #0F766E; --brand-light: #1E293B; 
     }
 
-    /* STEPPER ARREGLADO */
-    .stepper-box { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px 15px 35px 15px; transition: all 0.3s ease; }
+    /* Asteriscos Rojos */
+    .text-danger { color: #ef4444 !important; font-weight: bold; }
+
+    /* STEPPER RECTANGULAR */
+    .stepper-box { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 15px; padding: 25px 15px 45px 15px; }
     .sacat-stepper { display: flex; justify-content: space-between; align-items: center; position: relative; }
-    .sacat-stepper::before { content: ''; position: absolute; top: 28px; left: 5%; right: 5%; height: 2px; background-color: var(--border-color); z-index: 1; }
+    .sacat-stepper::before { content: ''; position: absolute; top: 31px; left: 5%; right: 5%; height: 2px; background-color: var(--border-color); z-index: 1; }
     .sacat-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
     
     .step-circle { width: 18px; height: 18px; border-radius: 50%; background-color: var(--border-color); border: 2px solid var(--bg-card); transition: all 0.3s ease; }
-    .step-text { position: absolute; top: 40px; font-size: 0.65rem; font-weight: 800; color: var(--brand-primary); text-transform: uppercase; }
-    .step-title { font-weight: 800; color: var(--text-muted); margin-bottom: 4px; font-size: 0.8rem; }
+    .step-title { font-weight: 800; color: var(--text-muted); margin-bottom: 6px; font-size: 0.85rem; }
 
     .sacat-step.completed .step-circle { background-color: var(--brand-primary); border-color: var(--brand-primary); color: white; display: flex; align-items: center; justify-content: center; }
     .sacat-step.completed .step-circle::after { content: '✓'; font-size: 0.6rem; font-weight: bold; }
     
-    .sacat-step.current .step-title { font-size: 0.65rem; text-transform: uppercase; color: var(--brand-primary); }
-    .sacat-step.current .step-circle { background-color: var(--bg-card); border: 3px solid var(--brand-primary); transform: scale(1.6); box-shadow: 0 4px 8px rgba(0,0,0, 0.1); }
+    .sacat-step.current .step-title { font-size: 0.7rem; text-transform: uppercase; color: var(--brand-primary); }
+    .sacat-step.current .step-circle { background-color: var(--bg-card); border: 3px solid var(--brand-primary); transform: scale(1.8); box-shadow: 0 4px 10px rgba(0,0,0, 0.1); }
 
-    /* INPUTS Y BOTONES */
-    .custom-input { background-color: var(--bg-body) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; border-radius: 6px !important; padding: 6px 10px !important; font-size: 0.8rem !important; transition: all 0.3s ease; }
-    .custom-input:focus { border-color: var(--brand-primary) !important; box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.2) !important; background-color: var(--bg-body) !important; }
-    .btn-primary { background-color: var(--brand-primary) !important; border-color: var(--brand-primary) !important; color: #ffffff !important; font-weight: 600 !important; border-radius: 8px !important; padding: 10px 25px !important; font-size: 0.85rem !important; transition: all 0.3s ease; }
+    /* COMPONENTES */
+    .custom-input { background-color: var(--bg-body) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; border-radius: 8px !important; padding: 10px 15px !important; transition: all 0.3s ease; }
+    .btn-primary { background-color: var(--brand-primary) !important; border-color: var(--brand-primary) !important; color: #ffffff !important; font-weight: 600; border-radius: 8px !important; transition: all 0.3s ease; }
+    .btn-primary:hover { background-color: var(--brand-dark) !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     
-    .btn-circle-add { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--brand-primary); color: var(--brand-primary); background: transparent; transition: all 0.2s; }
-    .btn-circle-add:hover { background: var(--brand-light); transform: scale(1.05); }
+    .btn-circle-add { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--brand-primary); color: var(--brand-primary); background: transparent; transition: all 0.2s; }
+    .btn-circle-add:hover { background: var(--brand-light); transform: scale(1.1); }
 
-    .lista-contactos { max-height: 120px; overflow-y: auto; margin-top: 5px; }
+    .item-chip { background-color: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; transition: all 0.2s; }
+    .item-chip:hover { border-color: var(--brand-primary); }
 </style>
+{% endblock %}
 
-<div class="container-fluid py-2">
+{% block content %}
+<div class="container-fluid py-3">
     
-    <div class="row justify-content-center mb-2">
+    <div class="row justify-content-center mb-4">
         <div class="col-12 col-lg-11">
             <div class="stepper-box shadow-sm">
                 <div class="sacat-stepper">
                     <div class="sacat-step completed"><div class="step-title">1</div><div class="step-circle"></div></div>
                     <div class="sacat-step completed"><div class="step-title">2</div><div class="step-circle"></div></div>
-                    
-                    <div class="sacat-step current">
-                        <div class="step-title">Paso 3</div>
-                        <div class="step-circle"></div>
-                        <div class="step-text">Contactos</div>
-                    </div>
-
-                    <div class="sacat-step future"><div class="step-title">4</div><div class="step-circle"></div></div>
-                    <div class="sacat-step future"><div class="step-title">5</div><div class="step-circle"></div></div>
-                    <div class="sacat-step future"><div class="step-title">6</div><div class="step-circle"></div></div>
-                    <div class="sacat-step future"><div class="step-title">7</div><div class="step-circle"></div></div>
-                    <div class="sacat-step future"><div class="step-title">8</div><div class="step-circle"></div></div>
-                    <div class="sacat-step future"><div class="step-title">9</div><div class="step-circle"></div></div>
+                    <div class="sacat-step current"><div class="step-title">Paso 3</div><div class="step-circle"></div></div>
+                    {% for i in "456789" %}<div class="sacat-step future"><div class="step-title">{{ i }}</div><div class="step-circle"></div></div>{% endfor %}
                 </div>
             </div>
         </div>
@@ -71,76 +69,112 @@
 
     <div class="row justify-content-center">
         <div class="col-12 col-lg-11">
-            <form id="formContactos">
+            <form id="formContactos" novalidate>
                 {% csrf_token %}
                 
-                <div class="card border-0 shadow-sm mb-2" style="background-color: var(--bg-card); border-radius: 12px;">
-                    <div class="card-header bg-transparent border-0 pt-3 px-3 pb-0">
+                <div class="card border-0 shadow-sm mb-3" style="background-color: var(--bg-card); border-radius: 12px;">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
                         <div class="d-flex align-items-center">
-                            <div class="p-1 px-2 bg-primary-soft rounded-2 me-2"><i class="fas fa-user-shield" style="color: var(--brand-primary); font-size: 0.9rem;"></i></div>
+                            <div class="p-2 bg-primary-soft rounded-3 me-3"><i class="fas fa-address-book" style="color: var(--brand-primary);"></i></div>
                             <div>
-                                <h6 class="fw-bold mb-0 text-main" style="font-size: 0.85rem;">CONTACTOS PERSONALES</h6>
-                                <small class="text-muted" style="font-size: 0.65rem;">Añada sus medios de contacto (Teléfono, Correo, etc.)</small>
+                                <h6 class="fw-bold mb-0 text-main">CONTACTOS PERSONALES <span class="text-danger">*</span></h6>
+                                <small class="text-muted italic">Añada al menos un medio de contacto (Teléfono, Correo, etc.)</small>
                             </div>
                         </div>
-                        <hr class="mt-2 mb-0 opacity-10">
+                        <hr class="mt-3 mb-0 opacity-10">
                     </div>
                     
-                    <div class="card-body p-3 pt-2">
-                        <div class="row g-2 align-items-end mb-1 p-2 rounded" style="background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                    <div class="card-body p-4">
+                        <div class="row g-3 align-items-end p-3 rounded-3 mb-3" style="background-color: var(--bg-body); border: 1px solid var(--border-color);">
                             <div class="col-md-3">
-                                <label class="form-label" style="font-size: 0.6rem; font-weight: 700; color: var(--text-muted); margin-bottom: 2px;">TIPO</label>
+                                <label class="form-label small fw-bold text-muted">TIPO</label>
                                 <select id="temp_tipo" class="form-select custom-input">
                                     <option value="" selected disabled>Seleccione...</option>
                                     {% for t in tipos_contactos %}<option value="{{ t.id }}" data-patron="{{ t.patron_validacion }}">{{ t.descripcion }}</option>{% endfor %}
                                 </select>
                             </div>
                             <div class="col-md-5">
-                                <label class="form-label" style="font-size: 0.6rem; font-weight: 700; color: var(--text-muted); margin-bottom: 2px;">VALOR</label>
+                                <label class="form-label small fw-bold text-muted">VALOR</label>
                                 <input type="text" id="temp_valor" class="form-control custom-input" placeholder="Ej: 0412... o correo@mail.com">
                             </div>
                             <div class="col-md-3 text-center">
-                                <label class="form-label" style="font-size: 0.6rem; font-weight: 700; color: var(--text-muted); margin-bottom: 2px;">¿PRINCIPAL?</label>
-                                <div class="form-check form-switch d-flex justify-content-center pt-1 m-0">
-                                    <input class="form-check-input" type="checkbox" id="temp_principal" role="switch" style="cursor:pointer;">
+                                <label class="form-label small fw-bold text-muted">¿PRINCIPAL?</label>
+                                <div class="form-check form-switch d-flex justify-content-center pt-2">
+                                    <input class="form-check-input" type="checkbox" id="temp_principal" role="switch">
                                 </div>
                             </div>
                             <div class="col-md-1 d-flex justify-content-center pb-1">
                                 <button type="button" class="btn-circle-add" id="btnAddPersonal"><i class="fas fa-plus"></i></button>
                             </div>
                         </div>
-                        <div id="listaPersonales" class="lista-contactos"></div>
+                        <div id="listaPersonales" class="row g-2">
+                            {% for rel in contactos_existentes %}
+                            <div class="col-md-6 item-contacto" data-tipo="{{ rel.contacto_personal.tipo_contacto.id }}">
+                                <div class="item-chip d-flex justify-content-between align-items-center p-2 px-3 border rounded shadow-sm">
+                                    <input type="hidden" name="tipo_contacto[]" value="{{ rel.contacto_personal.tipo_contacto.id }}">
+                                    <input type="hidden" name="valor_contacto[]" value="{{ rel.contacto_personal.valor_contacto }}">
+                                    <input type="hidden" class="hidden-main-flag" value="{% if rel.es_principal %}1{% else %}0{% endif %}">
+                                    
+                                    <div class="small">
+                                        <b class="text-primary">{{ rel.contacto_personal.tipo_contacto.descripcion }}:</b> {{ rel.contacto_personal.valor_contacto }}
+                                        <span class="badge bg-success ms-2 badge-main {% if not rel.es_principal %}d-none{% endif %}">Principal</span>
+                                    </div>
+                                    <button type="button" class="btn btn-link text-danger p-0 ms-2" onclick="this.closest('.item-contacto').remove()">
+                                        <i class="fas fa-times-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
 
-                <div class="card border-0 shadow-sm mb-3" style="background-color: var(--bg-card); border-radius: 12px; border-left: 4px solid var(--color-error) !important;">
-                    <div class="card-header bg-transparent border-0 pt-3 px-3 pb-0">
+                <div class="card border-0 shadow-sm mb-4" style="background-color: var(--bg-card); border-radius: 12px; border-left: 4px solid var(--color-error) !important;">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
                         <div class="d-flex align-items-center">
-                            <div class="p-1 px-2 rounded-2 me-2" style="background-color: rgba(200,30,30,0.1);"><i class="fas fa-ambulance" style="color: var(--color-error); font-size: 0.9rem;"></i></div>
+                            <div class="p-2 rounded-3 me-3" style="background-color: rgba(200,30,30,0.1);"><i class="fas fa-ambulance" style="color: var(--color-error);"></i></div>
                             <div>
-                                <h6 class="fw-bold mb-0 text-main" style="font-size: 0.85rem;">EN CASO DE EMERGENCIA</h6>
-                                <small class="text-muted" style="font-size: 0.65rem;">Persona a contactar ante un incidente.</small>
+                                <h6 class="fw-bold mb-0 text-main">EN CASO DE EMERGENCIA <span class="text-danger">*</span></h6>
+                                <small class="text-muted italic">Indique a quién contactar ante un incidente.</small>
                             </div>
                         </div>
-                        <hr class="mt-2 mb-0 opacity-10">
+                        <hr class="mt-3 mb-0 opacity-10">
                     </div>
                     
-                    <div class="card-body p-3 pt-2">
-                        <div class="row g-2 align-items-end mb-1 p-2 rounded" style="background-color: var(--bg-body); border: 1px solid var(--border-color);">
-                            <div class="col-md-3"><label class="form-label small fw-bold text-muted mb-1">NOMBRE</label><input type="text" id="temp_e_nombre" class="form-control custom-input text-uppercase"></div>
-                            <div class="col-md-3"><label class="form-label small fw-bold text-muted mb-1">APELLIDO</label><input type="text" id="temp_e_apellido" class="form-control custom-input text-uppercase"></div>
-                            <div class="col-md-5"><label class="form-label small fw-bold text-muted mb-1">TELÉFONO (11 DÍGITOS)</label><input type="text" id="temp_e_telefono" class="form-control custom-input" maxlength="11"></div>
+                    <div class="card-body p-4">
+                        <div class="row g-3 align-items-end p-3 rounded-3 mb-3" style="background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                            <div class="col-md-3"><label class="form-label small fw-bold text-muted">NOMBRE</label><input type="text" id="temp_e_nombre" class="form-control custom-input text-uppercase"></div>
+                            <div class="col-md-3"><label class="form-label small fw-bold text-muted">APELLIDO</label><input type="text" id="temp_e_apellido" class="form-control custom-input text-uppercase"></div>
+                            <div class="col-md-5"><label class="form-label small fw-bold text-muted">TELÉFONO</label><input type="text" id="temp_e_telefono" class="form-control custom-input" maxlength="11" placeholder="Ej: 04141234567"></div>
                             <div class="col-md-1 d-flex justify-content-center pb-1">
                                 <button type="button" class="btn-circle-add" style="border-color: var(--color-error); color: var(--color-error);" id="btnAddEmergencia"><i class="fas fa-plus"></i></button>
                             </div>
                         </div>
-                        <div id="listaEmergencias" class="lista-contactos"></div>
+                        <div id="listaEmergencias" class="row g-2">
+                            {% for rel in emergencias_existentes %}
+                            <div class="col-md-6 item-emergencia">
+                                <div class="item-chip d-flex justify-content-between align-items-center p-2 px-3 border rounded shadow-sm">
+                                    <input type="hidden" name="e_nombre[]" value="{{ rel.contacto_emergencia.primer_nombre }}">
+                                    <input type="hidden" name="e_apellido[]" value="{{ rel.contacto_emergencia.primer_apellido }}">
+                                    <input type="hidden" name="e_telefono[]" value="{{ rel.contacto_emergencia.telefono }}">
+                                    
+                                    <div class="small">
+                                        <i class="fas fa-user-nurse text-danger me-2"></i>
+                                        <b>{{ rel.contacto_emergencia.primer_nombre }} {{ rel.contacto_emergencia.primer_apellido }}</b>: {{ rel.contacto_emergencia.telefono }}
+                                    </div>
+                                    <button type="button" class="btn btn-link text-danger p-0 ms-2" onclick="this.closest('.item-emergencia').remove()">
+                                        <i class="fas fa-times-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between">
-                    <a href="{% url 'registro_paso2' %}" class="btn px-4 fw-bold" style="font-size: 0.8rem; background-color: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color); border-radius: 8px;">
-                        <i class="fas fa-chevron-left me-2"></i>VOLVER
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% url 'registro_paso2' %}" class="btn px-4 fw-bold small" style="background-color: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color);">
+                        <i class="fas fa-arrow-left me-2"></i> VOLVER
                     </a>
                     <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm" id="btnGuardar">
                         GUARDAR Y CONTINUAR <i class="fas fa-arrow-right ms-2"></i>
@@ -149,197 +183,136 @@
             </form>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const htmlEl = document.documentElement;
-    const isDark = htmlEl.getAttribute('data-bs-theme') === 'dark';
-    const swalBg = isDark ? '#1E293B' : '#ffffff';
-    const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        (function() {
+            const form = document.getElementById('formContactos');
+            const listaP = document.getElementById('listaPersonales');
+            const listaE = document.getElementById('listaEmergencias');
+            const btnGuardar = document.getElementById('btnGuardar');
 
-    document.querySelectorAll('.text-uppercase').forEach(input => {
-        input.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
-    });
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const swalBg = isDark ? '#1E293B' : '#ffffff';
+            const swalColor = isDark ? '#F8FAFC' : '#0F172A';
 
-    function validarTlfVzla(valor) {
-        const regexVzla = /^0(414|424|412|416|426|2[0-9]{2})[0-9]{7}$/;
-        return regexVzla.test(valor.trim());
-    }
+            // 1. Agregar Contacto Personal
+            document.getElementById('btnAddPersonal').onclick = function() {
+                const tipoInp = document.getElementById('temp_tipo');
+                const valorInp = document.getElementById('temp_valor');
+                const princInp = document.getElementById('temp_principal');
 
-    const btnAddP = document.getElementById('btnAddPersonal');
-    const tipoInp = document.getElementById('temp_tipo');
-    const valorInp = document.getElementById('temp_valor');
-    const princInp = document.getElementById('temp_principal');
-    const listaP = document.getElementById('listaPersonales');
+                if (!tipoInp.value || !valorInp.value.trim()) {
+                    Swal.fire({ icon: 'warning', title: 'Atención', text: 'Indique tipo y valor del contacto.', background: swalBg, color: swalColor });
+                    return;
+                }
 
-    valorInp.addEventListener('input', function() {
-        if(!tipoInp.value) return;
-        const patron = tipoInp.options[tipoInp.selectedIndex].getAttribute('data-patron');
-        const valor = this.value.trim();
-        if (patron && patron !== 'None') {
-            const regex = new RegExp(patron);
-            if (!regex.test(valor)) { this.classList.add('is-invalid'); this.classList.remove('is-valid'); } 
-            else { this.classList.remove('is-invalid'); this.classList.add('is-valid'); }
-        }
-    });
+                const tipoText = tipoInp.options[tipoInp.selectedIndex].text;
+                const isMain = princInp.checked;
 
-    btnAddP.addEventListener('click', function() {
-        const tipoVal = tipoInp.value;
-        const valorVal = valorInp.value.trim().toLowerCase();
-        const isMain = princInp.checked;
+                // Si es principal, desmarcamos otros del mismo tipo
+                if (isMain) {
+                    listaP.querySelectorAll(`.item-contacto[data-tipo="${tipoInp.value}"]`).forEach(chip => {
+                        chip.querySelector('.hidden-main-flag').value = "0";
+                        chip.querySelector('.badge-main').classList.add('d-none');
+                    });
+                }
 
-        if(!tipoVal || !valorVal || valorInp.classList.contains('is-invalid')) {
-            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Revise que el tipo y el formato del contacto sean correctos.', confirmButtonColor: 'var(--brand-primary)', background: swalBg, color: swalColor });
-            return;
-        }
+                const col = document.createElement('div');
+                col.className = "col-md-6 item-contacto";
+                col.setAttribute('data-tipo', tipoInp.value);
+                col.setAttribute('data-tipo-text', tipoText);
+                col.innerHTML = `
+                    <div class="item-chip d-flex justify-content-between align-items-center p-2 px-3 border rounded shadow-sm">
+                        <input type="hidden" name="tipo_contacto[]" value="${tipoInp.value}">
+                        <input type="hidden" name="valor_contacto[]" value="${valorInp.value.trim()}">
+                        <input type="hidden" class="hidden-main-flag" value="${isMain ? '1' : '0'}">
+                        <div class="small">
+                            <b class="text-primary">${tipoText}:</b> ${valorInp.value.trim()}
+                            <span class="badge bg-success ms-2 badge-main ${isMain ? '' : 'd-none'}">Principal</span>
+                        </div>
+                        <button type="button" class="btn btn-link text-danger p-0 ms-2" onclick="this.closest('.item-contacto').remove()"><i class="fas fa-times-circle"></i></button>
+                    </div>
+                `;
+                listaP.appendChild(col);
+                valorInp.value = ''; princInp.checked = false;
+            };
 
-        const tipoText = tipoInp.options[tipoInp.selectedIndex].text;
+            // 2. Agregar Contacto Emergencia
+            document.getElementById('btnAddEmergencia').onclick = function() {
+                const nom = document.getElementById('temp_e_nombre');
+                const ape = document.getElementById('temp_e_apellido');
+                const tel = document.getElementById('temp_e_telefono');
 
-        // LÓGICA NUEVA: Apagar "Principal" SOLO en los chips del MISMO TIPO
-        if (isMain) {
-            const chipsMismoTipo = listaP.querySelectorAll(`.item-contacto[data-tipo="${tipoVal}"]`);
-            chipsMismoTipo.forEach(chip => {
-                chip.querySelector('.hidden-main-flag').value = "0";
-                chip.querySelector('.is-main-badge').classList.add('d-none');
+                if (!nom.value || !ape.value || tel.value.length < 11) {
+                    Swal.fire({ icon: 'warning', title: 'Atención', text: 'Complete los datos de emergencia (Teléfono 11 dígitos).', background: swalBg, color: swalColor });
+                    return;
+                }
+
+                const col = document.createElement('div');
+                col.className = "col-md-6 item-emergencia";
+                col.innerHTML = `
+                    <div class="item-chip d-flex justify-content-between align-items-center p-2 px-3 border rounded shadow-sm">
+                        <input type="hidden" name="e_nombre[]" value="${nom.value.toUpperCase()}">
+                        <input type="hidden" name="e_apellido[]" value="${ape.value.toUpperCase()}">
+                        <input type="hidden" name="e_telefono[]" value="${tel.value}">
+                        <div class="small">
+                            <i class="fas fa-user-nurse text-danger me-2"></i><b>${nom.value} ${ape.value}</b>: ${tel.value}
+                        </div>
+                        <button type="button" class="btn btn-link text-danger p-0 ms-2" onclick="this.closest('.item-emergencia').remove()"><i class="fas fa-times-circle"></i></button>
+                    </div>
+                `;
+                listaE.appendChild(col);
+                nom.value = ''; ape.value = ''; tel.value = '';
+            };
+
+            // 3. Envío Blindado
+            form.onsubmit = function(e) {
+                e.preventDefault();
+
+                if (listaP.children.length === 0 || listaE.children.length === 0) {
+                    Swal.fire({ icon: 'error', title: 'Faltan Datos', text: 'Debe agregar al menos un (1) contacto personal y un (1) de emergencia.', background: swalBg, color: swalColor });
+                    return;
+                }
+
+                // Recolectar índices de principales para el backend
+                let arrayPrincipales = [];
+                Array.from(listaP.children).forEach((chip, idx) => {
+                    if (chip.querySelector('.hidden-main-flag').value === "1") arrayPrincipales.push(idx);
+                });
+
+                const originalText = btnGuardar.innerHTML;
+                btnGuardar.disabled = true;
+                btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> GUARDANDO...';
+
+                const formData = new FormData(form);
+                formData.append('indices_principales', JSON.stringify(arrayPrincipales));
+
+                fetch("{% url 'guardar_paso3' %}", {
+                    method: "POST",
+                    body: formData,
+                    headers: { "X-CSRFToken": "{{ csrf_token }}" }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Contactos guardados.', timer: 1500, showConfirmButton: false, background: swalBg, color: swalColor })
+                        .then(() => window.location.href = data.next_url);
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Error', text: data.error, background: swalBg, color: swalColor });
+                        btnGuardar.disabled = false; btnGuardar.innerHTML = originalText;
+                    }
+                })
+                .catch(() => {
+                    btnGuardar.disabled = false; btnGuardar.innerHTML = originalText;
+                });
+            };
+
+            // Mayúsculas automáticas
+            form.querySelectorAll('.text-uppercase').forEach(input => {
+                input.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
             });
-        }
-
-        const row = document.createElement('div');
-        row.className = "d-flex justify-content-between align-items-center p-1 px-2 mb-1 rounded border item-contacto";
-        row.style.backgroundColor = "var(--bg-body)";
-        row.setAttribute('data-tipo', tipoVal);
-        row.setAttribute('data-tipo-text', tipoText);
-        row.innerHTML = `
-            <input type="hidden" name="tipo_contacto[]" value="${tipoVal}">
-            <input type="hidden" name="valor_contacto[]" value="${valorVal}">
-            <input type="hidden" class="hidden-main-flag" value="${isMain ? '1' : '0'}">
-            <div style="font-size: 0.75rem; color: var(--text-main);">
-                <span class="fw-bold" style="color: var(--brand-primary);">${tipoText}:</span> ${valorVal}
-                <span class="badge is-main-badge ms-2 ${isMain ? '' : 'd-none'}" style="background-color: var(--color-success); font-size: 0.6rem;">Principal</span>
-            </div>
-            <button type="button" class="btn btn-sm p-0 text-danger" onclick="this.closest('.item-contacto').remove()"><i class="fas fa-times-circle"></i></button>
-        `;
-        listaP.appendChild(row);
-
-        tipoInp.value = ''; valorInp.value = ''; princInp.checked = false;
-        valorInp.classList.remove('is-valid', 'is-invalid');
-    });
-
-    const btnAddE = document.getElementById('btnAddEmergencia');
-    const nomE = document.getElementById('temp_e_nombre');
-    const apeE = document.getElementById('temp_e_apellido');
-    const telE = document.getElementById('temp_e_telefono');
-    const listaE = document.getElementById('listaEmergencias');
-
-    telE.addEventListener('input', function() {
-        const valor = this.value.trim();
-        if(valor.length > 0) {
-            if (!validarTlfVzla(valor)) { this.classList.add('is-invalid'); this.classList.remove('is-valid'); } 
-            else { this.classList.remove('is-invalid'); this.classList.add('is-valid'); }
-        } else { this.classList.remove('is-invalid', 'is-valid'); }
-    });
-
-    btnAddE.addEventListener('click', function() {
-        const nomVal = nomE.value.trim().toUpperCase();
-        const apeVal = apeE.value.trim().toUpperCase();
-        const telVal = telE.value.trim();
-
-        if(!nomVal || !apeVal || !telVal || telE.classList.contains('is-invalid')) {
-            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Revise que los datos de emergencia estén completos y el teléfono sea válido (11 dígitos).', confirmButtonColor: 'var(--color-error)', background: swalBg, color: swalColor });
-            return;
-        }
-
-        const row = document.createElement('div');
-        row.className = "d-flex justify-content-between align-items-center p-1 px-2 mb-1 rounded border item-emergencia";
-        row.style.backgroundColor = "var(--bg-body)";
-        row.innerHTML = `
-            <input type="hidden" name="e_nombre[]" value="${nomVal}">
-            <input type="hidden" name="e_apellido[]" value="${apeVal}">
-            <input type="hidden" name="e_telefono[]" value="${telVal}">
-            <div style="font-size: 0.75rem; color: var(--text-main);">
-                <i class="fas fa-user-nurse text-danger me-1"></i> <span class="fw-bold">${nomVal} ${apeVal}</span> - ${telVal}
-            </div>
-            <button type="button" class="btn btn-sm p-0 text-danger" onclick="this.closest('.item-emergencia').remove()"><i class="fas fa-times-circle"></i></button>
-        `;
-        listaE.appendChild(row);
-
-        nomE.value = ''; apeE.value = ''; telE.value = '';
-        telE.classList.remove('is-valid', 'is-invalid');
-    });
-
-    document.getElementById('formContactos').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        if (listaP.children.length === 0 || listaE.children.length === 0) {
-            Swal.fire({ icon: 'error', title: 'Faltan Datos', text: 'Debe agregar al menos un (1) contacto personal y un (1) de emergencia.', confirmButtonColor: 'var(--brand-primary)', background: swalBg, color: swalColor });
-            return;
-        }
-
-        // LÓGICA NUEVA: Validación Matemática por Categorías
-        let validacionTipos = true;
-        let mensajeError = "";
-        let arrayPrincipales = []; // Aquí guardaremos los índices que son principales
-        
-        const chipsPersonales = Array.from(listaP.children);
-        // Extraemos los tipos de contactos que ingresó el usuario sin repetirlos
-        const tiposUnicos = [...new Set(chipsPersonales.map(c => c.getAttribute('data-tipo')))];
-        
-        tiposUnicos.forEach(tipo => {
-            const chipsDelTipo = chipsPersonales.filter(c => c.getAttribute('data-tipo') === tipo);
-            const cantidad = chipsDelTipo.length;
-            const nombreTipo = chipsDelTipo[0].getAttribute('data-tipo-text');
-            const principalesDelTipo = chipsDelTipo.filter(c => c.querySelector('.hidden-main-flag').value === "1");
-            
-            // Si metió más de 1 de este tipo, y NINGUNO es principal
-            if (cantidad > 1 && principalesDelTipo.length === 0) {
-                validacionTipos = false;
-                mensajeError = `Ha ingresado ${cantidad} registros para <b>${nombreTipo}</b>. Debe marcar obligatoriamente uno de ellos como PRINCIPAL.`;
-            }
-        });
-
-        if (!validacionTipos) {
-            Swal.fire({ icon: 'warning', title: 'Falta Contacto Principal', html: mensajeError, confirmButtonColor: 'var(--brand-primary)', background: swalBg, color: swalColor });
-            return;
-        }
-
-        // Si pasó la validación, recolectamos los índices de todos los que son principales
-        chipsPersonales.forEach((chip, idx) => {
-            if (chip.querySelector('.hidden-main-flag').value === "1") {
-                arrayPrincipales.push(idx);
-            }
-        });
-
-        const btn = document.getElementById('btnGuardar');
-        const originalHtml = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Guardando...';
-        
-        const formData = new FormData(this);
-        // Enviamos el array de índices como un texto JSON a Python
-        formData.append('indices_principales', JSON.stringify(arrayPrincipales));
-
-        fetch("{% url 'guardar_paso3' %}", {
-            method: "POST",
-            body: formData,
-            headers: { "X-CSRFToken": "{{ csrf_token }}" }
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                Swal.fire({ icon: 'success', title: '¡Contactos Guardados!', timer: 1500, showConfirmButton: false, background: swalBg, color: swalColor })
-                .then(() => window.location.href = data.next_url);
-            } else {
-                Swal.fire({ icon: 'error', title: 'Error', text: data.error, confirmButtonColor: 'var(--brand-primary)', background: swalBg, color: swalColor });
-                btn.disabled = false; btn.innerHTML = originalHtml;
-            }
-        })
-        .catch(err => {
-            Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo conectar con el servidor.', background: swalBg, color: swalColor });
-            btn.disabled = false; btn.innerHTML = originalHtml;
-        });
-    });
-});
-</script>
+        })();
+    </script>
+</div>
 {% endblock %}

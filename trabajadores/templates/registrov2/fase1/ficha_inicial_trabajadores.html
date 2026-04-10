@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: letter;
+            margin-top: 1cm;
+            margin-right: 2cm;
+            margin-bottom: 2cm;
+            margin-left: 4cm;
+            
+            @frame footer {
+                -pdf-frame-content: footer_content;
+                bottom: 1cm;
+                margin-left: 4cm;
+                margin-right: 2cm;
+                height: 1cm;
+            }
+        }
+
+        body { 
+            font-family: Arial, Helvetica, sans-serif; 
+            font-size: 11pt; 
+            color: #000000; 
+            line-height: 1.1;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        
+        .header-seccion {
+            background-color: #1E3A8A;
+            color: #ffffff;
+            padding: 4px 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 9pt;
+            letter-spacing: 1px;
+            border: none;
+            text-align: left;
+        }
+
+        td { 
+            padding: 6px 8px; 
+            border-bottom: 0.1pt solid #CBD5E1; 
+            vertical-align: top; 
+            text-align: left;
+        }
+
+        .label { 
+            font-size: 7.5pt; 
+            font-weight: bold; 
+            color: #64748B; 
+            text-transform: uppercase; 
+            margin-bottom: 1px;
+            display: block;
+        }
+
+        .valor { 
+            font-size: 11pt; 
+            font-weight: 500; 
+            color: #000000; 
+            text-transform: uppercase;
+        }
+
+        .valor-bold { font-weight: bold; }
+        .fecha-val { text-align: right !important; }
+
+        .cintillo-container { width: 100%; text-align: center; margin-bottom: 10px; }
+
+        .top-header { border: none; border-bottom: 2pt solid #1E3A8A; margin-bottom: 20px; }
+        .top-header td { border: none; padding: 0; padding-bottom: 8px; vertical-align: middle; }
+        .entidad { font-size: 13pt; font-weight: 900; color: #1E3A8A; }
+        .ficha-tipo { font-size: 8.5pt; color: #64748B; font-weight: bold; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+    {% if cintillo %}
+    <div class="cintillo-container">
+        <img src="data:image/png;base64,{{ cintillo }}" style="width: 100%;">
+    </div>
+    {% endif %}
+
+    <table class="top-header">
+        <tr>
+            <td width="75%">
+                <div class="entidad">FICHA INTEGRAL DEL TRABAJADOR</div>
+                <div class="ficha-tipo">FICHA INTEGRAL DEL TRABAJADOR | SISTEMA SACAT</div>
+            </td>
+            <td width="25%" style="text-align: right;">
+                {% if qr_code %}
+                    <img src="data:image/png;base64,{{ qr_code }}" style="width: 55px;">
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <table>
+        <thead>
+            <tr><th colspan="6" class="header-seccion">1. Identidad y Base Legal</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="3"><span class="label">Apellidos (Primer y Segundo)</span>
+                    <div class="valor">{{ persona.primer_apellido }} {{ persona.segundo_apellido|default:"" }}</div>
+                </td>
+                <td colspan="3"><span class="label">Nombres (Primer y Segundo)</span>
+                    <div class="valor">{{ persona.primer_nombre }} {{ persona.segundo_nombre|default:"" }}</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2"><span class="label">Documento (Sigla)</span><div class="valor valor-bold">{{ persona.tipo_doc_identificacion.sigla }}-{{ persona.cedula }}</div></td>
+                <td colspan="2" class="fecha-val"><span class="label">Vencimiento ID</span><div class="valor">{{ persona.fecha_vencimiento_cedula|date:"d/m/Y" }}</div></td>
+                <td colspan="2" class="fecha-val"><span class="label">Fecha Nacimiento</span><div class="valor">{{ persona.fecha_nacimiento|date:"d/m/Y" }}</div></td>
+            </tr>
+            <tr>
+                <td colspan="2"><span class="label">Sexo</span><div class="valor">{{ persona.sexo.descripcion }}</div></td>
+                <td colspan="2"><span class="label">Estado Civil</span><div class="valor">{{ persona.estado_civil.descripcion }}</div></td>
+                <td colspan="2"><span class="label">Lugar de Nacimiento</span><div class="valor">{{ persona.lugar_nacimiento }}</div></td>
+            </tr>
+            {% if persona.es_naturalizado %}
+            <tr>
+                <td colspan="6"><span class="label">Información de Naturalización</span>
+                    <div class="valor" style="font-size: 10pt;">GACETA: {{ persona.nro_gaceta }} | FECHA: {{ persona.fecha_gaceta|date:"d/m/Y" }}</div>
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <table>
+        <thead>
+            <tr><th colspan="2" class="header-seccion">2. Medios de Contacto</th></tr>
+        </thead>
+        <tbody>
+            {% for c in contactos %}
+            <tr>
+                <td width="40%"><span class="label">{{ c.contacto_personal.tipo_contacto.descripcion }}</span></td>
+                <td width="60%"><div class="valor">{{ c.contacto_personal.valor_contacto }}</div></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table>
+        <thead>
+            <tr><th colspan="6" class="header-seccion">3. Ubicación e Información Laboral</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="3"><span class="label">Sede / Filial</span><div class="valor">{{ laboral.sede.nombre_sede }}</div></td>
+                <td colspan="3"><span class="label">Nivel Jerárquico</span><div class="valor valor-bold">{{ nivel_nombre }}</div></td>
+            </tr>
+            <tr>
+                <td colspan="6"><span class="label">Unidad Organizativa</span><div class="valor">{{ u_n1.nombre_unidad|default:"-" }}</div></td>
+            </tr>
+            <tr>
+                <td colspan="4"><span class="label">Unidad de Adscripción / Área</span>
+                    <div class="valor">{{ u_n2.nombre_unidad|default:"N/A" }} {% if u_n3 %} | {{ u_n3.nombre_unidad }} {% endif %}</div>
+                </td>
+                <td colspan="2"><span class="label">Código Nómina</span><div class="valor valor-bold">{{ laboral.codigo_nomina }}</div></td>
+            </tr>
+            <tr>
+                <td colspan="3"><span class="label">Cargo Estructural (Específico)</span>
+                    <div class="valor valor-bold">{{ laboral.cargo_estructural.nombre_cargo_estruct }}</div>
+                </td>
+                <td colspan="3"><span class="label">Cargo Genérico</span>
+                    <div class="valor">{{ laboral.cargo_generico.nombre_cargo }}</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2"><span class="label">Categoría</span><div class="valor">{{ laboral.categoria.descripcion }}</div></td>
+                <td colspan="2"><span class="label">Régimen / Condición</span><div class="valor">{{ laboral.tipo_trabajador.descripcion }}</div></td>
+                <td colspan="2" class="fecha-val"><span class="label">Fecha Ingreso</span><div class="valor">{{ laboral.fecha_ingreso_inst|date:"d/m/Y" }}</div></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table style="margin-top: 50px; text-align: center;">
+        <tr>
+            <td width="45%" style="border: none; border-top: 0.5pt solid black; text-align: center;">
+                <div class="label" style="color: black; margin-top: 5px;">Gestión Humana</div>
+                <div style="font-size: 8pt;">Analista Responsable</div>
+            </td>
+            <td width="10%" style="border: none;"></td>
+            <td width="45%" style="border: none; border-top: 0.5pt solid black; text-align: center;">
+                <div class="label" style="color: black; margin-top: 5px;">Trabajador(a)</div>
+                <div style="font-size: 8pt;">Firma / Huella</div>
+            </td>
+        </tr>
+    </table>
+
+    <div id="footer_content">
+        <table style="font-size: 8pt; color: #94A3B8; border: none; border-top: 0.1pt solid #E2E8F0;">
+            <tr>
+                <td style="border: none; text-align: left;">SACAT 2026 | CI: {{ persona.cedula }} | {{ persona.primer_apellido }}, {{ persona.primer_nombre }}</td>
+                <td style="border: none; text-align: right;">Página <pdf:pagenumber></td>
+            </tr>
+        </table>
+    </div>
+
+</body>
+</html>

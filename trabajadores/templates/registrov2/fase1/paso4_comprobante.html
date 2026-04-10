@@ -1,0 +1,424 @@
+{% extends 'includes/base_standard.html' %}
+
+{% block title %} SACAT | Fase 1 - Finalización {% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================================
+       VARIABLES DE DISEÑO SACAT - ENFOQUE TOTAL AZUL PRIMARIO
+       ========================================================== */
+    :root {
+        --bg-body: #F8FAFC;
+        --bg-card: #ffffff;
+        --text-main: #0F172A;
+        --text-muted: #64748B;
+        --border-color: #E2E8F0;
+        --brand-primary: #1E3A8A; /* El azul guapo del sistema */
+        --brand-dark: #172554;
+        --brand-light: #EEF2FF;
+        --color-success: #0E9F6E;
+        --color-error: #C81E1E;
+    }
+
+    /* STEPPER: ALINEACIÓN LÁSER MATEMÁTICA (ADN PASO 1) */
+    .stepper-box {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 20px 10px 15px 10px;
+    }
+
+    .sacat-stepper {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        position: relative;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .sacat-stepper::before {
+        content: '';
+        position: absolute;
+        bottom: 7px;
+        left: 12.5%;
+        right: 12.5%;
+        height: 2px;
+        background-color: var(--brand-primary);
+        z-index: 1;
+    }
+
+    .sacat-step {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* AJUSTADO: Soporte para iconos centrados */
+    .step-circle {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background-color: var(--border-color); /* Color base neutro */
+        border: 2px solid var(--bg-card);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0; /* Oculta el icono por defecto */
+    }
+
+    .step-title {
+        font-weight: 800;
+        color: var(--brand-primary);
+        margin-bottom: 8px;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+    }
+
+    @media (max-width: 576px) { .step-title { display: none; } }
+
+    /* ANEXADO: Lógica de Check para Pasos Completados (1, 2 y 3) */
+    .sacat-step.completed .step-circle {
+        background-color: var(--brand-primary);
+        border-color: var(--brand-primary);
+        width: 18px; /* Un pelín más grande para que el check luzca */
+        height: 18px;
+        font-size: 0.7rem; /* Muestra el icono de check */
+    }
+
+    .sacat-step.completed .step-title {
+        color: var(--brand-primary);
+        opacity: 0.8;
+    }
+
+    /* Estado Actual del Stepper (Escalado/Zoom) */
+    .sacat-step.current .step-circle {
+        background-color: var(--bg-card);
+        border: 3px solid var(--brand-primary);
+        transform: scale(1.6);
+        box-shadow: 0 4px 10px rgba(30, 58, 138, 0.15);
+    }
+
+    .sacat-step.current .step-title {
+        color: var(--brand-primary);
+        font-weight: 900;
+    }
+
+    /* ESTILO DEL COMPROBANTE FINAL */
+    .header-success {
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%);
+        padding: 45px 20px;
+        text-align: center;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .summary-card {
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        background: #fff;
+        height: 100%;
+        transition: transform 0.2s;
+        border-top: 4px solid var(--brand-primary); /* Borde superior en azul */
+    }
+
+    .summary-header {
+        background: var(--brand-light);
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    /* Clase para forzar el azul primario en textos e iconos */
+    .text-sacat-primary { color: var(--brand-primary) !important; }
+    .fw-900 { font-weight: 900 !important; }
+
+    .summary-label {
+        font-size: 0.65rem;
+        font-weight: 800;
+        color: var(--brand-primary); /* Etiquetas en azul */
+        text-transform: uppercase;
+        margin-bottom: 2px;
+        letter-spacing: 0.5px;
+    }
+
+    .summary-value {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 14px;
+    }
+
+    /* Caja de variables resaltadas en azul */
+    .highlight-value {
+        color: var(--brand-primary) !important;
+        font-weight: 900 !important;
+        text-transform: uppercase;
+    }
+
+    /* CAJA DE CREDENCIALES - SOLICITADO EN AZUL PRIMARIO */
+    .credential-box {
+        background-color: var(--bg-body);
+        border: 2px dashed var(--brand-primary); /* Borde punteado azul */
+        border-radius: 15px;
+        padding: 25px;
+        position: relative;
+    }
+
+    .password-display {
+        font-family: 'Courier New', Courier, monospace;
+        letter-spacing: 2px;
+        font-size: 1.4rem;
+        color: var(--brand-primary);
+        background: #fff;
+        border: 1px solid var(--brand-primary);
+        border-radius: 8px;
+        padding: 10px;
+        display: inline-block;
+        min-width: 200px;
+    }
+
+    /* BOTÓN PRINCIPAL SACAT */
+    .btn-primary {
+        background-color: var(--brand-primary) !important;
+        border-color: var(--brand-primary) !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+        padding: 12px 30px !important;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(30, 58, 138, 0.3);
+    }
+
+    .btn-outline-sacat {
+        border: 2px solid var(--brand-primary);
+        color: var(--brand-primary);
+        background: transparent;
+        font-weight: 700;
+    }
+
+    .btn-outline-sacat:hover {
+        background: var(--brand-primary);
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-xl-11">
+            <div class="stepper-box shadow-sm">
+                <div class="sacat-stepper">
+                    <div class="sacat-step completed"><div class="step-title">1. Identidad</div><div class="step-circle"></div></div>
+                    <div class="sacat-step completed"><div class="step-title">2. Contacto</div><div class="step-circle"></div></div>
+                    <div class="sacat-step completed"><div class="step-title">3. Laboral</div><div class="step-circle"></div></div>
+                    <div class="sacat-step current"><div class="step-title">4. Emisión</div><div class="step-circle"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-11">
+            <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+                
+                <div class="header-success">
+                    <div class="animate__animated animate__zoomIn">
+                        <i class="fas fa-check-circle fa-4x text-white mb-3"></i>
+                    </div>
+                    <h4 class="text-white fw-900 mb-1 text-uppercase" style="letter-spacing: 1px;">¡Registro Fase 1 Completado!</h4>
+                    <p class="text-white opacity-75 small mb-0 fw-bold">EL TRABAJADOR HA SIDO INCORPORADO EXITOSAMENTE AL SISTEMA</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    
+                    <div class="row g-4 mb-5">
+                        <div class="col-12 col-lg-6">
+                            <div class="summary-card shadow-sm">
+                                <div class="summary-header d-flex align-items-center">
+                                    <i class="fas fa-id-card fa-lg me-2 text-sacat-primary"></i>
+                                    <h6 class="mb-0 small fw-900 text-sacat-primary">DATOS PERSONALES Y CONTACTO</h6>
+                                </div>
+                                <div class="p-3">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <p class="summary-label">Nombres Completos</p>
+                                            <p class="summary-value text-uppercase">{{ persona.primer_nombre }} {{ persona.segundo_nombre|default:'' }}</p>
+                                        </div>
+                                        <div class="col-12">
+                                            <p class="summary-label">Apellidos Completos</p>
+                                            <p class="summary-value text-uppercase">{{ persona.primer_apellido }} {{ persona.segundo_apellido|default:'' }}</p>
+                                        </div>
+                                        <div class="col-12">
+                                            <p class="summary-label">Documento de Identidad</p>
+                                            <p class="summary-value highlight-value">{{ persona.tipo_doc_identificacion.sigla }}-{{ persona.cedula }}</p>
+                                        </div>
+                                        <div class="col-12 border-top pt-2">
+                                            <p class="summary-label">Correo Registrado</p>
+                                            <p class="summary-value">{{ correo_principal }}</p>
+                                        </div>
+                                        <div class="col-12">
+                                            <p class="summary-label">Teléfono de Contacto</p>
+                                            <p class="summary-value">{{ telefono_principal }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                            <div class="summary-card shadow-sm">
+                                <div class="summary-header d-flex align-items-center">
+                                    <i class="fas fa-briefcase fa-lg me-2 text-sacat-primary"></i>
+                                    <h6 class="mb-0 small fw-900 text-sacat-primary">ASIGNACIÓN LABORAL</h6>
+                                </div>
+                                <div class="p-3">
+                                    <div class="row">
+                                        <div class="col-12 col-md-6">
+                                            <p class="summary-label">Ubicación Física (Sede)</p>
+                                            <p class="summary-value text-uppercase">{{ laboral.sede.nombre_sede }}</p>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <p class="summary-label">Nivel Jerárquico</p>
+                                            <p class="summary-value highlight-value">{{ nivel_jerarquico }}</p>
+                                        </div>
+                                        
+                                        <div class="col-12 border-top pt-2">
+                                            <p class="summary-label">Unidad Organizativa</p>
+                                            <p class="summary-value fw-900 text-uppercase">{{ u_n1.nombre_unidad|default:'NO DEFINIDA' }}</p>
+                                            
+                                            {% if u_n2 %}
+                                            <p class="summary-label">Dependencia Adscrita</p>
+                                            <p class="summary-value text-uppercase">{{ u_n2.nombre_unidad }}</p>
+                                            {% endif %}
+                                            
+                                            {% if u_n3 %}
+                                            <p class="summary-label">Área Operativa</p>
+                                            <p class="summary-value text-uppercase">{{ u_n3.nombre_unidad }}</p>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="col-12 border-top pt-2">
+                                            <p class="summary-label">Cargo Estructural (Específico)</p>
+                                            <p class="summary-value highlight-value">
+                                                {{ laboral.cargo_estructural.nombre_cargo_estruct }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="credential-box text-center mb-5 shadow-sm">
+                        <div class="badge bg-primary px-4 py-2 mb-3 text-white" style="margin-top: -42px; font-size: 0.8rem; letter-spacing: 1px; background-color: var(--brand-primary) !important;">
+                            CREDENCIALES DE ACCESO FASE 2
+                        </div>
+                        <p class="text-muted small fw-bold mb-4 text-uppercase">Credenciales generadas para el inicio de autogestión:</p>
+                        
+                        <div class="row justify-content-center g-4">
+                            <div class="col-sm-5">
+                                <label class="summary-label d-block">Usuario de Acceso</label>
+                                <div class="p-3 border rounded bg-white fw-900 text-sacat-primary shadow-sm" style="font-size: 1.2rem; border-color: var(--brand-primary) !important;">
+                                    {{ persona.cedula }}
+                                </div>
+                            </div>
+                            <div class="col-sm-5">
+                                <label class="summary-label d-block">Clave Temporal</label>
+                                <div class="password-display shadow-sm fw-900">
+                                    {{ password_generada }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info border-0 mt-4 mb-0 py-2 shadow-sm" style="background-color: var(--brand-light); border-left: 4px solid var(--brand-primary) !important;">
+                            <p class="mb-0 x-small fw-800 text-sacat-primary">
+                                <i class="fas fa-envelope-open-text me-1"></i> LAS CREDENCIALES HAN SIDO NOTIFICADAS AL CORREO: <strong>{{ correo_principal }}</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-3 d-md-flex justify-content-md-center">
+                        <button type="button" onclick="window.open('{% url 'imprimir_ficha_inicial' persona.id %}', '_blank')" class="btn btn-outline-sacat px-4 py-2 shadow-sm">
+                            <i class="fas fa-file-pdf me-2"></i> IMPRIMIR FICHA INICIAL
+                        </button>
+                        <button type="button" id="btnFinalizar" class="btn btn-primary px-5 py-2 shadow-sm">
+                            CERRAR REGISTRO Y NOTIFICAR <i class="fas fa-paper-plane ms-2"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+            
+            <div class="text-center mt-4 mb-5">
+                <a href="{% url 'inicio' %}" class="text-muted small text-decoration-none fw-bold hover-primary">
+                    <i class="fas fa-chevron-left me-1"></i> Volver al Panel de Gestión Humana
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.getElementById('btnFinalizar').onclick = function() {
+        const btn = this;
+        const originalContent = btn.innerHTML;
+
+        Swal.fire({
+            title: '¿Confirmar Cierre de Fase 1?',
+            text: "Se habilitará el acceso al sistema y la ficha inicial será anexada automáticamente al expediente digital.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--brand-primary)',
+            cancelButtonColor: '#64748B',
+            confirmButtonText: 'Sí, finalizar registro',
+            cancelButtonText: 'Revisar detalles'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-sync fa-spin me-2"></i> PROCESANDO...';
+
+                fetch("{% url 'finalizar_fase1_v2' %}", {
+                    method: "POST",
+                    headers: { "X-CSRFToken": "{{ csrf_token }}" }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Proceso Exitoso!',
+                            text: 'El trabajador ha sido notificado y su expediente digital actualizado.',
+                            confirmButtonColor: 'var(--brand-primary)'
+                        }).then(() => {
+                            window.location.href = "{% url 'inicio' %}";
+                        });
+                    } else {
+                        Swal.fire({ 
+                            icon: 'error', 
+                            title: 'Error de proceso', 
+                            text: data.error,
+                            confirmButtonColor: 'var(--brand-primary)'
+                        });
+                        btn.disabled = false;
+                        btn.innerHTML = originalContent;
+                    }
+                })
+                .catch(err => {
+                    Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo contactar con el SACAT.' });
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                });
+            }
+        });
+    };
+</script>
+{% endblock %}

@@ -5,144 +5,128 @@
     <style>
         @page {
             size: letter;
-            /* Margen izquierdo de 2.5cm para encuadernar / Otros de 1cm */
-            margin: 1cm 1cm 1cm 2.5cm; 
+            margin: 1cm 1.2cm 1cm 2.5cm; /* Margen izquierdo para encuadernar */
             
             @frame footer {
                 -pdf-frame-content: footer_content;
                 bottom: 0.5cm;
                 margin-left: 2.5cm;
-                margin-right: 1cm;
+                margin-right: 1.2cm;
                 height: 1cm;
             }
         }
 
         body { 
             font-family: 'Helvetica', sans-serif; 
-            font-size: 8.5pt; 
+            font-size: 11pt; 
             color: #0F172A; 
+            line-height: 1.2; /* Más apretado el texto */
         }
         
-        /* Evita que los bloques se corten entre páginas */
+        /* 🌟 EVITA QUE EL TÍTULO SE SEPARE DE SU DATA 🌟 */
         .bloque-contenedor {
-            page-break-inside: avoid;
-            margin-bottom: 12px;
+            page-break-inside: avoid; /* Si no cabe el bloque completo, lo pasa a la otra hoja */
+            margin-bottom: 8px; /* Menos espacio entre secciones */
             display: block;
+            border: 0.5pt solid #E2E8F0;
         }
 
-        .header-table { width: 100%; border-bottom: 2px solid #1E3A8A; margin-bottom: 15px; }
-        .titulo-ficha { font-size: 14pt; font-weight: bold; color: #1E3A8A; text-transform: uppercase; }
+        .header-table { width: 100%; border-bottom: 2pt solid #1E3A8A; margin-bottom: 10px; }
+        .titulo-ficha { font-size: 15pt; font-weight: bold; color: #1E3A8A; text-transform: uppercase; }
         
         .seccion-titulo { 
-            background-color: #1E3A8A; color: white; padding: 4px 10px; 
-            font-weight: bold; text-transform: uppercase; font-size: 8pt;
+            background-color: #1E3A8A; color: white; padding: 3px 10px; 
+            font-weight: bold; text-transform: uppercase; font-size: 9pt;
         }
         
-        .tabla-datos { width: 100%; border: 0.5pt solid #E2E8F0; }
-        .tabla-datos td { padding: 5px; border: 0.2pt solid #F1F5F9; vertical-align: top; }
+        .tabla-datos { width: 100%; border-collapse: collapse; }
+        .tabla-datos td { 
+            padding: 3px 8px; /* Reduje el padding para que sea más compacto */
+            border: 0.2pt solid #F1F5F9; 
+            vertical-align: top; 
+        }
         
-        .label { font-size: 6.5pt; font-weight: bold; color: #64748B; text-transform: uppercase; display: block; }
-        .valor { font-size: 9pt; color: #0F172A; margin-top: 2px; }
+        .label { font-size: 7pt; font-weight: bold; color: #64748B; text-transform: uppercase; display: block; }
+        .valor { font-size: 10.5pt; color: #0F172A; font-weight: 500; }
         
         .tabla-listado { width: 100%; border-collapse: collapse; }
-        .tabla-listado th { background-color: #F8FAFC; font-size: 7pt; text-align: left; padding: 5px; border-bottom: 1pt solid #CBD5E1; }
-        .tabla-listado td { padding: 5px; border-bottom: 0.5pt solid #F1F5F9; font-size: 8pt; }
+        /* 🌟 HACE QUE EL ENCABEZADO DE TABLA SE REPITA SI CAMBIA DE PÁGINA 🌟 */
+        .tabla-listado thead { display: table-header-group; } 
         
-        .no-posee { color: #94A3B8; font-style: italic; text-align: center; padding: 10px; }
+        .tabla-listado th { background-color: #F8FAFC; font-size: 8pt; text-align: left; padding: 5px 8px; border-bottom: 1pt solid #CBD5E1; }
+        .tabla-listado td { padding: 4px 8px; border-bottom: 0.5pt solid #F1F5F9; font-size: 10pt; }
+        
+        .no-posee { color: #94A3B8; font-style: italic; text-align: center; padding: 10px; font-size: 9pt; }
+        .bg-gris { background-color: #F8FAFC; }
     </style>
 </head>
 <body>
 
     <table class="header-table">
         <tr>
-            <td width="15%"><img src="data:image/png;base64,{{ qr_code }}" style="width: 75px;"></td>
-            <td width="85%" style="text-align: center; vertical-align: middle;">
+            <td width="18%">
+                {% if qr_code %}
+                    <img src="data:image/png;base64,{{ qr_code }}" style="width: 75px;">
+                {% endif %}
+            </td>
+            <td width="82%" style="text-align: center; vertical-align: middle;">
                 <div class="titulo-ficha">Ficha Integral del Trabajador</div>
-                <div style="font-size: 9pt; color: #64748B;">ALMACENADORA CARACAS, C.A. - SISTEMA SACAT</div>
+                <div style="font-size: 10pt; color: #64748B; font-weight: bold;">ALMACENADORA CARACAS, C.A.</div>
+                <div style="font-size: 8pt; color: #1E3A8A;">SISTEMA SACAT - EXPEDIENTE DIGITAL</div>
             </td>
         </tr>
     </table>
 
     <div class="bloque-contenedor">
-        <div class="seccion-titulo">1. Datos Personales</div>
+        <div class="seccion-titulo">1. Identidad</div>
         <table class="tabla-datos">
             <tr>
-                <td width="50%"><span class="label">Nombres y Apellidos</span><div class="valor">{{ persona.primer_nombre }} {{ persona.segundo_nombre|default:"" }} {{ persona.primer_apellido }} {{ persona.segundo_apellido|default:"" }}</div></td>
-                <td width="25%"><span class="label">Cédula</span><div class="valor">{{ persona.cedula }}</div></td>
-                <td width="25%"><span class="label">Fecha Nac.</span><div class="valor">{{ persona.fecha_nacimiento|date:"d/m/Y" }}</div></td>
+                <td width="60%"><span class="label">Apellidos y Nombres</span><div class="valor">{{ persona.primer_apellido }} {{ persona.segundo_apellido|default:"" }}, {{ persona.primer_nombre }} {{ persona.segundo_nombre|default:"" }}</div></td>
+                <td width="20%"><span class="label">Cédula</span><div class="valor">{{ persona.cedula }}</div></td>
+                <td width="20%"><span class="label">Nacimiento</span><div class="valor">{{ persona.fecha_nacimiento|date:"d/m/Y" }}</div></td>
             </tr>
         </table>
     </div>
 
     <div class="bloque-contenedor">
-        <div class="seccion-titulo">2. Ubicación de Vivienda</div>
+        <div class="seccion-titulo">2. Domicilio</div>
         <table class="tabla-datos">
             <tr>
-                <td><span class="label">Dirección Exacta</span><div class="valor">{{ direccion.direccion.direccion_exacta }} (EDO. {{ direccion.direccion.parroquia.municipio.estado.nombre_estado }})</div></td>
+                <td><span class="label">Dirección Exacta</span><div class="valor">{{ direccion.direccion.direccion_exacta }} ({{ direccion.direccion.parroquia.nombre_parroquia }}, EDO. {{ direccion.direccion.parroquia.municipio.estado.nombre_estado }})</div></td>
+            </tr>
+            <tr class="bg-gris">
+                <td><span class="label">Vivienda</span><div class="valor">{{ vivienda.vivienda.tipo_vivienda.descripcion|default:"S/D" }} - {{ vivienda.vivienda.condicion_vivienda.descripcion|default:"S/D" }}</div></td>
             </tr>
         </table>
     </div>
 
     <div class="bloque-contenedor">
-        <div class="seccion-titulo">3. Detalles de Vivienda</div>
-        <table class="tabla-datos">
-            <tr>
-                <td width="50%"><span class="label">Tipo de Vivienda</span><div class="valor">{{ vivienda.vivienda.tipo_vivienda.descripcion|default:"No registrado" }}</div></td>
-                <td width="50%"><span class="label">Condición de la Vivienda</span><div class="valor">{{ vivienda.vivienda.condicion_vivienda.descripcion|default:"No registrado" }}</div></td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="bloque-contenedor">
-        <div class="seccion-titulo">4. Datos Electorales</div>
-        <table class="tabla-datos">
-            <tr>
-                <td><span class="label">Centro de Votación</span><div class="valor">{% if electoral %}{{ electoral.centro_votacion.nombre_centro }}{% else %}<span class="no-posee">Dato no suministrado</span>{% endif %}</div></td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="bloque-contenedor">
-        <div class="seccion-titulo">5. Formación Académica</div>
+        <div class="seccion-titulo">3. Formación Académica</div>
         <table class="tabla-listado">
             <thead>
-                <tr><th width="20%">Nivel</th><th width="40%">Institución</th><th width="30%">Título/Especialidad</th><th width="10%">Estatus</th></tr>
+                <tr><th width="20%">Nivel</th><th width="45%">Institución</th><th width="35%">Especialidad</th></tr>
             </thead>
             <tbody>
                 {% for aca in academicos %}
-                <tr><td>{{ aca.nivel_formacion.descripcion }}</td><td>{{ aca.institucion }}</td><td>{{ aca.especialidad }}</td><td>{{ aca.estatus_formacion.descripcion }}</td></tr>
-                {% empty %}<tr><td colspan="4" class="no-posee">No posee registros académicos.</td></tr>
+                <tr><td>{{ aca.nivel_formacion.descripcion }}</td><td>{{ aca.institucion }}</td><td>{{ aca.especialidad }}</td></tr>
+                {% empty %}<tr><td colspan="3" class="no-posee">Sin registros.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
     <div class="bloque-contenedor">
-        <div class="seccion-titulo">6. Formación Adicional</div>
-        <table class="tabla-listado">
-            <thead>
-                <tr><th>Nombre de Formación</th><th>Institución</th><th>Horas</th><th>Culminación</th></tr>
-            </thead>
-            <tbody>
-                {% for cur in cursos %}
-                <tr><td>{{ cur.nombre_formacion_ad }}</td><td>{{ cur.institucion }}</td><td>{{ cur.duracion_horas }}h</td><td>{{ cur.fecha_culminacion|date:"m/Y" }}</td></tr>
-                {% empty %}<tr><td colspan="4" class="no-posee">No posee cursos o talleres registrados.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <div class="bloque-contenedor">
-        <div class="seccion-titulo">7. Contactos Personales</div>
+        <div class="seccion-titulo">4. Contactos y Emergencia</div>
         <table class="tabla-datos">
             <tr>
-                <td><span class="label">Medios de Contacto</span>
+                <td width="50%"><span class="label">Personales</span>
                     <div class="valor">
-                        {% for c in contactos %}
-                            <b>{{ c.contacto_personal.tipo_contacto.descripcion }}:</b> {{ c.contacto_personal.valor_contacto }}{% if not forloop.last %} | {% endif %}
-                        {% empty %}
-                            <span class="no-posee">No registra contactos.</span>
-                        {% endfor %}
+                        {% for c in contactos %}{{ c.contacto_personal.valor_contacto }}{% if not forloop.last %} | {% endif %}{% empty %}S/D{% endfor %}
+                    </div>
+                </td>
+                <td width="50%"><span class="label">Emergencia</span>
+                    <div class="valor">
+                        {% if emergencia %}{{ emergencia.contacto_emergencia.primer_nombre }} {{ emergencia.contacto_emergencia.primer_apellido }} ({{ emergencia.contacto_emergencia.telefono }}){% else %}N/A{% endif %}
                     </div>
                 </td>
             </tr>
@@ -150,53 +134,43 @@
     </div>
 
     <div class="bloque-contenedor">
-        <div class="seccion-titulo">8. Contactos de Emergencia</div>
-        <table class="tabla-datos">
+        <div class="seccion-titulo" style="background-color: #172554;">5. Ubicación Institucional</div>
+        <table class="tabla-datos" style="background-color: #F8FAFC;">
             <tr>
-                <td><span class="label">Información de Emergencia</span>
-                    <div class="valor">
-                        {% if emergencia %}
-                            {{ emergencia.contacto_emergencia.primer_nombre }} {{ emergencia.contacto_emergencia.primer_apellido }} - <b>Telf:</b> {{ emergencia.contacto_emergencia.telefono }}
-                        {% else %}
-                            <span class="no-posee">No registrado</span>
-                        {% endif %}
-                    </div>
-                </td>
+                <td width="33%"><span class="label">Sede</span><div class="valor">{{ laboral.sede.nombre_sede }}</div></td>
+                <td width="33%"><span class="label">Unidad</span><div class="valor">{{ laboral.unidad_org.nombre_unidad }}</div></td>
+                <td width="34%"><span class="label">Código Nómina</span><div class="valor" style="color: #1E3A8A;">{{ laboral.codigo_nomina }}</div></td>
+            </tr>
+            <tr>
+                <td><span class="label">Régimen</span><div class="valor">{{ laboral.tipo_trabajador.descripcion }}</div></td>
+                <td colspan="2"><span class="label">Cargo Estructural</span><div class="valor">{{ laboral.cargo_estructural.nombre_cargo_estruct }}</div></td>
             </tr>
         </table>
     </div>
 
     <div class="bloque-contenedor">
-        <div class="seccion-titulo">9. Carga Familiar</div>
+        <div class="seccion-titulo">6. Carga Familiar</div>
         <table class="tabla-listado">
             <thead>
-                <tr><th>Parentesco</th><th>Nombre y Apellido</th><th>Cédula</th><th>F. Nacimiento</th></tr>
+                <tr><th width="20%">Parentesco</th><th width="50%">Nombre y Apellido</th><th width="30%">Cédula</th></tr>
             </thead>
             <tbody>
                 {% for fam in familia %}
-                <tr><td>{{ fam.parentesco.descripcion }}</td><td>{{ fam.carga_familiar.primer_nombre }} {{ fam.carga_familiar.primer_apellido }}</td><td>{{ fam.carga_familiar.cedula|default:"S/C" }}</td><td>{{ fam.carga_familiar.fecha_nacimiento|date:"d/m/Y" }}</td></tr>
-                {% empty %}<tr><td colspan="4" class="no-posee">No registra carga familiar.</td></tr>
+                <tr><td>{{ fam.parentesco.descripcion }}</td><td>{{ fam.carga_familiar.primer_nombre }} {{ fam.carga_familiar.primer_apellido }}</td><td>{{ fam.carga_familiar.cedula|default:"S/C" }}</td></tr>
+                {% empty %}<tr><td colspan="3" class="no-posee">No registra familiares.</td></tr>
                 {% endfor %}
             </tbody>
-        </table>
-    </div>
-
-    <div class="bloque-contenedor">
-        <div class="seccion-titulo" style="background-color: #172554;">10. Información Laboral Institucional</div>
-        <table class="tabla-datos" style="background-color: #F8FAFC;">
-            <tr>
-                <td width="25%"><span class="label">Código Nómina</span><div class="valor">{{ laboral.codigo_nomina }}</div></td>
-                <td width="50%"><span class="label">Unidad Organizativa</span><div class="valor">{{ laboral.unidad_org.nombre_unidad }}</div></td>
-                <td width="25%"><span class="label">Fecha Ingreso</span><div class="valor">{{ laboral.fecha_ingreso_inst|date:"d/m/Y" }}</div></td>
-            </tr>
-            <tr>
-                <td colspan="3"><span class="label">Cargo Estructural</span><div class="valor">{{ laboral.cargo_estructural.nombre_cargo_estruct }}</div></td>
-            </tr>
         </table>
     </div>
 
     <div id="footer_content">
-        Expediente Digital SACAT | Trabajador: {{ persona.cedula }} | Generado el: {{ hoy|date:"d/m/Y" }} | Pág. <pdf:pagenumber>
+        <hr style="border: 0.1pt solid #E2E8F0;">
+        <table width="100%" style="font-size: 8pt; color: #94A3B8;">
+            <tr>
+                <td width="70%">SACAT | {{ persona.cedula }} | {{ persona.primer_nombre }} {{ persona.primer_apellido }}</td>
+                <td width="30%" style="text-align: right;">Fecha: {{ hoy|date:"d/m/Y" }} | Pág. <pdf:pagenumber></td>
+            </tr>
+        </table>
     </div>
 
 </body>

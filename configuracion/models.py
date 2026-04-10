@@ -286,9 +286,11 @@ class EstructuraOrganizativa(models.Model):
     class Meta:
         db_table = 'estructuras_organizativas'
         managed = False
+    def __str__(self):
+        return self.nombre_estructura.upper()
 
 class NivelJerarquico(models.Model):
-    descripcion = models.CharField(max_length=50)
+    descripcion = models.CharField(max_length=100) # Ajustado a 100 por el SQL
     esta_activo = models.BooleanField(default=True)
     creado_por = models.IntegerField(null=True, blank=True)
     actualizado_por = models.IntegerField(null=True, blank=True)
@@ -298,10 +300,11 @@ class NivelJerarquico(models.Model):
     class Meta:
         db_table = 'niveles_jerarquicos'
         managed = False
+    def __str__(self):
+        return self.descripcion.upper()
 
 class TipoUnidad(models.Model):
-    descripcion = models.CharField(max_length=50)
-    nivel_jerarquico = models.ForeignKey(NivelJerarquico, on_delete=models.PROTECT, db_column='nivel_jerarquico_id')
+    descripcion = models.CharField(max_length=100) # Ajustado a 100 por el SQL
     esta_activo = models.BooleanField(default=True)
     creado_por = models.IntegerField(null=True, blank=True)
     actualizado_por = models.IntegerField(null=True, blank=True)
@@ -311,14 +314,23 @@ class TipoUnidad(models.Model):
     class Meta:
         db_table = 'tipos_unidades'
         managed = False
+    def __str__(self):
+        return self.descripcion.upper()
 
 class UnidadesOrganizativas(models.Model):
     estructura_org = models.ForeignKey(EstructuraOrganizativa, on_delete=models.PROTECT, db_column='estructura_org_id')
+    nivel_jerarquico = models.ForeignKey(NivelJerarquico, on_delete=models.PROTECT, db_column='nivel_jerarquico_id')
     tipo_unidad = models.ForeignKey(TipoUnidad, on_delete=models.PROTECT, db_column='tipo_unidad_id')
     unidad_sup = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, db_column='unidad_sup_id')
-    nomenclatura = models.CharField(max_length=20)
+    
+    # 🌟 NUEVO VÍNCULO TERRITORIAL 🌟
+    sede = models.ForeignKey('Sede', on_delete=models.PROTECT, db_column='sede_id', null=True, blank=True)
+    
+    nomenclatura = models.CharField(max_length=20) 
     nombre_unidad = models.CharField(max_length=150)
     esta_activo = models.BooleanField(default=True)
+    
+    # Auditoría
     creado_por = models.IntegerField(null=True, blank=True)
     actualizado_por = models.IntegerField(null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -327,6 +339,7 @@ class UnidadesOrganizativas(models.Model):
     class Meta:
         db_table = 'unidades_organizativas'
         managed = False
+        
     def __str__(self):
         return self.nombre_unidad.upper()
 
@@ -507,3 +520,31 @@ class IdentidadInstitucional(models.Model):
     class Meta:
         db_table = 'identidad_institucional'
         managed = False # Django no toca la tabla, solo la lee
+
+class CategoriaPersonal(models.Model):
+    descripcion = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'categorias_personal'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+class EstatusLaboral(models.Model):
+    descripcion = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'estatus_laborales'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()

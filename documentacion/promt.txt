@@ -1,0 +1,1372 @@
+Registro de Trabajador Fase 1 (Inicial Responsabilidad de Gestión Humana)
+
+Paso 1 - Datos personales.
+- tipo de documento de identificacion 
+	observacion: debe mostrar solo los registros v, p y e.
+- cedula / pasaporte
+	observacion: ahora se llamara "documento de identificacion", cuando se seleccione el tipo de documento "v" que significa cedula venezolana, entonces debe tener la validacion ya sea por via ajax, que debe tener al menos minimo 6 caracteres, maximo 9, estos deben estar conformados por numeros, no debe poseer signos de puntuacion o especiales. En caso de seleccionar tipo de documento "e", tambien debe tener al menos minimo 6 caracteres y maximo 9, estos deben estar conformados por numeros, estos numeros deben estar a partir del rango 80000000 según el saime, quien proporciona cedulas a extranjeros a partir de ese correlativo, estos no deben poseer signos de puntuacion o especiales. En el caso de seleccionar tipo de documento "p", entonces debe poseer minimo 6 caracteres y maximo 12, debe permitir alfanumerico, no debe permitir signos de puntuacion o especiales.
+- espacio para adjuntar documento de identidad (nuevo)
+	observacion: deberia permitir formato pdf o imagen (jpg, jpeg, png), posteriormente en el futuro crearemos una funcion que permita al menos leer de estos archivos el numero de cedula y la fecha de vencimiento y fecha de nacimiento de la misma. como validacion de que no se adjunte un documento que no posea dichos datos.
+- fecha de vencimiento de documento de identidad (nuevo)
+	observacion: formato MM/AAAA y DD/MM/AAA
+- fecha de nacimiento
+	observacion: esta debe permitir a personas que según su fecha de nacimiento a la fecha del dia posean mínimo 16 años. Por ende las fechas como por ejemplo 2026 debe estar bloqueado para seleccion ya que solo permitira fechas que indiquen que la persona es mayor de 16 años de edad.
+- lugar de nacimiento
+- es naturalizado?
+	observacion: en caso de ser si, desplegará 3 campos llamados nro de gaceta, un campo tipo pregunta es extraordinaria? y fecha de gaceta y estos campos deben ser requeridos. en caso de estar marcado como no, entonces, no muestra los campos y además se guardan como nulos.
+- nro gaceta
+	observacion: debe ser solo valores numericos, con maximo de 6 digitos, no debe permitir signos especiales o de puntuacion.
+- es extraordinaria? campo nuevo
+	observacion: este debe permitir solamente seleccion según la base de datos, que deberia ser un booleano (true, false).
+- fecha de gaceta
+	observacion: formato debe ser DD/MM/AAAA
+- primer nombre
+	observacion: debe permitir solamente caracteres tipo letra, ademas permitir espacios para nombres compuestos, guiones, apostrofes y acentos, asi como las eñes y la dierisis, sin embargo debe prohibirse numeros, signos especiales que no se encuentren permitidos o descritos anteriormente.
+- segundo nombre
+	observacion: debe permitir solamente caracteres tipo letra, ademas permitir espacios para nombres compuestos, guiones, apostrofes y acentos, asi como las eñes y la dierisis, sin embargo debe prohibirse numeros, signos especiales que no se encuentren permitidos o descritos anteriormente.
+- primer apellido
+	observacion: debe permitir solamente caracteres tipo letra, ademas permitir espacios para nombres compuestos, guiones, apostrofes y acentos, asi como las eñes y la dierisis, sin embargo debe prohibirse numeros, signos especiales que no se encuentren permitidos o descritos anteriormente.
+- segundo apellido
+	observacion: debe permitir solamente caracteres tipo letra, ademas permitir espacios para nombres compuestos, guiones, apostrofes y acentos, asi como las eñes y la dierisis, sin embargo debe prohibirse numeros, signos especiales que no se encuentren permitidos o descritos anteriormente.
+- sexo
+	observacion: segun lo que se encuentre la base de datos, esto sera un campo desplegable de unica seleccion, es decir solo se puede seleccionar un registro.
+- estado civil
+	observacion: segun lo que se encuentre la base de datos, esto sera un campo desplegable de unica seleccion, es decir solo se puede seleccionar un registro.
+- boton de guardar y continuar
+	observacion: debe redirigir al siguiente paso. (en este caso al paso 2)
+- boton cancelar
+	observacion: debe redirigir a la pagina de inicio
+
+observacion general: todos los campos deben ser requeridos, excepto segundo nombre, segundo apellido, todo lo demas debera guiarse con su observacion como por ejemplo el campo es naturalizado, el cual sera requerido solo si esta la pregunta en si. predeterminado la pregunta es naturalizado debe estar en no o apagado.
+
+Paso 2 - Contacto Personal (Anteriormente el paso 3 - contactos)
+- tipo de contacto 
+	observacion: para este caso mostrar solo correo electronico y telefono movil
+- valor
+	observacion: en caso de ser correo electronico, debera validar dentro de su tabla un patron de valores, el cual posee como la regla de lo que debe permitir para que esto lo haga el ajax. En caso de ser telefono movil, de igual manera debe validar dentro de su tabla el patron de valores, el cual posee la regla de lo que debe permitir y que esto lo haga el ajax en tiempo real.
+- es principal?
+	observacion: solo se debe permitir seleccionar el booleano true por tipo de contacto, es decir, solo puede registrar como true 1 correo electronico y 1 telefono movil. los demas deben quedar como respaldos, es decir con el valor es principal en false.
+
+observacion general: se ocultarán los campos que tenian que ver con la tabla de contactos de emergencia. y todos los campos deben ser requeridos, la pregunta es principal debe ser predeterminada en no o apagada, para que el usuario pueda decidir.
+
+paso 3 - Asignacion Laboral (Antes el paso 8 - datos laborales)
+- nivel jerarquico
+- unidad organizativa
+- ubicacion fisica
+- regimen (tipo)
+- categoria de personal
+- cargo generico
+- cargo estructural
+- codigo de nomina
+- fecha de ingreso
+
+observacion general: todos seran campos requeridos, excepto el codigo de nomina, que aun esta en definicion, no daremos mayor descripcion de este paso ya que aun esta en construccion.
+
+paso 4 - Comprobante y Emisión de Credenciales (Nuevo)
+Este paso debe indicar que el registro del trabajador fue exitoso, mostrar un resumen de todos los campos que fueron llenados como una ficha inicial del trabajador y además emitir sus credenciales para ingresar al sistema, en este caso su nombre de usuario el cual por defecto será su cedula o documento de identidad, y una contraseña generica el cual debe estar compuesta por los siguientes parametros: Minimo 8 caracteres, Maximo los caracteres que desee, debe poseer al menos 1 letra mayuscula, 1 letra minuscula, al menos 1 numero, y 1 signo de puntuacion o especial como puede ser ($#%&.*) y otros que apoyen a ser del sistema más seguro y 1 letra Ñ en mayuscula o 1 letra ñ en minuscula. Esto como contraseña o clave temporal, el cual por supuesto deberá cambiar la primera vez que ingrese al sistema, se debe realizar esa notificacion que es una clave temporal y debe ser cambiada la primera vez que ingrese al sistema. Momentaneamente se crearán dichos usuarios con roles administradores por defecto, ya que aún no tenemos más roles ni definicion de permisos del sistema.
+
+
+Te escribiré aca los archivos anteriores que debemos modificar para conseguir lo que te solicito, archivos que eran funcionales, que tal vez pueden que le falte añadir campos, lo que si debemos mantener es el estilo, el diseño y los colores. Porque es la identidad del sistema.
+
+archivo paso 1 - datos_personales.html (ahora sera paso 1)
+{% extends 'includes/base_standard.html' %}
+
+{% block title %} SACAT | Registro - Paso 1 {% endblock %}
+
+{% block extra_css %}
+<style>
+    /* =======================================================================
+       1. SISTEMA DE DISEÑO (Mantenemos tu estilo actual al 100%)
+       ======================================================================= */
+    :root {
+        --bg-body: #F8FAFC; --bg-card: #ffffff;
+        --text-main: #0F172A; --text-muted: #64748B;
+        --border-color: #E2E8F0;
+        --brand-primary: #1E3A8A; --brand-dark: #172554;
+        --brand-light: #EEF2FF;
+        --accent-teal: #0D9488;
+        --color-success: #0E9F6E; --color-error: #C81E1E;
+    }
+    [data-bs-theme="dark"] {
+        --bg-body: #0F172A; --bg-card: #1E293B;
+        --text-main: #F8FAFC; --text-muted: #E2E8F0;
+        --border-color: #64748B;
+        --brand-primary: #0D9488; --brand-dark: #0F766E;
+        --brand-light: #1E293B;
+    }
+
+    /* 2. STEPPER RECTANGULAR */
+    .stepper-box {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 25px 15px 45px 15px;
+        transition: background-color 0.3s ease;
+    }
+    .sacat-stepper { display: flex; justify-content: space-between; align-items: center; position: relative; }
+    .sacat-stepper::before { content: ''; position: absolute; top: 31px; left: 5%; right: 5%; height: 2px; background-color: var(--border-color); z-index: 1; }
+    .sacat-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+    .step-circle { width: 18px; height: 18px; border-radius: 50%; background-color: var(--border-color); border: 2px solid var(--bg-card); transition: all 0.3s ease; }
+    .step-title { font-weight: 800; color: var(--text-muted); margin-bottom: 6px; font-size: 0.85rem; }
+    .sacat-step.current .step-title { font-size: 0.7rem; text-transform: uppercase; color: var(--brand-primary); }
+    .sacat-step.current .step-circle { background-color: var(--bg-card); border: 3px solid var(--brand-primary); transform: scale(1.8); box-shadow: 0 4px 10px rgba(0,0,0, 0.1); }
+
+    /* 3. COMPONENTES */
+    .custom-input { background-color: var(--bg-body) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; border-radius: 8px !important; padding: 10px 15px !important; }
+    .custom-input:focus { border-color: var(--brand-primary) !important; box-shadow: 0 0 0 0.25rem rgba(13, 148, 136, 0.2) !important; }
+    .bg-primary-soft { background-color: var(--brand-light); }
+    .italic { font-style: italic; }
+    
+    /* Botón Estilo Actual Pro */
+    .btn-primary {
+        background-color: var(--brand-primary) !important;
+        border-color: var(--brand-primary) !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        padding: 12px 30px !important;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--brand-dark) !important;
+        border-color: var(--brand-dark) !important;
+        transform: translateY(-2px); /* El efecto de levantado */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2); /* Sombra más profunda */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-lg-11">
+            <div class="stepper-box shadow-sm">
+                <div class="sacat-stepper">
+                    <div class="sacat-step current"><div class="step-title">Paso 1</div><div class="step-circle"></div></div>
+                    {% for i in "23456789" %}<div class="sacat-step future"><div class="step-title">{{ i }}</div><div class="step-circle"></div></div>{% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-11">
+            <div class="card border-0 shadow-sm" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden;">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <div class="d-flex align-items-center">
+                        <div class="p-2 bg-primary-soft rounded-3 me-3"><i class="fas fa-user-check" style="color: var(--brand-primary);"></i></div>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-main">DATOS PERSONALES</h6>
+                            <small class="text-muted small italic">Campos marcados con (*) son obligatorios</small>
+                        </div>
+                    </div>
+                    <hr class="mt-3 mb-0 opacity-10">
+                </div>
+
+                <form id="formPaso1" class="p-4 pt-3" novalidate>
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold small">Tipo *</label>
+                            <select name="tipo_doc" class="form-select custom-input" required>
+                                <option value="" selected disabled>...</option>
+                                {% for td in tipos_docs %}<option value="{{ td.id }}">{{ td.sigla }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold small">Cédula / Pasaporte *</label>
+                            <input type="text" name="cedula" class="form-control custom-input" placeholder="Solo números" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold small">Fecha Nacimiento *</label>
+                            <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control custom-input" required>
+                        </div>
+
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold small">Lugar de Nacimiento *</label>
+                            <input type="text" name="lugar_nacimiento" class="form-control custom-input text-uppercase" required>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <div class="p-2 rounded-3 border w-100 d-flex align-items-center" style="height: 48px; background-color: var(--bg-body);">
+                                <div class="form-check form-switch mb-0 ms-2">
+                                    <input class="form-check-input" type="checkbox" name="es_naturalizado" id="checkNaturalizado">
+                                    <label class="form-check-label fw-bold small ms-2" for="checkNaturalizado">¿Naturalizado?</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="divGaceta" class="col-12" style="display: none;">
+                            <div class="row g-3 p-3 rounded-3 shadow-sm" style="background-color: var(--bg-body); border-left: 4px solid var(--brand-primary);">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Nro. de Gaceta *</label>
+                                    <input type="text" name="nro_gaceta" id="inputGaceta" class="form-control custom-input text-uppercase">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Fecha de Gaceta *</label>
+                                    <input type="date" name="fecha_gaceta" id="inputFechaGaceta" class="form-control custom-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small">Primer Nombre *</label>
+                            <input type="text" name="nombre1" class="form-control custom-input text-uppercase" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small text-muted">Segundo Nombre</label>
+                            <input type="text" name="nombre2" class="form-control custom-input text-uppercase">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small">Primer Apellido *</label>
+                            <input type="text" name="apellido1" class="form-control custom-input text-uppercase" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold small text-muted">Segundo Apellido</label>
+                            <input type="text" name="apellido2" class="form-control custom-input text-uppercase">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Sexo *</label>
+                            <select name="sexo" class="form-select custom-input" required>
+                                <option value="" selected disabled>Seleccione...</option>
+                                {% for s in sexos %}<option value="{{ s.id }}">{{ s.descripcion }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Estado Civil *</label>
+                            <select name="estado_civil" class="form-select custom-input" required>
+                                <option value="" selected disabled>Seleccione...</option>
+                                {% for ec in estados_civiles %}<option value="{{ ec.id }}">{{ ec.descripcion }}</option>{% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                        <a href="{% url 'inicio' %}" class="btn px-4 fw-bold small" style="background-color: var(--bg-body); color: var(--text-muted); border: 1px solid var(--border-color);">
+                            <i class="fas fa-arrow-left me-2"></i> CANCELAR
+                        </a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm" id="btnSiguiente">
+                            GUARDAR Y CONTINUAR <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('formPaso1');
+        const btnSiguiente = document.getElementById('btnSiguiente');
+        const checkNat = document.getElementById('checkNaturalizado');
+        const divGaceta = document.getElementById('divGaceta');
+
+        // Detectar tema para SweetAlert
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const swalBg = isDark ? '#1E293B' : '#ffffff';
+        const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
+        // 1. Mayúsculas automáticas
+        form.querySelectorAll('.text-uppercase').forEach(input => {
+            input.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+        });
+
+        // 2. Manejo de Naturalización (Regla de negocio)
+        checkNat.addEventListener('change', function() {
+            if (this.checked) {
+                divGaceta.style.display = 'block';
+                divGaceta.querySelectorAll('input').forEach(i => i.setAttribute('required', ''));
+            } else {
+                divGaceta.style.display = 'none';
+                divGaceta.querySelectorAll('input').forEach(i => { i.removeAttribute('required'); i.value = ''; });
+            }
+        });
+
+        // 3. ENVÍO AJAX (El que sí guardaba el 30-03)
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // BLOQUEO DE REFRESH GARANTIZADO
+            
+            // Validación manual rápida
+            let isInvalid = false;
+            form.querySelectorAll('[required]').forEach(input => {
+                if (!input.value || !input.value.trim()) {
+                    input.classList.add('is-invalid');
+                    isInvalid = true;
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+
+            if (isInvalid) {
+                Swal.fire({ 
+                    icon: 'warning', title: 'Atención', 
+                    text: 'Por favor complete todos los campos obligatorios (*)',
+                    background: swalBg, color: swalColor 
+                });
+                return;
+            }
+
+            // Efecto Visual
+            const originalText = btnSiguiente.innerHTML;
+            btnSiguiente.disabled = true;
+            btnSiguiente.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> PROCESANDO...';
+
+            // ENVÍO AL BACKEND
+            fetch("{% url 'guardar_paso1' %}", {
+                method: "POST",
+                body: new FormData(form),
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success', title: '¡Éxito!',
+                        text: 'Datos personales registrados.',
+                        timer: 1500, showConfirmButton: false,
+                        background: swalBg, color: swalColor
+                    }).then(() => {
+                        window.location.href = data.next_url || "{% url 'registro_paso2' %}";
+                    });
+                } else {
+                    Swal.fire({ 
+                        icon: 'error', title: 'Error', 
+                        text: data.error || 'Ocurrió un error al guardar.',
+                        background: swalBg, color: swalColor 
+                    });
+                    btnSiguiente.disabled = false;
+                    btnSiguiente.innerHTML = originalText;
+                }
+            })
+            .catch(err => {
+                console.error("Error en Step 1:", err);
+                Swal.fire({ 
+                    icon: 'error', title: 'Error de Red', 
+                    text: 'No se pudo conectar con el servidor.',
+                    background: swalBg, color: swalColor 
+                });
+                btnSiguiente.disabled = false;
+                btnSiguiente.innerHTML = originalText;
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+
+archivo paso 3 - contactos.html (ahora sera el paso 2)
+
+{% extends 'includes/base_standard.html' %}
+
+{% block title %} SACAT | Registro - Paso 3 {% endblock %}
+
+{% block extra_css %}
+<style>
+    /* =======================================================================
+       1. SISTEMA DE DISEÑO (SACAT PRO)
+       ======================================================================= */
+    :root {
+        --bg-body: #F8FAFC; --bg-card: #ffffff; --text-main: #0F172A; 
+        --text-muted: #64748B; --border-color: #E2E8F0; 
+        --brand-primary: #1E3A8A; --brand-dark: #172554; --brand-light: #EEF2FF; 
+        --color-error: #C81E1E; --color-success: #0E9F6E;
+    }
+
+    [data-bs-theme="dark"] {
+        --bg-body: #0F172A; --bg-card: #1E293B; --text-main: #F8FAFC; 
+        --text-muted: #E2E8F0; --border-color: #64748B; 
+        --brand-primary: #0D9488; --brand-dark: #0F766E; --brand-light: #1E293B; 
+    }
+
+    /* Asteriscos Rojos */
+    .text-danger { color: #ef4444 !important; font-weight: bold; }
+
+    /* STEPPER RECTANGULAR */
+    .stepper-box { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 15px; padding: 25px 15px 45px 15px; }
+    .sacat-stepper { display: flex; justify-content: space-between; align-items: center; position: relative; }
+    .sacat-stepper::before { content: ''; position: absolute; top: 31px; left: 5%; right: 5%; height: 2px; background-color: var(--border-color); z-index: 1; }
+    .sacat-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+    
+    .step-circle { width: 18px; height: 18px; border-radius: 50%; background-color: var(--border-color); border: 2px solid var(--bg-card); transition: all 0.3s ease; }
+    .step-title { font-weight: 800; color: var(--text-muted); margin-bottom: 6px; font-size: 0.85rem; }
+
+    .sacat-step.completed .step-circle { background-color: var(--brand-primary); border-color: var(--brand-primary); color: white; display: flex; align-items: center; justify-content: center; }
+    .sacat-step.completed .step-circle::after { content: '✓'; font-size: 0.6rem; font-weight: bold; }
+    
+    .sacat-step.current .step-title { font-size: 0.7rem; text-transform: uppercase; color: var(--brand-primary); }
+    .sacat-step.current .step-circle { background-color: var(--bg-card); border: 3px solid var(--brand-primary); transform: scale(1.8); box-shadow: 0 4px 10px rgba(0,0,0, 0.1); }
+
+    /* COMPONENTES */
+    .custom-input { background-color: var(--bg-body) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; border-radius: 8px !important; padding: 10px 15px !important; transition: all 0.3s ease; }
+    .btn-primary { background-color: var(--brand-primary) !important; border-color: var(--brand-primary) !important; color: #ffffff !important; font-weight: 600; border-radius: 8px !important; transition: all 0.3s ease; }
+    .btn-primary:hover { background-color: var(--brand-dark) !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    
+    .btn-circle-add { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--brand-primary); color: var(--brand-primary); background: transparent; transition: all 0.2s; }
+    .btn-circle-add:hover { background: var(--brand-light); transform: scale(1.1); }
+
+    .item-chip { background-color: var(--bg-body); border: 1px solid var(--border-color); border-radius: 8px; transition: all 0.2s; }
+    .item-chip:hover { border-color: var(--brand-primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-lg-11">
+            <div class="stepper-box shadow-sm">
+                <div class="sacat-stepper">
+                    <div class="sacat-step completed"><div class="step-title">1</div><div class="step-circle"></div></div>
+                    <div class="sacat-step completed"><div class="step-title">2</div><div class="step-circle"></div></div>
+                    <div class="sacat-step current"><div class="step-title">Paso 3</div><div class="step-circle"></div></div>
+                    {% for i in "456789" %}<div class="sacat-step future"><div class="step-title">{{ i }}</div><div class="step-circle"></div></div>{% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-11">
+            <form id="formContactos" novalidate>
+                {% csrf_token %}
+                
+                <div class="card border-0 shadow-sm mb-3" style="background-color: var(--bg-card); border-radius: 12px;">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                        <div class="d-flex align-items-center">
+                            <div class="p-2 bg-primary-soft rounded-3 me-3"><i class="fas fa-address-book" style="color: var(--brand-primary);"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-main">CONTACTOS PERSONALES <span class="text-danger">*</span></h6>
+                                <small class="text-muted italic">Añada al menos un medio de contacto (Teléfono, Correo, etc.)</small>
+                            </div>
+                        </div>
+                        <hr class="mt-3 mb-0 opacity-10">
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <div class="row g-3 align-items-end p-3 rounded-3 mb-3" style="background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-muted">TIPO</label>
+                                <select id="temp_tipo" class="form-select custom-input">
+                                    <option value="" selected disabled>Seleccione...</option>
+                                    {% for t in tipos_contactos %}<option value="{{ t.id }}" data-patron="{{ t.patron_validacion }}">{{ t.descripcion }}</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold text-muted">VALOR</label>
+                                <input type="text" id="temp_valor" class="form-control custom-input" placeholder="Ej: 0412... o correo@mail.com">
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <label class="form-label small fw-bold text-muted">¿PRINCIPAL?</label>
+                                <div class="form-check form-switch d-flex justify-content-center pt-2">
+                                    <input class="form-check-input" type="checkbox" id="temp_principal" role="switch">
+                                </div>
+                            </div>
+                            <div class="col-md-1 d-flex justify-content-center pb-1">
+                                <button type="button" class="btn-circle-add" id="btnAddPersonal"><i class="fas fa-plus"></i></button>
+                            </div>
+                        </div>
+                        <div id="listaPersonales" class="row g-2">
+                            {% for rel in contactos_existentes %}
+                            <div class="col-md-6 item-contacto" data-tipo="{{ rel.contacto_personal.tipo_contacto.id }}">
+                                <div class="item-chip d-flex justify-content-between align-items-center p-2 px-3 border rounded shadow-sm">
+                                    <input type="hidden" name="tipo_contacto[]" value="{{ rel.contacto_personal.tipo_contacto.id }}">
+                                    <input type="hidden" name="valor_contacto[]" value="{{ rel.contacto_personal.valor_contacto }}">
+                                    <input type="hidden" class="hidden-main-flag" value="{% if rel.es_principal %}1{% else %}0{% endif %}">
+                                    
+                                    <div class="small">
+                                        <b class="text-primary">{{ rel.contacto_personal.tipo_contacto.descripcion }}:</b> {{ rel.contacto_personal.valor_contacto }}
+                                        <span class="badge bg-success ms-2 badge-main {% if not rel.es_principal %}d-none{% endif %}">Principal</span>
+                                    </div>
+                                    <button type="button" class="btn btn-link text-danger p-0 ms-2" onclick="this.closest('.item-contacto').remove()">
+                                        <i class="fas fa-times-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4" style="background-color: var(--bg-card); border-radius: 12px; border-left: 4px solid var(--color-error) !important;">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                        <div class="d-flex align-items-center">
+                            <div class="p-2 rounded-3 me-3" style="background-color: rgba(200,30,30,0.1);"><i class="fas fa-ambulance" style="color: var(--color-error);"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-main">EN CASO DE EMERGENCIA <span class="text-danger">*</span></h6>
+                                <small class="text-muted italic">Indique a quién contactar ante un incidente.</small>
+                            </div>
+                        </div>
+                        <hr class="mt-3 mb-0 opacity-10">
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <div class="row g-3 align-items-end p-3 rounded-3 mb-3" style="background-color: var(--bg-body); border: 1px solid var(--border-color);">
+                            <div class="col-md-3"><label class="form-label small fw-bold text-muted">NOMBRE</label><input type="text" id="temp_e_nombre" class="form-control custom-input text-uppercase"></div>
+                            <div class="col-md-3"><label class="form-label small fw-bold text-muted">APELLIDO</label><input type="text" id="temp_e_apellido" class="form-control custom-input text-uppercase"></div>
+                            <div class="col-md-5"><label class="form-label small fw-bold text-muted">TELÉFONO</label><input type="text" id="temp_e_telefono" class="form-control custom-input" maxlength="11" placeholder="Ej: 04141234567"></div>
+                            <div class="col-md-1 d-flex justify-content-center pb-1">
+                                <button type="button" class="btn-circle-add" style="border-color: var(--color-error); color: var(--color-error);" id="btnAddEmergencia"><i class="fas fa-plus"></i></button>
+                            </div>
+                        </div>
+                        <div id="listaEmergencias" class="row g-2">
+                            {% for rel in emergencias_existentes %}
+                            <div class="col-md-6 item-emergencia">
+                                <div class="item-chip d-flex justify-content-between align-items-center p-2 px-3 border rounded shadow-sm">
+                                    <input type="hidden" name="e_nombre[]" value="{{ rel.contacto_emergencia.primer_nombre }}">
+                                    <input type="hidden" name="e_apellido[]" value="{{ rel.contacto_emergencia.primer_apellido }}">
+                                    <input type="hidden" name="e_telefono[]" value="{{ rel.contacto_emergencia.telefono }}">
+                                    
+                                    <div class="small">
+                                        <i class="fas fa-user-nurse text-danger me-2"></i>
+                                        <b>{{ rel.contacto_emergencia.primer_nombre }} {{ rel.contacto_emergencia.primer_apellido }}</b>: {{ rel.contacto_emergencia.telefono }}
+                                    </div>
+                                    <button type="button" class="btn btn-link text-danger p-0 ms-2" onclick="this.closest('.item-emergencia').remove()">
+                                        <i class="fas fa-times-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% url 'registro_paso2' %}" class="btn px-4 fw-bold small" style="background-color: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color);">
+                        <i class="fas fa-arrow-left me-2"></i> VOLVER
+                    </a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm" id="btnGuardar">
+                        GUARDAR Y CONTINUAR <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        (function() {
+            const form = document.getElementById('formContactos');
+            const listaP = document.getElementById('listaPersonales');
+            const listaE = document.getElementById('listaEmergencias');
+            const btnGuardar = document.getElementById('btnGuardar');
+
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const swalBg = isDark ? '#1E293B' : '#ffffff';
+            const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
+            // 1. Agregar Contacto Personal
+            document.getElementById('btnAddPersonal').onclick = function() {
+                const tipoInp = document.getElementById('temp_tipo');
+                const valorInp = document.getElementById('temp_valor');
+                const princInp = document.getElementById('temp_principal');
+
+                if (!tipoInp.value || !valorInp.value.trim()) {
+                    Swal.fire({ icon: 'warning', title: 'Atención', text: 'Indique tipo y valor del contacto.', background: swalBg, color: swalColor });
+                    return;
+                }
+
+                const tipoText = tipoInp.options[tipoInp.selectedIndex].text;
+                const isMain = princInp.checked;
+
+                // Si es principal, desmarcamos otros del mismo tipo
+                if (isMain) {
+                    listaP.querySelectorAll(`.item-contacto[data-tipo="${tipoInp.value}"]`).forEach(chip => {
+                        chip.querySelector('.hidden-main-flag').value = "0";
+                        chip.querySelector('.badge-main').classList.add('d-none');
+                    });
+                }
+
+                const col = document.createElement('div');
+                col.className = "col-md-6 item-contacto";
+                col.setAttribute('data-tipo', tipoInp.value);
+                col.setAttribute('data-tipo-text', tipoText);
+                col.innerHTML = `
+                    <div class="item-chip d-flex justify-content-between align-items-center p-2 px-3 border rounded shadow-sm">
+                        <input type="hidden" name="tipo_contacto[]" value="${tipoInp.value}">
+                        <input type="hidden" name="valor_contacto[]" value="${valorInp.value.trim()}">
+                        <input type="hidden" class="hidden-main-flag" value="${isMain ? '1' : '0'}">
+                        <div class="small">
+                            <b class="text-primary">${tipoText}:</b> ${valorInp.value.trim()}
+                            <span class="badge bg-success ms-2 badge-main ${isMain ? '' : 'd-none'}">Principal</span>
+                        </div>
+                        <button type="button" class="btn btn-link text-danger p-0 ms-2" onclick="this.closest('.item-contacto').remove()"><i class="fas fa-times-circle"></i></button>
+                    </div>
+                `;
+                listaP.appendChild(col);
+                valorInp.value = ''; princInp.checked = false;
+            };
+
+            // 2. Agregar Contacto Emergencia
+            document.getElementById('btnAddEmergencia').onclick = function() {
+                const nom = document.getElementById('temp_e_nombre');
+                const ape = document.getElementById('temp_e_apellido');
+                const tel = document.getElementById('temp_e_telefono');
+
+                if (!nom.value || !ape.value || tel.value.length < 11) {
+                    Swal.fire({ icon: 'warning', title: 'Atención', text: 'Complete los datos de emergencia (Teléfono 11 dígitos).', background: swalBg, color: swalColor });
+                    return;
+                }
+
+                const col = document.createElement('div');
+                col.className = "col-md-6 item-emergencia";
+                col.innerHTML = `
+                    <div class="item-chip d-flex justify-content-between align-items-center p-2 px-3 border rounded shadow-sm">
+                        <input type="hidden" name="e_nombre[]" value="${nom.value.toUpperCase()}">
+                        <input type="hidden" name="e_apellido[]" value="${ape.value.toUpperCase()}">
+                        <input type="hidden" name="e_telefono[]" value="${tel.value}">
+                        <div class="small">
+                            <i class="fas fa-user-nurse text-danger me-2"></i><b>${nom.value} ${ape.value}</b>: ${tel.value}
+                        </div>
+                        <button type="button" class="btn btn-link text-danger p-0 ms-2" onclick="this.closest('.item-emergencia').remove()"><i class="fas fa-times-circle"></i></button>
+                    </div>
+                `;
+                listaE.appendChild(col);
+                nom.value = ''; ape.value = ''; tel.value = '';
+            };
+
+            // 3. Envío Blindado
+            form.onsubmit = function(e) {
+                e.preventDefault();
+
+                if (listaP.children.length === 0 || listaE.children.length === 0) {
+                    Swal.fire({ icon: 'error', title: 'Faltan Datos', text: 'Debe agregar al menos un (1) contacto personal y un (1) de emergencia.', background: swalBg, color: swalColor });
+                    return;
+                }
+
+                // Recolectar índices de principales para el backend
+                let arrayPrincipales = [];
+                Array.from(listaP.children).forEach((chip, idx) => {
+                    if (chip.querySelector('.hidden-main-flag').value === "1") arrayPrincipales.push(idx);
+                });
+
+                const originalText = btnGuardar.innerHTML;
+                btnGuardar.disabled = true;
+                btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> GUARDANDO...';
+
+                const formData = new FormData(form);
+                formData.append('indices_principales', JSON.stringify(arrayPrincipales));
+
+                fetch("{% url 'guardar_paso3' %}", {
+                    method: "POST",
+                    body: formData,
+                    headers: { "X-CSRFToken": "{{ csrf_token }}" }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Contactos guardados.', timer: 1500, showConfirmButton: false, background: swalBg, color: swalColor })
+                        .then(() => window.location.href = data.next_url);
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Error', text: data.error, background: swalBg, color: swalColor });
+                        btnGuardar.disabled = false; btnGuardar.innerHTML = originalText;
+                    }
+                })
+                .catch(() => {
+                    btnGuardar.disabled = false; btnGuardar.innerHTML = originalText;
+                });
+            };
+
+            // Mayúsculas automáticas
+            form.querySelectorAll('.text-uppercase').forEach(input => {
+                input.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+            });
+        })();
+    </script>
+</div>
+{% endblock %}
+
+archivo paso 8 - datos_laborales.html (Ahora será el paso 3)
+
+{% extends 'includes/base_standard.html' %}
+
+{% block title %} SACAT | Registro - Paso 8 {% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-body: #F8FAFC; --bg-card: #ffffff; --text-main: #0F172A; 
+        --text-muted: #64748B; --border-color: #E2E8F0; 
+        --brand-primary: #1E3A8A; --brand-dark: #172554; --brand-light: #EEF2FF; 
+    }
+    [data-bs-theme="dark"] {
+        --bg-body: #0F172A; --bg-card: #1E293B; --text-main: #F8FAFC; 
+        --text-muted: #E2E8F0; --border-color: #64748B; 
+        --brand-primary: #0D9488; --brand-dark: #0F766E; --brand-light: #1E293B; 
+    }
+    .text-danger { color: #ef4444 !important; font-weight: bold; margin-left: 2px; }
+    .stepper-box { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 15px; padding: 25px 15px 45px 15px; }
+    .sacat-stepper { display: flex; justify-content: space-between; align-items: center; position: relative; }
+    .sacat-stepper::before { content: ''; position: absolute; top: 31px; left: 5%; right: 5%; height: 2px; background-color: var(--border-color); z-index: 1; }
+    .sacat-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+    .step-circle { width: 18px; height: 18px; border-radius: 50%; background-color: var(--border-color); border: 2px solid var(--bg-card); transition: all 0.3s ease; }
+    .step-title { font-weight: 800; color: var(--text-muted); margin-bottom: 6px; font-size: 0.85rem; }
+    .sacat-step.completed .step-circle { background-color: var(--brand-primary); border-color: var(--brand-primary); color: white; display: flex; align-items: center; justify-content: center; }
+    .sacat-step.completed .step-circle::after { content: '✓'; font-size: 0.6rem; font-weight: bold; }
+    .sacat-step.current .step-title { font-size: 0.7rem; text-transform: uppercase; color: var(--brand-primary); }
+    .sacat-step.current .step-circle { background-color: var(--bg-card); border: 3px solid var(--brand-primary); transform: scale(1.8); box-shadow: 0 4px 10px rgba(0,0,0, 0.1); }
+    .custom-input { background-color: var(--bg-body) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; border-radius: 8px !important; padding: 10px 15px !important; }
+    .btn-primary { background-color: var(--brand-primary) !important; border-color: var(--brand-primary) !important; color: #ffffff !important; font-weight: 600; border-radius: 8px !important; padding: 12px 30px; }
+    .bg-primary-soft { background-color: var(--brand-light); }
+    .mini-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-lg-10">
+            <div class="stepper-box shadow-sm">
+                <div class="sacat-stepper">
+                    {% for i in "1234567" %}<div class="sacat-step completed"><div class="step-title">{{i}}</div><div class="step-circle"></div></div>{% endfor %}
+                    <div class="sacat-step current"><div class="step-title">8</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">9</div><div class="step-circle"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-11">
+            <form id="formPaso8" novalidate>
+                {% csrf_token %}
+                
+                <div class="card border-0 shadow-sm mb-3" style="background-color: var(--bg-card); border-radius: 12px;">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                        <div class="d-flex align-items-center">
+                            <div class="p-2 bg-primary-soft rounded-3 me-3"><i class="fas fa-sitemap" style="color: var(--brand-primary);"></i></div>
+                            <h6 class="fw-bold mb-0 text-main">UBICACIÓN INSTITUCIONAL</h6>
+                        </div>
+                        <hr class="mt-3 mb-0 opacity-10">
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="mini-label">NIVEL JERÁRQUICO <span class="text-danger">*</span></label>
+                                <select name="nivel_id" id="select_nivel" class="form-select custom-input" required>
+                                    <option value="" disabled selected>Seleccione...</option>
+                                    {% for n in niveles_jer %}
+                                    <option value="{{ n.id }}" {% if laboral.nivel_jerarquico_id == n.id %}selected{% endif %}>{{ n.descripcion }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="mini-label">UNIDAD ORGANIZATIVA <span class="text-danger">*</span></label>
+                                <select name="unidad_id" id="select_unidad" class="form-select custom-input" required>
+                                    <option value="" disabled selected>Seleccione nivel primero...</option>
+                                    {% if laboral.unidad_org %}
+                                    <option value="{{ laboral.unidad_org.id }}" selected>{{ laboral.unidad_org.nombre_unidad|upper }}</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="mini-label">SEDE / FILIAL <span class="text-danger">*</span></label>
+                                <select name="sede_id" class="form-select custom-input" required>
+                                    <option value="" disabled selected>Seleccione...</option>
+                                    {% for s in sedes %}
+                                    <option value="{{ s.id }}" {% if laboral.sede_id == s.id %}selected{% endif %}>{{ s.nombre_sede }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-3" style="background-color: var(--bg-card); border-radius: 12px;">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                        <div class="d-flex align-items-center">
+                            <div class="p-2 bg-primary-soft rounded-3 me-3"><i class="fas fa-file-contract" style="color: var(--brand-primary);"></i></div>
+                            <h6 class="fw-bold mb-0 text-main">CLASIFICACIÓN LABORAL</h6>
+                        </div>
+                        <hr class="mt-3 mb-0 opacity-10">
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="mini-label">RÉGIMEN (TIPO) <span class="text-danger">*</span></label>
+                                <select name="tipo_trabajador_id" id="select_regimen" class="form-select custom-input" required>
+                                    <option value="" disabled selected>Seleccione...</option>
+                                    {% for t in tipos_trab %}
+                                    <option value="{{ t.id }}" {% if laboral.tipo_trabajador_id == t.id %}selected{% endif %}>{{ t.descripcion }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="mini-label">CATEGORÍA DE PERSONAL <span class="text-danger">*</span></label>
+                                <select name="categoria_id" id="select_categoria" class="form-select custom-input" required>
+                                    <option value="" disabled selected>Seleccione...</option>
+                                    {% for c in categorias %}
+                                    <option value="{{ c.id }}" {% if laboral.categoria_id == c.id %}selected{% endif %}>{{ c.descripcion }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4" style="background-color: var(--bg-card); border-radius: 12px;">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                        <div class="d-flex align-items-center">
+                            <div class="p-2 bg-primary-soft rounded-3 me-3"><i class="fas fa-id-badge" style="color: var(--brand-primary);"></i></div>
+                            <h6 class="fw-bold mb-0 text-main">IDENTIFICACIÓN LABORAL</h6>
+                        </div>
+                        <hr class="mt-3 mb-0 opacity-10">
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="mini-label">CARGO GENÉRICO <span class="text-danger">*</span></label>
+                                <select name="cargo_gen_id" class="form-select custom-input" required>
+                                    <option value="" disabled selected>Seleccione...</option>
+                                    {% for cg in cargos_gen %}
+                                    <option value="{{ cg.id }}" {% if laboral.cargo_generico_id == cg.id %}selected{% endif %}>{{ cg.nombre_cargo }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="mini-label">CARGO ESTRUCTURAL <span class="text-danger">*</span></label>
+                                <select name="cargo_est_id" class="form-select custom-input" required>
+                                    <option value="" disabled selected>Seleccione...</option>
+                                    {% for ce in cargos_est %}
+                                    <option value="{{ ce.id }}" {% if laboral.cargo_estructural_id == ce.id %}selected{% endif %}>{{ ce.nombre_cargo_estruct }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="mini-label">CÓDIGO DE NÓMINA <span class="text-danger">*</span></label>
+                                <input type="text" name="codigo_nomina" value="{{ laboral.codigo_nomina|default:'' }}" class="form-control custom-input text-uppercase" placeholder="EJ: 00456" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="mini-label">FECHA DE INGRESO <span class="text-danger">*</span></label>
+                                <input type="date" name="fecha_ingreso" value="{{ laboral.fecha_ingreso_inst|date:'Y-m-d' }}" class="form-control custom-input" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% url 'registro_paso7' %}" class="btn px-4 fw-bold small" style="background-color: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color);">
+                        <i class="fas fa-arrow-left me-2"></i> VOLVER
+                    </a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm" id="btnFinalizar">
+                        FINALIZAR CARGA <i class="fas fa-check-double ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    const swalBg = isDark ? '#1E293B' : '#ffffff';
+    const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
+    const form = document.getElementById('formPaso8');
+    const btn = document.getElementById('btnFinalizar');
+    const selectNivel = document.getElementById('select_nivel');
+    const selectUnidad = document.getElementById('select_unidad');
+    const regimenSelect = document.getElementById('select_regimen');
+    const categoriaSelect = document.getElementById('select_categoria');
+
+    // --- 1. AJAX SIMPLIFICADO: CASCADA NIVEL -> UNIDAD ---
+    selectNivel.addEventListener('change', function() {
+        const nivelId = this.value;
+        if (!nivelId) return;
+
+        selectUnidad.innerHTML = '<option value="" disabled selected>Buscando unidades...</option>';
+
+        // Llamamos a la función simplificada en la vista
+        fetch(`{% url 'get_unidades_por_nivel' %}?nivel_id=${nivelId}`)
+            .then(r => r.json())
+            .then(data => {
+                selectUnidad.innerHTML = '<option value="" disabled selected>Seleccione Unidad...</option>';
+                data.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.id;
+                    opt.textContent = u.nombre_unidad.toUpperCase();
+                    selectUnidad.appendChild(opt);
+                });
+            })
+            .catch(() => {
+                selectUnidad.innerHTML = '<option value="" disabled>Error al cargar unidades</option>';
+            });
+    });
+
+    // --- 2. LÓGICA DE NEGOCIO: Bloqueo Administrativo para Fijos ---
+    function aplicarReglas() {
+        const regimenText = regimenSelect.options[regimenSelect.selectedIndex]?.text.toUpperCase() || "";
+        if (regimenText.includes('FIJO')) {
+            Array.from(categoriaSelect.options).forEach(opt => {
+                if (opt.text.toUpperCase().includes('ADMINISTRATIVO')) {
+                    opt.disabled = true;
+                    if (categoriaSelect.value === opt.value) categoriaSelect.value = "";
+                }
+            });
+        } else {
+            Array.from(categoriaSelect.options).forEach(opt => opt.disabled = false);
+        }
+    }
+
+    regimenSelect.addEventListener('change', aplicarReglas);
+    aplicarReglas();
+
+    // --- 3. ENVÍO DE FORMULARIO AJAX ---
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> PROCESANDO...';
+
+        fetch("{% url 'guardar_paso8' %}", {
+            method: 'POST',
+            body: new FormData(this),
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success', title: '¡Registro Exitoso!',
+                    text: 'Datos laborales vinculados correctamente.',
+                    timer: 2000, showConfirmButton: false,
+                    background: swalBg, color: swalColor
+                }).then(() => { window.location.href = data.next_url; });
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: data.error, background: swalBg, color: swalColor });
+                btn.disabled = false; btn.innerHTML = originalHtml;
+            }
+        })
+        .catch(() => {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo conectar con el servidor.', background: swalBg, color: swalColor });
+            btn.disabled = false; btn.innerHTML = originalHtml;
+        });
+    });
+
+    form.querySelectorAll('.text-uppercase').forEach(input => {
+        input.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+    });
+});
+</script>
+{% endblock %}
+
+archivo paso finalizar (ahora sera el paso 4)
+
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    /* =======================================================================
+       ESTILOS UNIFICADOS SACAT - PASO FINAL CON SEGURIDAD
+       ======================================================================= */
+    .card-success { 
+        background-color: var(--bg-card); 
+        border: 1px solid var(--border-color); 
+        border-radius: 12px; 
+    }
+    .header-success {
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%);
+        border-radius: 12px 12px 0 0;
+        padding: 40px 20px;
+    }
+    .credential-box {
+        background-color: var(--bg-body);
+        border: 1px dashed var(--brand-primary);
+        border-radius: 10px;
+    }
+    .decision-card {
+        background-color: var(--brand-light);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    .text-brand { color: var(--brand-primary); }
+    .fw-800 { font-weight: 800; }
+
+    /* Animación del Check */
+    .check-anim {
+        color: var(--color-success);
+        filter: drop-shadow(0 0 10px rgba(14, 159, 110, 0.3));
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-7">
+            
+            <div class="card card-success shadow-sm overflow-hidden border-0">
+                <div class="header-success text-center text-white">
+                    <div class="mb-3">
+                        <i class="fas fa-check-circle fa-4x check-anim animate__animated animate__bounceIn"></i>
+                    </div>
+                    <h3 class="fw-800 mb-1 text-uppercase" style="letter-spacing: 1px;">¡Registro Exitoso!</h3>
+                    <p class="mb-0 opacity-75" style="font-size: 0.85rem;">EL TRABAJADOR HA SIDO INCORPORADO AL SACAT</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5 text-center">
+                    <div class="mb-4">
+                        <h5 class="text-main fw-bold mb-1 text-uppercase">
+                            {{ persona.primer_nombre }} {{ persona.primer_apellido }}
+                        </h5>
+                        <p class="text-muted small">C.I: {{ persona.cedula }}</p>
+                        <p class="text-muted" style="font-size: 0.8rem;">
+                            Los datos laborales se han guardado. A continuación, configure el acceso al sistema si es necesario.
+                        </p>
+                    </div>
+
+                    <form id="formFinalizar">
+                        {% csrf_token %}
+                        <input type="hidden" name="email_envio" value="{{ correo }}">
+                        <input type="hidden" name="password_generada" value="{{ password_generada }}">
+
+                        <div class="decision-card p-3 mb-4 text-start">
+                            <div class="form-check form-switch d-flex justify-content-between align-items-center m-0">
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-brand" style="font-size: 0.85rem;">¿ACTIVAR ACCESO AL SISTEMA?</h6>
+                                    <p class="text-muted mb-0" style="font-size: 0.65rem;">Crea un usuario y envía credenciales por correo electrónico.</p>
+                                </div>
+                                <input class="form-check-input" type="checkbox" id="check_crear_usuario" name="check_crear_usuario" style="width: 3em; height: 1.5em; cursor: pointer;">
+                            </div>
+                        </div>
+
+                        <div id="seccion_seguridad" style="display: none;" class="animate__animated animate__fadeIn">
+                            <div class="row g-3 mb-4 text-start">
+                                <div class="col-md-12">
+                                    <label class="form-label" style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted);">ASIGNAR ROL DE USUARIO <span class="text-danger">*</span></label>
+                                    <select name="rol_id" id="select_rol" class="form-select custom-input">
+                                        <option value="" selected disabled>Seleccione el nivel de acceso...</option>
+                                        {% for rol in roles %}
+                                            <option value="{{ rol.id }}">{{ rol.nombre_rol }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="credential-box p-4 mb-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-shield-alt text-brand me-2"></i>
+                                    <h6 class="fw-800 text-brand mb-0" style="font-size: 0.75rem; text-transform: uppercase;">Credenciales de Acceso</h6>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-sm-6 text-start text-sm-center">
+                                        <label class="text-muted d-block mb-1" style="font-size: 0.65rem; font-weight: 700;">USUARIO</label>
+                                        <div class="p-2 border rounded bg-white fw-bold text-main" style="font-size: 0.9rem;">
+                                            {{ persona.cedula }}
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 text-start text-sm-center">
+                                        <label class="text-muted d-block mb-1" style="font-size: 0.65rem; font-weight: 700;">CONTRASEÑA TEMPORAL</label>
+                                        <div class="p-2 border rounded bg-white fw-bold text-brand" style="font-size: 0.8rem; font-family: monospace;">
+                                            {{ password_generada }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 pt-3 border-top border-secondary border-opacity-10 text-center">
+                                    <small class="text-muted" style="font-size: 0.7rem;">
+                                        <i class="fas fa-envelope-open-text me-1 text-primary"></i> 
+                                        Se enviará el acceso al correo: <b class="text-main">{{ correo }}</b>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center mt-2 pt-3 border-top border-opacity-10">
+                            <button type="button" 
+                                    onclick="window.open('{% url 'imprimir_ficha_pdf' persona.id %}', '_blank')" 
+                                    class="btn btn-outline-secondary px-4 fw-bold shadow-sm" 
+                                    style="font-size: 0.8rem; border-radius: 8px;">
+                                <i class="fas fa-print me-2"></i>IMPRIMIR FICHA
+                            </button>
+                            <button type="button" id="btnFinalizar" onclick="procesarFinalizacion()" class="btn btn-primary px-5 fw-bold shadow-sm">
+                                FINALIZAR REGISTRO <i class="fas fa-check-double ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <p class="text-muted" style="font-size: 0.7rem;">¿Desea subir los documentos ahora? 
+                    <a href="#" class="text-brand fw-bold text-decoration-none">PASO 9: RECAUDOS <i class="fas fa-arrow-right ms-1"></i></a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Mostrar/Ocultar sección de seguridad dinámicamente
+    document.getElementById('check_crear_usuario').addEventListener('change', function() {
+        const seccion = document.getElementById('seccion_seguridad');
+        seccion.style.display = this.checked ? 'block' : 'none';
+        if(this.checked) {
+            seccion.classList.add('animate__fadeIn');
+        }
+    });
+
+    function procesarFinalizacion() {
+        const btn = document.getElementById('btnFinalizar');
+        const crearUsuario = document.getElementById('check_crear_usuario').checked;
+        const rolId = document.getElementById('select_rol').value;
+
+        // Validación si se marcó crear usuario
+        if (crearUsuario && !rolId) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Rol Requerido',
+                text: 'Debe asignar un rol al usuario para poder continuar.',
+                confirmButtonColor: 'var(--brand-primary)'
+            });
+            return;
+        }
+
+        // Efecto de carga
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> PROCESANDO...';
+
+        const form = document.getElementById('formFinalizar');
+        const formData = new FormData(form);
+        
+        // Añadimos manualmente los valores del switch y el select al formData
+        formData.append('crear_usuario', crearUsuario);
+        formData.append('rol_id', rolId);
+
+        fetch("{% url 'finalizar_registro' %}", {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Todo Listo!',
+                    text: 'El expediente ha sido cerrado exitosamente.',
+                    confirmButtonColor: 'var(--brand-primary)',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = "{% url 'registro_paso1' %}";
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.error,
+                    confirmButtonColor: 'var(--brand-primary)'
+                });
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo contactar con el servidor.' });
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        });
+    }
+</script>
+{% endblock %}
+
+archivo ficha_trabajador_maestra.html (ahora será ficha_inicial_trabajadores)
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: letter;
+            margin: 1cm 1.2cm 1cm 2.5cm; /* Margen izquierdo para encuadernar */
+            
+            @frame footer {
+                -pdf-frame-content: footer_content;
+                bottom: 0.5cm;
+                margin-left: 2.5cm;
+                margin-right: 1.2cm;
+                height: 1cm;
+            }
+        }
+
+        body { 
+            font-family: 'Helvetica', sans-serif; 
+            font-size: 11pt; 
+            color: #0F172A; 
+            line-height: 1.2; /* Más apretado el texto */
+        }
+        
+        /* 🌟 EVITA QUE EL TÍTULO SE SEPARE DE SU DATA 🌟 */
+        .bloque-contenedor {
+            page-break-inside: avoid; /* Si no cabe el bloque completo, lo pasa a la otra hoja */
+            margin-bottom: 8px; /* Menos espacio entre secciones */
+            display: block;
+            border: 0.5pt solid #E2E8F0;
+        }
+
+        .header-table { width: 100%; border-bottom: 2pt solid #1E3A8A; margin-bottom: 10px; }
+        .titulo-ficha { font-size: 15pt; font-weight: bold; color: #1E3A8A; text-transform: uppercase; }
+        
+        .seccion-titulo { 
+            background-color: #1E3A8A; color: white; padding: 3px 10px; 
+            font-weight: bold; text-transform: uppercase; font-size: 9pt;
+        }
+        
+        .tabla-datos { width: 100%; border-collapse: collapse; }
+        .tabla-datos td { 
+            padding: 3px 8px; /* Reduje el padding para que sea más compacto */
+            border: 0.2pt solid #F1F5F9; 
+            vertical-align: top; 
+        }
+        
+        .label { font-size: 7pt; font-weight: bold; color: #64748B; text-transform: uppercase; display: block; }
+        .valor { font-size: 10.5pt; color: #0F172A; font-weight: 500; }
+        
+        .tabla-listado { width: 100%; border-collapse: collapse; }
+        /* 🌟 HACE QUE EL ENCABEZADO DE TABLA SE REPITA SI CAMBIA DE PÁGINA 🌟 */
+        .tabla-listado thead { display: table-header-group; } 
+        
+        .tabla-listado th { background-color: #F8FAFC; font-size: 8pt; text-align: left; padding: 5px 8px; border-bottom: 1pt solid #CBD5E1; }
+        .tabla-listado td { padding: 4px 8px; border-bottom: 0.5pt solid #F1F5F9; font-size: 10pt; }
+        
+        .no-posee { color: #94A3B8; font-style: italic; text-align: center; padding: 10px; font-size: 9pt; }
+        .bg-gris { background-color: #F8FAFC; }
+    </style>
+</head>
+<body>
+
+    <table class="header-table">
+        <tr>
+            <td width="18%">
+                {% if qr_code %}
+                    <img src="data:image/png;base64,{{ qr_code }}" style="width: 75px;">
+                {% endif %}
+            </td>
+            <td width="82%" style="text-align: center; vertical-align: middle;">
+                <div class="titulo-ficha">Ficha Integral del Trabajador</div>
+                <div style="font-size: 10pt; color: #64748B; font-weight: bold;">ALMACENADORA CARACAS, C.A.</div>
+                <div style="font-size: 8pt; color: #1E3A8A;">SISTEMA SACAT - EXPEDIENTE DIGITAL</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo">1. Identidad</div>
+        <table class="tabla-datos">
+            <tr>
+                <td width="60%"><span class="label">Apellidos y Nombres</span><div class="valor">{{ persona.primer_apellido }} {{ persona.segundo_apellido|default:"" }}, {{ persona.primer_nombre }} {{ persona.segundo_nombre|default:"" }}</div></td>
+                <td width="20%"><span class="label">Cédula</span><div class="valor">{{ persona.cedula }}</div></td>
+                <td width="20%"><span class="label">Nacimiento</span><div class="valor">{{ persona.fecha_nacimiento|date:"d/m/Y" }}</div></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo">2. Domicilio</div>
+        <table class="tabla-datos">
+            <tr>
+                <td><span class="label">Dirección Exacta</span><div class="valor">{{ direccion.direccion.direccion_exacta }} ({{ direccion.direccion.parroquia.nombre_parroquia }}, EDO. {{ direccion.direccion.parroquia.municipio.estado.nombre_estado }})</div></td>
+            </tr>
+            <tr class="bg-gris">
+                <td><span class="label">Vivienda</span><div class="valor">{{ vivienda.vivienda.tipo_vivienda.descripcion|default:"S/D" }} - {{ vivienda.vivienda.condicion_vivienda.descripcion|default:"S/D" }}</div></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo">3. Formación Académica</div>
+        <table class="tabla-listado">
+            <thead>
+                <tr><th width="20%">Nivel</th><th width="45%">Institución</th><th width="35%">Especialidad</th></tr>
+            </thead>
+            <tbody>
+                {% for aca in academicos %}
+                <tr><td>{{ aca.nivel_formacion.descripcion }}</td><td>{{ aca.institucion }}</td><td>{{ aca.especialidad }}</td></tr>
+                {% empty %}<tr><td colspan="3" class="no-posee">Sin registros.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo">4. Contactos y Emergencia</div>
+        <table class="tabla-datos">
+            <tr>
+                <td width="50%"><span class="label">Personales</span>
+                    <div class="valor">
+                        {% for c in contactos %}{{ c.contacto_personal.valor_contacto }}{% if not forloop.last %} | {% endif %}{% empty %}S/D{% endfor %}
+                    </div>
+                </td>
+                <td width="50%"><span class="label">Emergencia</span>
+                    <div class="valor">
+                        {% if emergencia %}{{ emergencia.contacto_emergencia.primer_nombre }} {{ emergencia.contacto_emergencia.primer_apellido }} ({{ emergencia.contacto_emergencia.telefono }}){% else %}N/A{% endif %}
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo" style="background-color: #172554;">5. Ubicación Institucional</div>
+        <table class="tabla-datos" style="background-color: #F8FAFC;">
+            <tr>
+                <td width="33%"><span class="label">Sede</span><div class="valor">{{ laboral.sede.nombre_sede }}</div></td>
+                <td width="33%"><span class="label">Unidad</span><div class="valor">{{ laboral.unidad_org.nombre_unidad }}</div></td>
+                <td width="34%"><span class="label">Código Nómina</span><div class="valor" style="color: #1E3A8A;">{{ laboral.codigo_nomina }}</div></td>
+            </tr>
+            <tr>
+                <td><span class="label">Régimen</span><div class="valor">{{ laboral.tipo_trabajador.descripcion }}</div></td>
+                <td colspan="2"><span class="label">Cargo Estructural</span><div class="valor">{{ laboral.cargo_estructural.nombre_cargo_estruct }}</div></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="bloque-contenedor">
+        <div class="seccion-titulo">6. Carga Familiar</div>
+        <table class="tabla-listado">
+            <thead>
+                <tr><th width="20%">Parentesco</th><th width="50%">Nombre y Apellido</th><th width="30%">Cédula</th></tr>
+            </thead>
+            <tbody>
+                {% for fam in familia %}
+                <tr><td>{{ fam.parentesco.descripcion }}</td><td>{{ fam.carga_familiar.primer_nombre }} {{ fam.carga_familiar.primer_apellido }}</td><td>{{ fam.carga_familiar.cedula|default:"S/C" }}</td></tr>
+                {% empty %}<tr><td colspan="3" class="no-posee">No registra familiares.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="footer_content">
+        <hr style="border: 0.1pt solid #E2E8F0;">
+        <table width="100%" style="font-size: 8pt; color: #94A3B8;">
+            <tr>
+                <td width="70%">SACAT | {{ persona.cedula }} | {{ persona.primer_nombre }} {{ persona.primer_apellido }}</td>
+                <td width="30%" style="text-align: right;">Fecha: {{ hoy|date:"d/m/Y" }} | Pág. <pdf:pagenumber></td>
+            </tr>
+        </table>
+    </div>
+
+</body>
+</html>
+
+ahora te indicare como se llamaran los archivos actuales que crearemos con base en estos.
+
+paso 1 -> paso1_identidad.html
+paso 2 -> paso2_contactos.html
+paso 3 -> paso3_laboral.html
+paso 4 -> paso4_comprobante.html
+ficha  -> ficha_inicial_trabajadores
+
+cuando te mencione el archivo viejo entre parentesis te puse cual seria el paso que estara ocupando actualmente.
+
+

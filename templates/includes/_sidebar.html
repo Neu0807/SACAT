@@ -133,8 +133,28 @@
                     <i class="fas fa-chevron-down ms-auto submenu-arrow fs-xs opacity-50"></i>
                 </a>
                 <div class="collapse submenu" id="trabajadoresSub">
-                    <a href="{% url 'registro_paso1' %}" class="nav-link"><i class="fas fa-user-plus me-2"></i><span class="sidebar-text">Registro</span></a>
-                    <a href="#" class="nav-link"><i class="fas fa-user-pen me-2"></i><span class="sidebar-text">Actualización</span></a>
+                    
+                    <a href="{% url 'registro_paso1_v2' %}" class="nav-link">
+                        <i class="fas fa-user-plus me-2"></i>
+                        <span class="sidebar-text">Inicial (F1)</span>
+                    </a>
+                    
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-user-check me-2"></i>
+                        <span class="sidebar-text">Completo (F2)</span>
+                    </a>
+
+                    <div class="mx-3 border-top border-white border-opacity-10 my-1"></div>
+
+                    <a href="{% url 'registro_paso1' %}" class="nav-link">
+                        <i class="fas fa-history me-2"></i>
+                        <span class="sidebar-text">Registro Anterior</span>
+                    </a>
+                    
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-user-pen me-2"></i>
+                        <span class="sidebar-text">Actualización</span>
+                    </a>
                 </div>
             </li>
         </ul>

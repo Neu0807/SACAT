@@ -1,3 +1,4 @@
+import os
 from django.db import models
 from configuracion.models import (
     TipoDocIdentificacion, Sexo, EstadoCivil, 
@@ -17,12 +18,24 @@ from configuracion.models import (
 class Persona(models.Model):
     tipo_doc_identificacion = models.ForeignKey(TipoDocIdentificacion, on_delete=models.PROTECT, db_column='tipo_doc_identificacion_id')
     cedula = models.CharField(max_length=20, unique=True)
+    
+    # 🌟 CAMPOS DE IDENTIDAD 🌟
+    rif = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    fecha_vencimiento_cedula = models.DateField(null=True, blank=True)
+    fecha_vencimiento_rif = models.DateField(null=True, blank=True)
+    
     primer_nombre = models.CharField(max_length=50)
     segundo_nombre = models.CharField(max_length=50, null=True, blank=True)
     primer_apellido = models.CharField(max_length=50)
     segundo_apellido = models.CharField(max_length=50, null=True, blank=True)
+    
+    # Bloque de Naturalización
     es_naturalizado = models.BooleanField(default=False)
     nro_gaceta = models.CharField(max_length=50, null=True, blank=True)
+    
+    # 🌟 NUEVO CAMPO AGREGADO 🌟
+    es_extraordinaria = models.BooleanField(default=False)
+    
     fecha_gaceta = models.DateField(null=True, blank=True)
     fecha_nacimiento = models.DateField()
     lugar_nacimiento = models.CharField(max_length=150, null=True, blank=True)
@@ -291,12 +304,24 @@ class PersonaCargaFamiliar(models.Model):
 # ==============================================================================
 
 class Trabajador(models.Model):
-    persona = models.OneToOneField(Persona, on_delete=models.CASCADE, db_column='persona_id')
-    unidad_org = models.ForeignKey(UnidadesOrganizativas, on_delete=models.PROTECT, db_column='unidad_org_id')
-    cargo_generico = models.ForeignKey(CargosGenerico, on_delete=models.PROTECT, db_column='cargo_generico_id')
-    cargo_estructural = models.ForeignKey(CargosEstructural, on_delete=models.PROTECT, db_column='cargo_estructural_id')
+    persona = models.OneToOneField('Persona', on_delete=models.CASCADE, db_column='persona_id')
+    
+    # Ubicación y Clasificación
+    sede = models.ForeignKey('configuracion.Sede', on_delete=models.PROTECT, db_column='sede_id')
+    nivel_jerarquico = models.ForeignKey('configuracion.NivelJerarquico', on_delete=models.PROTECT, db_column='nivel_jerarquico_id')
+    unidad_org = models.ForeignKey('configuracion.UnidadesOrganizativas', on_delete=models.PROTECT, db_column='unidad_org_id')
+    tipo_trabajador = models.ForeignKey('configuracion.TiposTrabajadore', on_delete=models.PROTECT, db_column='tipo_trabajador_id')
+    categoria = models.ForeignKey('configuracion.CategoriaPersonal', on_delete=models.PROTECT, db_column='categoria_id')
+    cargo_generico = models.ForeignKey('configuracion.CargosGenerico', on_delete=models.PROTECT, db_column='cargo_generico_id')
+    cargo_estructural = models.ForeignKey('configuracion.CargosEstructural', on_delete=models.PROTECT, db_column='cargo_estructural_id')
+    
     codigo_nomina = models.CharField(max_length=50, unique=True)
     fecha_ingreso_inst = models.DateField()
+    
+    # 🌟 CONTROL DE FASES SACAT 🌟
+    fase_actual = models.IntegerField(default=1) # 1: Registro Inicial (RRHH), 2: Completación (Trabajador)
+    registro_completado = models.BooleanField(default=False)
+
     esta_activo = models.BooleanField(default=True)
     creado_por = models.IntegerField(null=True, blank=True)
     actualizado_por = models.IntegerField(null=True, blank=True)
@@ -306,6 +331,9 @@ class Trabajador(models.Model):
     class Meta:
         db_table = 'trabajadores'
         managed = False
+
+    def __str__(self):
+        return f"{self.persona.primer_nombre} {self.persona.primer_apellido} - {self.codigo_nomina}"
 
 class ExperienciaPrevia(models.Model):
     trabajador = models.ForeignKey(Trabajador, on_delete=models.CASCADE, db_column='trabajador_id')
@@ -357,10 +385,30 @@ class ContactoInstitucional(models.Model):
 # MÓDULO DE RECAUDOS Y AUDITORÍA - PASO 9
 # ==============================================================================
 
+
+# Función para organizar archivos: media/recaudos/trabajador_ID/nombre_archivo.pdf
+# trabajadores/models.py
+
+def ruta_recaudos_trabajador(instance, filename):
+    """
+    Renombrado automático: di_32556836.pdf
+    """
+    # Obtenemos la cédula desde la relación
+    cedula = instance.trabajador.persona.cedula
+    # Extraemos la extensión original (.pdf, .png, etc.)
+    extension = os.path.splitext(filename)[1].lower()
+    # Retornamos la ruta final: di_CEDULA.extension
+    return f'recaudos/trabajador_{cedula}/di_{cedula}{extension}'
+
 class Recaudo(models.Model):
-    trabajador = models.ForeignKey(Trabajador, on_delete=models.CASCADE, db_column='trabajador_id')
-    tipo_recaudo = models.ForeignKey(TipoRecaudo, on_delete=models.PROTECT, db_column='tipo_recaudo_id')
-    ruta_archivo = models.CharField(max_length=255)
+    trabajador = models.ForeignKey('Trabajador', on_delete=models.CASCADE, db_column='trabajador_id')
+    tipo_recaudo = models.ForeignKey('configuracion.TipoRecaudo', on_delete=models.PROTECT, db_column='tipo_recaudo_id')
+    
+    # Cambiado a FileField para que Django gestione la subida física
+    ruta_archivo = models.FileField(upload_to=ruta_recaudos_trabajador, max_length=255)
+    
+    fecha_vencimiento = models.DateField(null=True, blank=True)
+    observaciones = models.TextField(null=True, blank=True)
     esta_activo = models.BooleanField(default=True)
     creado_por = models.IntegerField(null=True, blank=True)
     actualizado_por = models.IntegerField(null=True, blank=True)
@@ -369,7 +417,7 @@ class Recaudo(models.Model):
 
     class Meta:
         db_table = 'recaudos'
-        managed = False
+        managed = False  # Mantenemos managed=False para no chocar con tu SQL
 
 class Auditoria(models.Model):
     usuario_id = models.IntegerField() # Referencia manual al ID de la tabla usuarios

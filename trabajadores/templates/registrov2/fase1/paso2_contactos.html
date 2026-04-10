@@ -1,0 +1,485 @@
+{% extends 'includes/base_standard.html' %}
+
+{% block title %} SACAT | Fase 1 - Contactos {% endblock %}
+
+{% block extra_css %}
+<style>
+    /* VARIABLES DE DISEÑO SACAT */
+    :root {
+        --bg-body: #F8FAFC;
+        --bg-card: #ffffff;
+        --text-main: #0F172A;
+        --text-muted: #64748B;
+        --border-color: #E2E8F0;
+        --brand-primary: #1E3A8A;
+        --brand-dark: #172554;
+        --brand-light: #EEF2FF;
+        --color-success: #0E9F6E;
+        --color-error: #C81E1E;
+    }
+
+    /* FEEDBACK VISUAL */
+    .feedback-box {
+        font-size: 0.65rem;
+        font-weight: 700;
+        margin-top: 2px;
+        display: block;
+        min-height: 12px;
+    }
+
+    .custom-input.is-invalid { border-color: var(--color-error) !important; }
+    .custom-input.is-valid { border-color: var(--color-success) !important; }
+
+    /* STEPPER: ALINEACIÓN LÁSER */
+    .stepper-box {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 20px 10px 15px 10px;
+    }
+
+    .sacat-stepper {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        position: relative;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .sacat-stepper::before {
+        content: '';
+        position: absolute;
+        bottom: 7px;
+        left: 12.5%;
+        right: 12.5%;
+        height: 2px;
+        background-color: var(--border-color);
+        z-index: 1;
+    }
+
+    .sacat-step {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .step-circle {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background-color: var(--border-color);
+        border: 2px solid var(--bg-card);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .step-title {
+        font-weight: 800;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+    }
+
+    /* 🔵 Paso Completado: Azul SACAT con Check Blanco */
+    .sacat-step.completed .step-circle {
+        background-color: var(--brand-primary);
+        border-color: var(--brand-primary);
+        width: 18px;
+        height: 18px;
+        color: white;
+        font-size: 0.7rem;
+    }
+    
+    .sacat-step.completed .step-title { color: var(--brand-primary); }
+
+    .sacat-step.current .step-circle {
+        background-color: var(--bg-card);
+        border: 3px solid var(--brand-primary);
+        transform: scale(1.6);
+        box-shadow: 0 4px 10px rgba(30, 58, 138, 0.15);
+    }
+
+    .sacat-step.current .step-title { color: var(--brand-primary); }
+
+    /* ESTILO DE INPUTS */
+    .custom-input {
+        background-color: var(--bg-body) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-main) !important;
+        border-radius: 8px !important;
+        padding: 8px 12px !important;
+        height: 38px;
+        font-size: 0.85rem;
+    }
+
+    .form-label { font-size: 0.75rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.3rem; }
+
+    /* DIVISORES */
+    .section-divider {
+        width: 100%; border-bottom: 1px solid var(--border-color);
+        margin: 1.2rem 0 0.8rem 0; display: flex; align-items: center;
+    }
+
+    .section-tag {
+        font-size: 0.65rem; font-weight: 800; color: var(--brand-primary);
+        text-transform: uppercase; letter-spacing: 0.8px; background: var(--bg-card); padding-right: 12px;
+    }
+
+    /* 🛡️ FIX ALINEACIÓN Y SWITCH AZUL */
+    .row-align-fix { align-items: flex-start !important; }
+    
+    .switch-height-fix {
+        height: 38px; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .switch-center-box .form-check { padding-left: 0 !important; margin: 0 !important; }
+
+    .switch-center-box .form-check-input {
+        float: none !important; 
+        margin: 0 auto !important;
+        cursor: pointer;
+    }
+
+    /* Color azul para el Switch cuando está activo */
+    .form-check-input:checked {
+        background-color: var(--brand-primary) !important;
+        border-color: var(--brand-primary) !important;
+    }
+
+    /* DISEÑO DE LISTA MODERNA */
+    .contact-card {
+        background: #fff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 10px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .contact-card:hover {
+        border-color: var(--brand-primary);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .contact-card.is-main { border-left: 4px solid var(--color-success); }
+
+    .icon-box-contact {
+        width: 40px; height: 40px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        background-color: var(--brand-light); color: var(--brand-primary);
+        margin-right: 15px;
+    }
+
+    .btn-add-circle {
+        width: 38px; height: 38px; border-radius: 50%;
+        background-color: var(--brand-primary); color: white;
+        border: none; transition: all 0.3s;
+        margin-top: 24px;
+    }
+
+    .btn-add-circle:hover { transform: rotate(90deg); background-color: var(--brand-dark); }
+
+    .btn-primary {
+        background-color: var(--brand-primary) !important;
+        border-color: var(--brand-primary) !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        padding: 12px 30px !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-xl-11">
+            <div class="stepper-box shadow-sm">
+                <div class="sacat-stepper">
+                    <div class="sacat-step completed">
+                        <div class="step-title">1. Identidad</div>
+                        <div class="step-circle"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="sacat-step current">
+                        <div class="step-title">2. Contacto</div>
+                        <div class="step-circle"></div>
+                    </div>
+                    <div class="sacat-step future">
+                        <div class="step-title">3. Laboral</div>
+                        <div class="step-circle"></div>
+                    </div>
+                    <div class="sacat-step future">
+                        <div class="step-title">4. Emisión</div>
+                        <div class="step-circle"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-11">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px; overflow: hidden;">
+                
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 rounded-3 me-3" style="background-color: var(--brand-light);">
+                            <i class="fas fa-address-book fa-lg" style="color: var(--brand-primary);"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-main text-uppercase" style="letter-spacing: 0.5px;">Medios de Contacto Personal</h6>
+                            <small class="text-muted italic">Fase 1: Registro de Correo y Teléfonos para credenciales</small>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="formPaso2" class="p-4 pt-2">
+                    {% csrf_token %}
+                    
+                    <div class="section-divider"><span class="section-tag">Registrar Nuevo Contacto</span></div>
+                    
+                    <div class="row g-2 row-align-fix bg-light p-3 rounded-3 border mb-4">
+                        <div class="col-12 col-md-3">
+                            <label class="form-label text-center d-block w-100">Tipo de Contacto</label>
+                            <select id="temp_tipo" class="form-select custom-input">
+                                <option value="" selected disabled>Seleccione...</option>
+                                {% for t in tipos_contactos %}
+                                    {% if "CORREO ELECTR" in t.descripcion.upper or "MOVIL" in t.descripcion.upper or "MÓVIL" in t.descripcion.upper %}
+                                        <option value="{{ t.id }}" data-desc="{{ t.descripcion }}" data-patron="{{ t.patron_validacion }}">{{ t.descripcion }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            <div class="feedback-box"></div>
+                        </div>
+                        <div class="col-12 col-md-5">
+                            <label class="form-label text-center d-block w-100">Valor (Dato)</label>
+                            <input type="text" id="temp_valor" class="form-control custom-input" placeholder="Ej: admin@almacenadora.gob.ve">
+                            <div id="feedback_temp" class="feedback-box text-danger"></div>
+                        </div>
+                        <div class="col-12 col-md-3 switch-center-box">
+                            <label class="form-label text-center d-block w-100">¿Es el Principal?</label>
+                            <div class="switch-height-fix w-100">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="temp_principal" style="transform: scale(1.4);">
+                                </div>
+                            </div>
+                            <div class="feedback-box"></div>
+                        </div>
+                        <div class="col-12 col-md-1 text-center">
+                            <button type="button" id="btnAdd" class="btn-add-circle shadow-sm">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="section-divider"><span class="section-tag">Contactos Agregados</span></div>
+                    
+                    <div id="listaContactos" class="row g-2 px-1">
+                        {% for c in contactos_guardados %}
+                        <div class="col-12 item-contacto {% if c.es_principal %}is-main{% endif %}" 
+                            data-cat="{% if 'CORREO' in c.contacto_personal.tipo_contacto.descripcion.upper %}CORREO{% else %}TELÉFONO{% endif %}">
+                            <div class="contact-card shadow-sm">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box-contact">
+                                        <i class="fas {% if 'CORREO' in c.contacto_personal.tipo_contacto.descripcion.upper %}fa-envelope{% else %}fa-phone-alt{% endif %}"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted fw-bold" style="font-size: 0.65rem; text-transform: uppercase;">
+                                            {{ c.contacto_personal.tipo_contacto.descripcion }}
+                                        </div>
+                                        <div class="text-main fw-bold" style="font-size: 0.9rem;">
+                                            {{ c.contacto_personal.valor_contacto }}
+                                        </div>
+                                        <span class="badge bg-success badge-main {% if not c.es_principal %}d-none{% endif %}" style="font-size: 0.6rem;">PRINCIPAL</span>
+                                    </div>
+                                </div>
+                                
+                                <input type="hidden" name="tipo_id[]" value="{{ c.contacto_personal.tipo_contacto.id }}">
+                                <input type="hidden" name="valor[]" value="{{ c.contacto_personal.valor_contacto }}">
+                                <input type="hidden" name="es_principal[]" class="check-principal" value="{{ c.es_principal|lower }}">
+                                
+                                <button type="button" class="btn btn-sm text-danger border-0 bg-transparent" onclick="this.closest('.item-contacto').remove()">
+                                    <i class="fas fa-times fa-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-4 text-muted" id="msgVacio">
+                            <i class="fas fa-info-circle me-1"></i> No se han añadido contactos todavía.
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-5 pt-3 border-top d-flex flex-column flex-md-row justify-content-between gap-3">
+                        <a href="{% url 'registro_paso1_v2' %}" class="btn px-4 fw-bold small border text-muted bg-light order-2 order-md-1">
+                            <i class="fas fa-arrow-left me-2"></i> VOLVER AL PASO 1
+                        </a>
+                        <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm order-1 order-md-2" id="btnSiguiente">
+                            GUARDAR Y CONTINUAR <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const lista = document.getElementById('listaContactos');
+        const tempTipo = document.getElementById('temp_tipo');
+        const tempValor = document.getElementById('temp_valor');
+        const tempPrincipal = document.getElementById('temp_principal');
+        const feedback = document.getElementById('feedback_temp');
+        const form = document.getElementById('formPaso2');
+
+        // 1. VALIDACIÓN EN TIEMPO REAL
+        tempValor.addEventListener('input', function() {
+            const patternStr = tempTipo.options[tempTipo.selectedIndex]?.getAttribute('data-patron');
+            if (!patternStr || this.value.length === 0) {
+                this.classList.remove('is-invalid', 'is-valid');
+                feedback.innerText = "";
+                return;
+            }
+            const regex = new RegExp(patternStr);
+            if (!regex.test(this.value)) {
+                this.classList.add('is-invalid');
+                feedback.innerText = "Formato no válido.";
+            } else {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+                feedback.innerText = "";
+            }
+        });
+
+        // 2. AGREGAR A LA LISTA
+        document.getElementById('btnAdd').onclick = async function() {
+            const tipoId = tempTipo.value;
+            const tipoDesc = tempTipo.options[tempTipo.selectedIndex]?.getAttribute('data-desc');
+            const valor = tempValor.value.trim();
+            let esPrincipal = tempPrincipal.checked;
+
+            if (!tipoId || !valor) {
+                Swal.fire({ icon: 'warning', title: 'Campos vacíos', text: 'Indique tipo y valor.' });
+                return;
+            }
+
+            if (tempValor.classList.contains('is-invalid')) {
+                Swal.fire({ icon: 'error', title: 'Formato inválido', text: 'Corrija el dato.' });
+                return;
+            }
+
+            const cat = tipoDesc.toUpperCase().includes('CORREO') ? 'CORREO' : 'TELÉFONO';
+
+            if (esPrincipal) {
+                const actual = Array.from(lista.querySelectorAll('.item-contacto')).find(el => 
+                    el.getAttribute('data-cat') === cat && el.querySelector('.check-principal').value === "true"
+                );
+
+                if (actual) {
+                    const confirm = await Swal.fire({
+                        title: '¿Sustituir principal?',
+                        text: `Ya existe un ${cat.toLowerCase()} principal. ¿Desea reemplazarlo?`,
+                        icon: 'question',
+                        showCancelButton: true, confirmButtonText: 'Sí, reemplazar'
+                    });
+                    if (confirm.isConfirmed) {
+                        actual.querySelector('.check-principal').value = "false";
+                        actual.querySelector('.badge-main').classList.add('d-none');
+                        actual.classList.remove('is-main');
+                    } else { esPrincipal = false; }
+                }
+            }
+
+            const msgVacio = document.getElementById('msgVacio');
+            if(msgVacio) msgVacio.remove();
+
+            const icon = cat === 'CORREO' ? 'fa-envelope' : 'fa-phone-alt';
+
+            const col = document.createElement('div');
+            col.className = `col-12 item-contacto ${esPrincipal ? 'is-main' : ''}`;
+            col.setAttribute('data-cat', cat);
+            
+            col.innerHTML = `
+                <div class="contact-card shadow-sm">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box-contact"><i class="fas ${icon}"></i></div>
+                        <div>
+                            <div class="text-muted fw-bold" style="font-size: 0.65rem; text-transform: uppercase;">${tipoDesc}</div>
+                            <div class="text-main fw-bold" style="font-size: 0.9rem;">${valor}</div>
+                            <span class="badge bg-success badge-main ${esPrincipal ? '' : 'd-none'}" style="font-size: 0.6rem;">PRINCIPAL</span>
+                        </div>
+                    </div>
+                    <input type="hidden" name="tipo_id[]" value="${tipoId}">
+                    <input type="hidden" name="valor[]" value="${valor}">
+                    <input type="hidden" name="es_principal[]" class="check-principal" value="${esPrincipal}">
+                    <button type="button" class="btn btn-sm text-danger border-0 bg-transparent" onclick="this.closest('.item-contacto').remove()">
+                        <i class="fas fa-times fa-lg"></i>
+                    </button>
+                </div>
+            `;
+            lista.appendChild(col);
+
+            tempValor.value = ''; tempPrincipal.checked = false;
+            tempValor.classList.remove('is-valid');
+        };
+
+        // 3. ENVÍO FINAL
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const items = lista.querySelectorAll('.item-contacto');
+            let hasEmail = false, hasPhone = false;
+
+            items.forEach(el => {
+                const isP = el.querySelector('.check-principal').value === "true";
+                if (isP && el.getAttribute('data-cat') === 'CORREO') hasEmail = true;
+                if (isP && el.getAttribute('data-cat') === 'TELÉFONO') hasPhone = true;
+            });
+
+            if (!hasEmail || !hasPhone) {
+                Swal.fire({ icon: 'error', title: 'Requisito Mínimo', text: 'Marque como PRINCIPAL al menos un Correo y un Teléfono.' });
+                return;
+            }
+
+            const btn = document.getElementById('btnSiguiente');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> GUARDANDO...';
+
+            fetch("{% url 'guardar_paso2_v2' %}", {
+                method: "POST",
+                body: new FormData(this),
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: '¡Fino!', text: 'Contactos guardados exitosamente.', timer: 1500, showConfirmButton: false })
+                    .then(() => { window.location.href = "{% url 'paso3_laboral_f1' %}"; });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Falla', text: data.error });
+                    btn.disabled = false; btn.innerHTML = originalText;
+                }
+            })
+            .catch(() => {
+                Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo contactar con el SACAT.' });
+                btn.disabled = false; btn.innerHTML = originalText;
+            });
+        });
+    });
+</script>
+{% endblock %}

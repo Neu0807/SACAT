@@ -1,0 +1,528 @@
+{% extends 'includes/base_standard.html' %}
+
+{% block title %} SACAT | Fase 1 - Asignación Laboral {% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================================
+       VARIABLES DE DISEÑO SACAT - CONSISTENCIA FASE 1
+       ========================================================== */
+    :root {
+        --bg-body: #F8FAFC;
+        --bg-card: #ffffff;
+        --text-main: #0F172A;
+        --text-muted: #64748B;
+        --border-color: #E2E8F0;
+        --brand-primary: #1E3A8A;
+        --brand-dark: #172554;
+        --brand-light: #EEF2FF;
+        --color-success: #0E9F6E;
+        --color-error: #C81E1E;
+    }
+
+    /* BLOQUES DE FEEDBACK VISUAL PARA EL USUARIO */
+    .feedback-box {
+        font-size: 0.65rem;
+        font-weight: 700;
+        margin-top: 2px;
+        display: block;
+        min-height: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .custom-input.is-invalid {
+        border-color: var(--color-error) !important;
+        box-shadow: 0 0 0 0.2rem rgba(200, 30, 30, 0.1) !important;
+    }
+
+    .custom-input.is-valid {
+        border-color: var(--color-success) !important;
+    }
+
+    /* STEPPER: ALINEACIÓN LÁSER MATEMÁTICA (IGUAL AL PASO 1) */
+    .stepper-box {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 20px 10px 15px 10px;
+    }
+
+    .sacat-stepper {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        position: relative;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    /* La línea atraviesa exactamente el centro de los círculos (14px / 2 = 7px) */
+    .sacat-stepper::before {
+        content: '';
+        position: absolute;
+        bottom: 7px;
+        left: 12.5%;
+        right: 12.5%;
+        height: 2px;
+        background-color: var(--border-color);
+        z-index: 1;
+    }
+
+    .sacat-step {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .step-circle {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background-color: var(--border-color);
+        border: 2px solid var(--bg-card);
+        transition: all 0.3s ease;
+    }
+
+    .step-title {
+        font-weight: 800;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+    }
+
+    @media (max-width: 576px) { .step-title { display: none; } }
+
+    /* ESTADO ACTIVO DEL STEPPER */
+    .sacat-step.completed .step-circle {
+        background-color: var(--brand-primary);
+        border-color: var(--brand-primary);
+    }
+    
+    .sacat-step.completed .step-title { color: var(--brand-primary); }
+
+    .sacat-step.current .step-circle {
+        background-color: var(--bg-card);
+        border: 3px solid var(--brand-primary);
+        transform: scale(1.6);
+        box-shadow: 0 4px 10px rgba(30, 58, 138, 0.15);
+    }
+
+    .sacat-step.current .step-title { color: var(--brand-primary); }
+
+    /* ESTILOS DE CAMPOS Y FORMULARIO */
+    .custom-input {
+        background-color: var(--bg-body) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-main) !important;
+        border-radius: 8px !important;
+        padding: 8px 12px !important;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+        height: 40px;
+    }
+
+    .custom-input:focus {
+        background-color: #ffffff !important;
+        border-color: var(--brand-primary) !important;
+        outline: none !important;
+        box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.1) !important;
+    }
+
+    .form-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 0.3rem;
+        text-transform: uppercase;
+    }
+
+    .req-pin { color: var(--color-error); font-weight: bold; margin-left: 2px; }
+
+    /* BOTÓN PRIMARIO SACAT */
+    .btn-primary {
+        background-color: var(--brand-primary) !important;
+        border-color: var(--brand-primary) !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        padding: 12px 30px !important;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(30, 58, 138, 0.2);
+    }
+
+    /* ANIMACIONES PARA CARGA DINÁMICA */
+    .fade-in-combo { animation: fadeIn 0.4s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-xl-11">
+            <div class="stepper-box shadow-sm">
+                <div class="sacat-stepper">
+                    <div class="sacat-step completed"><div class="step-title">1. Identidad</div><div class="step-circle"></div></div>
+                    <div class="sacat-step completed"><div class="step-title">2. Contacto</div><div class="step-circle"></div></div>
+                    <div class="sacat-step current"><div class="step-title">3. Laboral</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">4. Emisión</div><div class="step-circle"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-11">
+            <form id="formPaso3" novalidate>
+                {% csrf_token %}
+
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                        <div class="d-flex align-items-center">
+                            <div class="p-3 rounded-3 me-3" style="background-color: var(--brand-light);">
+                                <i class="fas fa-briefcase fa-lg" style="color: var(--brand-primary);"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-main text-uppercase" style="letter-spacing: 0.5px;">Identificación del Puesto</h6>
+                                <small class="text-muted italic">Defina la categoría y condición del trabajador</small>
+                            </div>
+                        </div>
+                        <hr class="mt-3 mb-0 opacity-10">
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label class="form-label">Categoría de Personal <span class="req-pin">*</span></label>
+                                <select name="categoria_id" class="form-select custom-input" required>
+                                    <option value="" selected disabled>...</option>
+                                    {% for c in categorias %}<option value="{{ c.id }}" {% if laboral.categoria_id == c.id %}selected{% endif %}>{{ c.descripcion }}</option>{% endfor %}
+                                </select>
+                                <div class="feedback-box text-danger"></div>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label class="form-label">Condición Laboral <span class="req-pin">*</span></label>
+                                <select name="tipo_trabajador_id" id="select_regimen" class="form-select custom-input" required>
+                                    <option value="" selected disabled>...</option>
+                                    {% for t in tipos_trab %}<option value="{{ t.id }}" {% if laboral.tipo_trabajador_id == t.id %}selected{% endif %}>{{ t.descripcion }}</option>{% endfor %}
+                                </select>
+                                <div class="feedback-box text-danger"></div>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label class="form-label">Cargo Genérico (Nómina) <span class="req-pin">*</span></label>
+                                <select name="cargo_gen_id" id="cargo_gen_id" class="form-select custom-input" required>
+                                    <option value="" selected disabled>...</option>
+                                    {% for cg in cargos_gen %}<option value="{{ cg.id }}" {% if laboral.cargo_generico_id == cg.id %}selected{% endif %}>{{ cg.nombre_cargo }}</option>{% endfor %}
+                                </select>
+                                <div class="feedback-box text-danger"></div>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-6">
+                                <label class="form-label">Cargo Estructural (Específico) <span class="req-pin">*</span></label>
+                                <select name="cargo_est_id" id="cargo_est_id" class="form-select custom-input" required>
+                                    <option value="" selected disabled>Seleccione Cargo...</option>
+                                    {% for ce in cargos_est %}
+                                    <option value="{{ ce.id }}" data-generico="{{ ce.cargo_generico_id }}" {% if laboral.cargo_estructural_id == ce.id %}selected{% endif %}>
+                                        {{ ce.nombre_cargo_estruct|upper }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="feedback-box text-danger"></div>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <label class="form-label" id="label_nomina">Código de Nómina <span class="req-pin">*</span></label>
+                                <input type="text" name="codigo_nomina" id="codigo_nomina" value="{{ laboral.codigo_nomina|default:'' }}" class="form-control custom-input text-uppercase" placeholder="EJ: 00123" required>
+                                <div class="feedback-box text-danger"></div>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <label class="form-label">Fecha de Ingreso <span class="req-pin">*</span></label>
+                                <input type="date" name="fecha_ingreso" id="fecha_ingreso" value="{{ laboral.fecha_ingreso_inst|date:'Y-m-d' }}" class="form-control custom-input" required>
+                                <div class="feedback-box text-danger"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                        <div class="d-flex align-items-center">
+                            <div class="p-3 rounded-3 me-3" style="background-color: var(--brand-light);">
+                                <i class="fas fa-sitemap fa-lg" style="color: var(--brand-primary);"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-main text-uppercase" style="letter-spacing: 0.5px;">Adscripción Administrativa</h6>
+                                <small class="text-muted italic">Ubicación física y orgánica de servicio</small>
+                            </div>
+                        </div>
+                        <hr class="mt-3 mb-0 opacity-10">
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label class="form-label">Ubicación Física (Sede) <span class="req-pin">*</span></label>
+                                <select name="sede_id" id="sede_id" class="form-select custom-input" required disabled>
+                                    <option value="" selected disabled>...</option>
+                                    {% for s in sedes %}<option value="{{ s.id }}" {% if laboral.sede_id == s.id %}selected{% endif %}>{{ s.nombre_sede }}</option>{% endfor %}
+                                </select>
+                                <div class="feedback-box text-danger"></div>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label class="form-label">Nivel Jerárquico <span class="req-pin">*</span></label>
+                                <select id="nivel_id" class="form-select custom-input" required disabled>
+                                    <option value="" selected disabled>...</option>
+                                    {% for n in niveles %}<option value="{{ n.id }}" {% if laboral.nivel_jerarquico_id == n.id %}selected{% endif %}>{{ n.descripcion }}</option>{% endfor %}
+                                </select>
+                                <div class="feedback-box text-danger"></div>
+                            </div>
+
+                            <div class="col-12 col-lg-4">
+                                <label class="form-label">Unidad Organizativa <span class="req-pin">*</span></label>
+                                <select id="unidad_n1" class="form-select custom-input select-jerarquia" data-next="2" required disabled>
+                                    <option value="" selected disabled>Seleccione Unidad...</option>
+                                </select>
+                                <div class="feedback-box text-danger"></div>
+                            </div>
+
+                            <div id="container-subunidades" class="row g-3 p-0 m-0 w-100"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-3 border-top d-flex flex-column flex-md-row justify-content-between gap-3">
+                    <a href="{% url 'paso2_contactos_f1' %}" class="btn px-4 fw-bold small border text-muted bg-light order-2 order-md-1">
+                        <i class="fas fa-arrow-left me-2"></i> VOLVER AL PASO 2
+                    </a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm order-1 order-md-2" id="btnSiguiente">
+                        FINALIZAR REGISTRO LABORAL <i class="fas fa-check-double ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // --- [1. DEFINICIÓN DE REFERENCIAS Y CONSTANTES] ---
+    const form = document.getElementById('formPaso3');
+    const cargoEst = document.getElementById('cargo_est_id');
+    const cargoGen = document.getElementById('cargo_gen_id');
+    const sede = document.getElementById('sede_id');
+    const nivel = document.getElementById('nivel_id');
+    const unidadN1 = document.getElementById('unidad_n1');
+    const subContainer = document.getElementById('container-subunidades');
+    const regimen = document.getElementById('select_regimen');
+    const nomina = document.getElementById('codigo_nomina');
+    const btnSiguiente = document.getElementById('btnSiguiente');
+
+    /**
+     * [2. REGLA DE NEGOCIO: LÍMITE DE VISUALIZACIÓN AJAX]
+     * Define qué niveles podrá ver el usuario según el cargo seleccionado.
+     */
+    const getAJAXLimit = () => {
+        const text = cargoEst.options[cargoEst.selectedIndex]?.text.toUpperCase() || "";
+        if (text.includes("GERENTE")) return 1; // Solo ve Nivel 1
+        if (text.includes("JEFE DE DIVISIÓN")) return 2; // Solo ve hasta Nivel 2
+        return 3; // Analistas, Pasantes y Coordinadores ven hasta Nivel 3
+    };
+
+    /**
+     * [3. REGLA DE NEGOCIO: PROFUNDIDAD MÍNIMA OBLIGATORIA]
+     * Define qué niveles son OBLIGATORIOS de llenar para poder guardar.
+     */
+    const getMinRequiredLevel = () => {
+        const text = cargoEst.options[cargoEst.selectedIndex]?.text.toUpperCase() || "";
+        if (text.includes("GERENTE")) return 1;
+        if (text.includes("JEFE DE DIVISIÓN")) return 2;
+        if (text.includes("COORDINADOR")) return 3;
+        return 1; // Pasantes y Analistas: Obligatorio solo Unidad Organizativa (Nivel 1)
+    };
+
+    /**
+     * [4. ACTIVACIÓN POR CARGO ESTRUCTURAL]
+     * Desbloquea la ubicación y autocompleta el genérico.
+     */
+    cargoEst.addEventListener('change', function() {
+        const genId = this.options[this.selectedIndex].getAttribute('data-generico');
+        if (genId) { 
+            cargoGen.value = genId; 
+            cargoGen.classList.add('is-valid'); 
+        }
+        
+        // Desbloqueo láser de ubicación
+        sede.disabled = false; 
+        nivel.disabled = false;
+        
+        // Limpieza de subunidades si el usuario cambia el cargo en pleno proceso
+        subContainer.innerHTML = '';
+        if (sede.value && nivel.value) cargarUnidadesAJAX();
+    });
+
+    /**
+     * [5. MOTOR DE CARGA DINÁMICA (AJAX)]
+     * Inyecta elementos SELECT al DOM basándose en la jerarquía y reglas de negocio.
+     */
+    const cargarUnidadesAJAX = (superiorId = null, targetLevel = 1) => {
+        // RESPETO AL LÍMITE DE VISUALIZACIÓN POR CARGO
+        if (targetLevel > getAJAXLimit()) return;
+
+        const sedeId = sede.value;
+        const nivelId = nivel.value;
+        if (!sedeId || !nivelId) return;
+
+        let url = `{% url 'get_unidades_v2' %}?sede_id=${sedeId}&nivel_id=${nivelId}`;
+        if (superiorId) url += `&superior_id=${superiorId}`;
+
+        fetch(url).then(r => r.json()).then(data => {
+            if (data.length > 0) {
+                if (!superiorId) {
+                    // LLENADO DE UNIDAD ORGANIZATIVA (NIVEL 1)
+                    unidadN1.disabled = false;
+                    unidadN1.innerHTML = '<option value="" selected disabled>...</option>';
+                    data.forEach(u => {
+                        unidadN1.innerHTML += `<option value="${u.id}">${u.nombre_unidad.toUpperCase()}</option>`;
+                    });
+                } else {
+                    // FABRICACIÓN DINÁMICA DE SUBUNIDADES (NIVEL 2 Y 3)
+                    const colDiv = document.createElement('div');
+                    // Responsividad alineada al Paso 1
+                    colDiv.className = "col-12 col-md-6 col-lg-4 fade-in-combo mt-2";
+                    
+                    const labelStr = targetLevel === 2 ? "Dependencia Adscrita" : "Área Operativa";
+                    
+                    // Solo es requerido si el cargo lo exige por jerarquía
+                    const isMandatory = targetLevel <= getMinRequiredLevel();
+                    const star = isMandatory ? ' <span class="req-pin">*</span>' : '';
+
+                    colDiv.innerHTML = `
+                        <label class="form-label">${labelStr}${star}</label>
+                        <select class="form-select custom-input select-jerarquia" data-next="${targetLevel + 1}" ${isMandatory ? 'required' : ''}>
+                            <option value="" selected disabled>...</option>
+                            ${data.map(u => `<option value="${u.id}">${u.nombre_unidad.toUpperCase()}</option>`).join('')}
+                        </select>
+                        <div class="feedback-box text-danger"></div>`;
+                    
+                    subContainer.appendChild(colDiv);
+                }
+            }
+        }).catch(err => console.error("Error en motor AJAX SACAT:", err));
+    };
+
+    // --- [6. ESCUCHADORES DE EVENTOS DE UBICACIÓN] ---
+    sede.addEventListener('change', () => { subContainer.innerHTML = ''; cargarUnidadesAJAX(); });
+    nivel.addEventListener('change', () => { subContainer.innerHTML = ''; cargarUnidadesAJAX(); });
+
+    /**
+     * DELEGACIÓN DE EVENTOS PARA SELECTS DINÁMICOS
+     */
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('select-jerarquia')) {
+            const currentId = e.target.value;
+            const nextLevel = parseInt(e.target.getAttribute('data-next'));
+            
+            // Limpieza recursiva de hijos inferiores
+            if (e.target.id === 'unidad_n1') {
+                subContainer.innerHTML = '';
+            } else if (nextLevel === 3) {
+                // Si cambió una división, eliminar solo el área operativa que dependía de ella
+                const coordToRemove = subContainer.querySelector('[data-next="4"]')?.closest('.col-12');
+                if (coordToRemove) coordToRemove.remove();
+            }
+            
+            // Disparo del siguiente nivel si el cargo lo permite
+            if (currentId && nextLevel <= getAJAXLimit()) {
+                cargarUnidadesAJAX(currentId, nextLevel);
+            }
+        }
+    });
+
+    /**
+     * [7. LÓGICA DE RÉGIMEN PARA PASANTES (NÓMINA OPCIONAL)]
+     */
+    regimen.addEventListener('change', function() {
+        const text = this.options[this.selectedIndex].text.toUpperCase();
+        const isPasante = text.includes("PASANTE");
+        nomina.required = !isPasante;
+        const label = document.getElementById('label_nomina');
+        label.innerHTML = isPasante ? "Código de Nómina (Opcional)" : 'Código de Nómina <span class="req-pin">*</span>';
+    });
+
+    /**
+     * [8. ENVÍO FINAL Y VALIDACIÓN DE INTEGRIDAD JERÁRQUICA]
+     */
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const minDepth = getMinRequiredLevel();
+        const allSelects = Array.from(document.querySelectorAll('.select-jerarquia, #unidad_n1'));
+        const selectsFilled = allSelects.filter(s => s.value !== "" && s.value !== null);
+
+        // VALIDACIÓN DE SINCERIDAD JERÁRQUICA
+        if (selectsFilled.length < minDepth) {
+            const cargoActual = cargoEst.options[cargoEst.selectedIndex].text;
+            let msg = minDepth === 2 ? "una Dependencia Adscrita (División)" : "un Área Operativa (Coordinación)";
+            
+            return Swal.fire({ 
+                icon: 'error', 
+                title: 'Jerarquía Requerida', 
+                text: `El cargo de "${cargoActual}" exige obligatoriamente asignar ${msg}.`,
+                confirmButtonColor: '#1E3A8A' 
+            });
+        }
+
+        // Validación estándar de campos HTML5
+        if (!form.checkValidity()) { 
+            form.reportValidity(); 
+            return; 
+        }
+
+        // Proceso de guardado
+        btnSiguiente.disabled = true;
+        btnSiguiente.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> GUARDANDO...';
+
+        const formData = new FormData(this);
+        // Enviamos la unidad más específica seleccionada al backend
+        const finalUnidadId = selectsFilled[selectsFilled.length - 1].value;
+        formData.set('unidad_id', finalUnidadId);
+
+        fetch("{% url 'guardar_paso3_v2' %}", {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        })
+        .then(r => r.json()).then(data => {
+            if (data.success) {
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: '¡Paso 3 Completado!', 
+                    text: 'Información laboral vinculada correctamente.', 
+                    timer: 1500, 
+                    showConfirmButton: false 
+                }).then(() => window.location.href = "{% url 'paso4_comprobante_f1' %}");
+            } else { 
+                Swal.fire({ icon: 'error', title: 'Error del Servidor', text: data.error }); 
+                btnSiguiente.disabled = false; 
+                btnSiguiente.innerHTML = 'FINALIZAR REGISTRO LABORAL';
+            }
+        })
+        .catch(err => {
+            Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo contactar con el SACAT. Revise su conexión.' });
+            btnSiguiente.disabled = false;
+        });
+    });
+});
+</script>
+{% endblock %}
