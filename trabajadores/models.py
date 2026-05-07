@@ -306,15 +306,44 @@ class PersonaCargaFamiliar(models.Model):
 class Trabajador(models.Model):
     persona = models.OneToOneField('Persona', on_delete=models.CASCADE, db_column='persona_id')
     
-    # Ubicación y Clasificación
-    sede = models.ForeignKey('configuracion.Sede', on_delete=models.PROTECT, db_column='sede_id')
-    nivel_jerarquico = models.ForeignKey('configuracion.NivelJerarquico', on_delete=models.PROTECT, db_column='nivel_jerarquico_id')
-    unidad_org = models.ForeignKey('configuracion.UnidadesOrganizativas', on_delete=models.PROTECT, db_column='unidad_org_id')
-    tipo_trabajador = models.ForeignKey('configuracion.TiposTrabajadore', on_delete=models.PROTECT, db_column='tipo_trabajador_id')
-    categoria = models.ForeignKey('configuracion.CategoriaPersonal', on_delete=models.PROTECT, db_column='categoria_id')
-    cargo_generico = models.ForeignKey('configuracion.CargosGenerico', on_delete=models.PROTECT, db_column='cargo_generico_id')
-    cargo_estructural = models.ForeignKey('configuracion.CargosEstructural', on_delete=models.PROTECT, db_column='cargo_estructural_id')
+    # ==========================================================================
+    # UBICACIÓN Y CLASIFICACIÓN (CORREGIDOS PARA REGISTRO PROGRESIVO)
+    # ==========================================================================
+    # Se agrega null=True y blank=True para que Django permita mostrar al trabajador 
+    # en el listado aunque aún no tenga estos datos asignados en la Fase 1.
     
+    sede = models.ForeignKey(
+        'configuracion.Sede', on_delete=models.PROTECT, 
+        db_column='sede_id', null=True, blank=True
+    )
+    nivel_jerarquico = models.ForeignKey(
+        'configuracion.NivelJerarquico', on_delete=models.PROTECT, 
+        db_column='nivel_jerarquico_id', null=True, blank=True
+    )
+    unidad_org = models.ForeignKey(
+        'configuracion.UnidadesOrganizativas', on_delete=models.PROTECT, 
+        db_column='unidad_org_id', null=True, blank=True
+    )
+    tipo_trabajador = models.ForeignKey(
+        'configuracion.TiposTrabajadore', on_delete=models.PROTECT, 
+        db_column='tipo_trabajador_id', null=True, blank=True
+    )
+    categoria = models.ForeignKey(
+        'configuracion.CategoriaPersonal', on_delete=models.PROTECT, 
+        db_column='categoria_id', null=True, blank=True
+    )
+    cargo_generico = models.ForeignKey(
+        'configuracion.CargosGenerico', on_delete=models.PROTECT, 
+        db_column='cargo_generico_id', null=True, blank=True
+    )
+    cargo_estructural = models.ForeignKey(
+        'configuracion.CargosEstructural', on_delete=models.PROTECT, 
+        db_column='cargo_estructural_id', null=True, blank=True
+    )
+    
+    # ==========================================================================
+    # DATOS CONTRACTUALES
+    # ==========================================================================
     codigo_nomina = models.CharField(max_length=50, unique=True)
     fecha_ingreso_inst = models.DateField()
     
@@ -322,6 +351,7 @@ class Trabajador(models.Model):
     fase_actual = models.IntegerField(default=1) # 1: Registro Inicial (RRHH), 2: Completación (Trabajador)
     registro_completado = models.BooleanField(default=False)
 
+    # AUDITORÍA Y ESTADO
     esta_activo = models.BooleanField(default=True)
     creado_por = models.IntegerField(null=True, blank=True)
     actualizado_por = models.IntegerField(null=True, blank=True)
@@ -330,7 +360,7 @@ class Trabajador(models.Model):
 
     class Meta:
         db_table = 'trabajadores'
-        managed = False
+        managed = False # Django no modificará la tabla física, solo cómo la consulta
 
     def __str__(self):
         return f"{self.persona.primer_nombre} {self.persona.primer_apellido} - {self.codigo_nomina}"

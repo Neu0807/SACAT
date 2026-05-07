@@ -1,0 +1,219 @@
+{% extends 'includes/base_standard.html' %}
+
+{% block title %} SACAT | Perfil: {{ p.cedula }} {% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --brand-primary: #1E3A8A; /* Azul Almacenadora */
+        --brand-light: #F8FAFC;
+        --text-muted: #64748B;
+        --border-color: #E2E8F0;
+    }
+
+    .perfil-container { background-color: #F1F5F9; min-height: 100vh; padding: 2rem 0; }
+    
+    /* Header Institucional con Foto Carnet */
+    .header-expediente {
+        background: white;
+        border-radius: 12px;
+        border-top: 5px solid var(--brand-primary);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem 2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .foto-marco {
+        width: 100px;
+        height: 125px;
+        border-radius: 8px;
+        background-color: #F1F5F9;
+        border: 2px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .foto-marco img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ⬅️ Navegación Izquierda */
+    .nav-expediente { border: none; }
+    .nav-expediente .nav-link {
+        color: var(--text-muted);
+        font-weight: 700;
+        font-size: 0.78rem;
+        border-radius: 10px;
+        padding: 12px 18px;
+        margin-bottom: 5px;
+        text-align: left;
+        transition: all 0.3s ease;
+        border: none;
+        background: white;
+    }
+    .nav-expediente .nav-link:hover { background-color: #E2E8F0; color: var(--brand-primary); }
+    .nav-expediente .nav-link.active {
+        background-color: var(--brand-primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
+    }
+
+    /* ➡️ Contenido Derecha */
+    .tab-content-perfil {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        min-height: 650px;
+        overflow: hidden;
+    }
+
+    .seccion-header {
+        background-color: var(--brand-light);
+        padding: 15px 25px;
+        font-weight: 800;
+        color: var(--brand-primary);
+        text-transform: uppercase;
+        font-size: 0.82rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    /* Filas de Datos */
+    .fila-info {
+        display: flex;
+        padding: 14px 25px;
+        border-bottom: 1px solid #F1F5F9;
+        align-items: center;
+    }
+    .fila-info:last-child { border-bottom: none; }
+    .fila-info:nth-child(even) { background-color: #FCFDFF; }
+
+    .dato-label {
+        width: 35%;
+        font-size: 0.65rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .dato-valor {
+        width: 65%;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #1E293B;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="perfil-container">
+    <div class="container-xl">
+        
+        <div class="header-expediente d-flex flex-column flex-md-row justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <div class="foto-marco me-4">
+                    {% if p.foto_carnet %}
+                        <img src="{{ p.foto_carnet.url }}" alt="Foto Carnet">
+                    {% else %}
+                        <i class="fas fa-user fa-3x" style="color: #CBD5E1;"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-0 text-uppercase">{{ p.primer_nombre }} {{ p.primer_apellido }}</h3>
+                    <div class="d-flex flex-wrap gap-2 mt-1">
+                        <span class="badge bg-primary px-3 rounded-pill fw-bold">CI: {{ p.cedula }}</span>
+                        <span class="text-muted fw-bold small">| NÓMINA: {{ t.codigo_nomina|default:"-" }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-3 mt-md-0">
+                <a href="{% url 'imprimir_ficha_inicial' p.id %}" target="_blank" class="btn btn-outline-danger btn-sm fw-bold rounded-pill px-4">
+                    <i class="fas fa-file-pdf me-2"></i> EXPORTAR
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3">
+                <div class="nav flex-column nav-pills nav-expediente bg-white p-3 rounded-4 shadow-sm" id="v-pills-tab" role="tablist">
+                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#sec-identidad" type="button"><i class="fas fa-id-card-clip me-2"></i> 1. Identidad</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-ubicacion" type="button"><i class="fas fa-map-location-dot me-2"></i> 2. Ubicación</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-voto" type="button"><i class="fas fa-check-to-slot me-2"></i> 3. Votación</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-academica" type="button"><i class="fas fa-user-graduate me-2"></i> 4. Formación Acad.</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-adicional" type="button"><i class="fas fa-certificate me-2"></i> 5. Formación Adic.</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-salud" type="button"><i class="fas fa-heart-pulse me-2"></i> 6. Salud</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-contacto" type="button"><i class="fas fa-address-book me-2"></i> 7. Contactos</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-familia" type="button"><i class="fas fa-users-between-lines me-2"></i> 8. Carga Familiar</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-laboral" type="button"><i class="fas fa-briefcase me-2"></i> 9. Laboral</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-recaudos" type="button"><i class="fas fa-folder-open me-2"></i> 10. Recaudos</button>
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <div class="tab-content tab-content-perfil" id="v-pills-tabContent">
+                    
+                    <div class="tab-pane fade show active" id="sec-identidad" role="tabpanel">
+                        <div class="seccion-header">Identidad y Documentación</div>
+                        <div class="fila-info"><div class="dato-label">Primer Nombre</div><div class="dato-valor">{{ p.primer_nombre|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">Segundo Nombre</div><div class="dato-valor">{{ p.segundo_nombre|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">Primer Apellido</div><div class="dato-valor">{{ p.primer_apellido|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">Segundo Apellido</div><div class="dato-valor">{{ p.segundo_apellido|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">Cédula de Identidad</div><div class="dato-valor">{{ p.cedula|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">R.I.F.</div><div class="dato-valor">{{ p.rif|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">Fecha Nacimiento</div><div class="dato-valor">{{ p.fecha_nacimiento|date:"d/m/Y"|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">Edad Actual</div><div class="dato-valor">{{ edad|default:"-" }} Años</div></div>
+                        <div class="fila-info"><div class="dato-label">Estado Civil</div><div class="dato-valor">{{ p.estado_civil.descripcion|upper|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">Sexo</div><div class="dato-valor">{{ p.sexo.descripcion|upper|default:"-" }}</div></div>
+                    </div>
+
+                    <div class="tab-pane fade" id="sec-ubicacion" role="tabpanel">
+                        <div class="seccion-header">Domicilio y Vivienda</div>
+                        <div class="fila-info"><div class="dato-label">Dirección Exacta</div><div class="dato-valor">{{ p.direccion_exacta|upper|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">Parroquia</div><div class="dato-valor">{{ p.parroquia.nombre_parroquia|upper|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">Municipio / Estado</div><div class="dato-valor">{{ p.parroquia.municipio.nombre_municipio|upper|default:"-" }} / {{ p.parroquia.municipio.estado.nombre_estado|upper|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">Tipo de Vivienda</div><div class="dato-valor">{{ p.tipo_vivienda|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">GMVV</div><div class="dato-valor">{% if p.gmvv %} SÍ {% else %} NO {% endif %}</div></div>
+                    </div>
+
+                    <div class="tab-pane fade" id="sec-laboral" role="tabpanel">
+                        <div class="seccion-header">Asignación Laboral Institucional</div>
+                        <div class="fila-info"><div class="dato-label">Unidad Administrativa</div><div class="dato-valor text-primary">{{ t.unidad_org.nombre_unidad|upper|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">Cargo Estructural</div><div class="dato-valor">{{ t.cargo_estructural.nombre_cargo_estruct|upper|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">Sede / Ubicación</div><div class="dato-valor">{{ t.sede.nombre_sede|upper|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">Código Nómina</div><div class="dato-valor fw-bold">{{ t.codigo_nomina|default:"-" }}</div></div>
+                        <div class="fila-info"><div class="dato-label">Fecha Ingreso</div><div class="dato-valor">{{ t.fecha_ingreso_inst|date:"d/m/Y"|default:"-" }}</div></div>
+                    </div>
+
+                    <div class="tab-pane fade" id="sec-recaudos" role="tabpanel">
+                        <div class="seccion-header">Documentos Digitales (Paso 1)</div>
+                        <div class="fila-info">
+                            <div class="dato-label">Cédula de Identidad</div>
+                            <div class="dato-valor">
+                                {% if p.documento_cedula %}
+                                    <a href="{{ p.documento_cedula.url }}" target="_blank" class="btn btn-sm btn-light border fw-bold text-primary">
+                                        <i class="fas fa-file-pdf me-1"></i> VER DOCUMENTO
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="fila-info">
+                            <div class="dato-label">RIF Digital</div>
+                            <div class="dato-valor">
+                                {% if p.documento_rif %}
+                                    <a href="{{ p.documento_rif.url }}" target="_blank" class="btn btn-sm btn-light border fw-bold text-primary">
+                                        <i class="fas fa-image me-1"></i> VER RIF
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

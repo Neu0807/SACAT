@@ -1,0 +1,3028 @@
+ok necesito que revises tanto mi base de datos que te envie hace un rato llamada sacat_db_090426.sql, asi como mis archivos models.py de cada modulo, para verificar que todo se encuentre bien y que no alla discrepancia o diferencias.
+
+configuracion/models.py
+
+from django.db import models
+
+# ==============================================================================
+# CATEGORÍA 1: UBICACIÓN GEOGRÁFICA Y ELECTORAL
+# ==============================================================================
+
+class Estado(models.Model):
+    nombre_estado = models.CharField(max_length=50)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'estados'
+        managed = False 
+    def __str__(self):
+        return self.nombre_estado.upper()
+
+class Municipio(models.Model):
+    estado = models.ForeignKey(Estado, on_delete=models.CASCADE, db_column='estado_id', related_name='municipios')
+    nombre_municipio = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'municipios'
+        managed = False
+    def __str__(self):
+        return f"{self.nombre_municipio.upper()} ({self.estado.nombre_estado})"
+
+class Parroquia(models.Model):
+    municipio = models.ForeignKey(Municipio, on_delete=models.CASCADE, db_column='municipio_id', related_name='parroquias')
+    nombre_parroquia = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'parroquias'
+        managed = False
+    def __str__(self):
+        return self.nombre_parroquia.upper()
+
+class CentroVotacion(models.Model):
+    parroquia = models.ForeignKey(Parroquia, on_delete=models.PROTECT, db_column='parroquia_id')
+    nombre_centro = models.CharField(max_length=150)
+    codigo_cne = models.CharField(max_length=50, null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'centros_votaciones'
+        managed = False
+    def __str__(self):
+        return self.nombre_centro.upper()
+
+class Direccion(models.Model):
+    parroquia = models.ForeignKey(Parroquia, on_delete=models.PROTECT, db_column='parroquia_id')
+    direccion_exacta = models.TextField()
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'direcciones'
+        managed = False
+
+# ==============================================================================
+# CATEGORÍA 2: IDENTIDAD, ENTORNO SOCIAL Y FAMILIA
+# ==============================================================================
+
+class TipoDocIdentificacion(models.Model):
+    sigla = models.CharField(max_length=10)
+    descripcion = models.CharField(max_length=50)
+    ente_emisor = models.CharField(max_length=100, null=True, blank=True)
+    aplica_a = models.CharField(max_length=50, null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tipos_docs_identificacion'
+        managed = False
+    def __str__(self):
+        return f"{self.sigla} - {self.descripcion}"
+
+class Sexo(models.Model):
+    sigla = models.CharField(max_length=5)
+    descripcion = models.CharField(max_length=30)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'sexos'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+class EstadoCivil(models.Model):
+    sigla = models.CharField(max_length=5)
+    descripcion = models.CharField(max_length=30)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'estados_civiles'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+class Parentesco(models.Model):
+    descripcion = models.CharField(max_length=30)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'parentescos'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+# ==============================================================================
+# CATEGORÍA 3: VIVIENDA, CONTACTOS Y SALUD
+# ==============================================================================
+
+class TiposVivienda(models.Model):
+    descripcion = models.CharField(max_length=50)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tipos_viviendas'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+class CondicionesVivienda(models.Model):
+    descripcion = models.CharField(max_length=50)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'condiciones_viviendas'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+class TipoContacto(models.Model):
+    descripcion = models.CharField(max_length=50)
+    patron_validacion = models.CharField(max_length=255, null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tipos_contactos'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+class TipoDiscapacidad(models.Model):
+    descripcion = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tipos_discapacidades'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+class TipoPatologia(models.Model):
+    descripcion = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tipos_patologias'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+# ==============================================================================
+# CATEGORÍA 4: FORMACIÓN ACADÉMICA
+# ==============================================================================
+
+class NivelesFormacion(models.Model):
+    descripcion = models.CharField(max_length=50)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'niveles_formacion'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+class EstatusFormacion(models.Model):
+    descripcion = models.CharField(max_length=50)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'estatus_formacion'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+# ==============================================================================
+# CATEGORÍA 5: ESTRUCTURA ORGANIZATIVA Y LABORAL
+# ==============================================================================
+
+class DireccionSede(models.Model): # Para referenciar en sedes
+    class Meta:
+        db_table = 'direcciones'
+        managed = False
+
+class Sede(models.Model):
+    nombre_sede = models.CharField(max_length=100)
+    direccion = models.ForeignKey(Direccion, on_delete=models.PROTECT, db_column='direccion_id')
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'sedes'
+        managed = False
+    def __str__(self):
+        return self.nombre_sede.upper()
+
+class EstructuraOrganizativa(models.Model):
+    nombre_estructura = models.CharField(max_length=150)
+    nro_aprobacion = models.CharField(max_length=100, null=True, blank=True)
+    fecha_vigencia_desde = models.DateField()
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'estructuras_organizativas'
+        managed = False
+    def __str__(self):
+        return self.nombre_estructura.upper()
+
+class NivelJerarquico(models.Model):
+    descripcion = models.CharField(max_length=100) # Ajustado a 100 por el SQL
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'niveles_jerarquicos'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+class TipoUnidad(models.Model):
+    descripcion = models.CharField(max_length=100) # Ajustado a 100 por el SQL
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tipos_unidades'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+class UnidadesOrganizativas(models.Model):
+    estructura_org = models.ForeignKey(EstructuraOrganizativa, on_delete=models.PROTECT, db_column='estructura_org_id')
+    nivel_jerarquico = models.ForeignKey(NivelJerarquico, on_delete=models.PROTECT, db_column='nivel_jerarquico_id')
+    tipo_unidad = models.ForeignKey(TipoUnidad, on_delete=models.PROTECT, db_column='tipo_unidad_id')
+    unidad_sup = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, db_column='unidad_sup_id')
+    
+    # 🌟 NUEVO VÍNCULO TERRITORIAL 🌟
+    sede = models.ForeignKey('Sede', on_delete=models.PROTECT, db_column='sede_id', null=True, blank=True)
+    
+    nomenclatura = models.CharField(max_length=20) 
+    nombre_unidad = models.CharField(max_length=150)
+    esta_activo = models.BooleanField(default=True)
+    
+    # Auditoría
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'unidades_organizativas'
+        managed = False
+        
+    def __str__(self):
+        return self.nombre_unidad.upper()
+
+class CargosGenerico(models.Model):
+    nombre_cargo = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'cargos_genericos'
+        managed = False
+    def __str__(self):
+        return self.nombre_cargo.upper()
+
+class CargosEstructural(models.Model):
+    nombre_cargo_estruct = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'cargos_estructurales'
+        managed = False
+    def __str__(self):
+        return self.nombre_cargo_estruct.upper()
+
+class TiposTrabajadore(models.Model):
+    descripcion = models.CharField(max_length=50)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tipos_trabajadores'
+        managed = False
+
+class EstatusTrabajadore(models.Model):
+    descripcion = models.CharField(max_length=50)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'estatus_trabajadores'
+        managed = False
+
+# ==============================================================================
+# CATEGORÍA 6: RECAUDOS, DOTACIÓN Y SEGURIDAD
+# ==============================================================================
+
+class ItemsDotaciones(models.Model):
+    nombre_item = models.CharField(max_length=50)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'items_dotaciones'
+        managed = False
+
+class TallasDotaciones(models.Model): # <--- AQUÍ ESTÁ LA PIEZA QUE FALTABA
+    item_dotacion = models.ForeignKey(ItemsDotaciones, on_delete=models.CASCADE, db_column='item_dotacion_id')
+    valor_talla = models.CharField(max_length=10)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tallas_dotaciones'
+        managed = False
+
+class TipoRecaudo(models.Model):
+    descripcion = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tipos_recaudos'
+        managed = False
+
+class Rol(models.Model):
+    nombre_rol = models.CharField(max_length=50, unique=True)
+    descripcion = models.TextField(null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'roles'
+        managed = False
+
+class PermisoSis(models.Model):
+    nombre_permiso = models.CharField(max_length=100, unique=True)
+    descripcion = models.TextField(null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'permisos_sis'
+        managed = False
+
+class TipoFormacion(models.Model):
+    descripcion = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    
+    # Campos de auditoría (opcionales para el formulario, pero requeridos por tu BD)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True, null=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True, null=True)
+
+    class Meta:
+        db_table = 'tipos_formaciones'
+        managed = False # Django no intentará crear ni modificar esta tabla
+        verbose_name = 'Tipo de Formación'
+        verbose_name_plural = 'Tipos de Formaciones'
+
+    def __str__(self):
+        return self.descripcion
+
+
+class Modalidad(models.Model):
+    descripcion = models.CharField(max_length=50)
+    esta_activo = models.BooleanField(default=True)
+    
+    # Campos de auditoría
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True, null=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True, null=True)
+
+    class Meta:
+        db_table = 'modalidades'
+        managed = False # Django no intentará crear ni modificar esta tabla
+        verbose_name = 'Modalidad'
+        verbose_name_plural = 'Modalidades'
+
+    def __str__(self):
+        return self.descripcion
+
+
+# configuracion/models.py
+
+class IdentidadInstitucional(models.Model):
+    nombre_oficial = models.CharField(max_length=150) # <-- Antes decía nombre_institucion
+    rif = models.CharField(max_length=20)
+    direccion_fiscal = models.TextField()
+    telefono_contacto = models.CharField(max_length=50, null=True, blank=True)
+    correo_contacto = models.CharField(max_length=100, null=True, blank=True)
+    ruta_logo_institucional = models.CharField(max_length=255, null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'identidad_institucional'
+        managed = False # Django no toca la tabla, solo la lee
+
+class CategoriaPersonal(models.Model):
+    descripcion = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'categorias_personal'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+class EstatusLaboral(models.Model):
+    descripcion = models.CharField(max_length=100)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'estatus_laborales'
+        managed = False
+    def __str__(self):
+        return self.descripcion.upper()
+
+configuracion/views.py
+import csv
+import io
+import openpyxl
+import json  # <--- Aquí está el salvavidas para el error
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from .models import (
+    Estado, Municipio, Parroquia, TipoDocIdentificacion, 
+    Sexo, EstadoCivil, TipoContacto, CentroVotacion  # <--- AGREGA ESTE ÚLTIMO
+)
+
+# --- VISTAS DE NAVEGACIÓN ---
+
+@login_required
+def configuracion_ubicacion(request):
+    return render(request, 'configuracion/ubicacion_menu.html')
+
+@login_required
+def listar_estados(request):
+    estados = Estado.objects.all().order_by('nombre_estado')
+    return render(request, 'configuracion/ubicacion/listar_estados.html', {'estados': estados})
+
+@login_required
+def listar_municipios(request):
+    municipios = Municipio.objects.select_related('estado').all().order_by('estado__nombre_estado', 'nombre_municipio')
+    return render(request, 'configuracion/ubicacion/listar_municipios.html', {'municipios': municipios})
+
+@login_required
+def listar_parroquias(request):
+    parroquias = Parroquia.objects.select_related('municipio__estado').all().order_by('municipio__estado__nombre_estado', 'nombre_parroquia')
+    return render(request, 'configuracion/ubicacion/listar_parroquias.html', {'parroquias': parroquias})
+
+
+# --- LÓGICA DE APOYO PARA IMPORTACIÓN ---
+
+def obtener_datos_archivo(archivo):
+    """Función auxiliar para normalizar la lectura de Excel y CSV"""
+    nombre_archivo = archivo.name.lower()
+    if nombre_archivo.endswith(('.xlsx', '.xls')):
+        try:
+            wb = openpyxl.load_workbook(archivo, data_only=True)
+            hoja = wb.active
+            # iter_rows con min_row=2 salta el encabezado
+            return list(hoja.iter_rows(min_row=2, values_only=True))
+        except Exception:
+            return None
+    elif nombre_archivo.endswith('.csv'):
+        try:
+            # utf-8-sig maneja archivos guardados desde Excel con BOM
+            contenido = archivo.read().decode('utf-8-sig')
+        except UnicodeDecodeError:
+            archivo.seek(0)
+            contenido = archivo.read().decode('latin-1')
+        
+        lector = csv.reader(io.StringIO(contenido))
+        next(lector, None)  # Saltar encabezado
+        return list(lector)
+    return None
+
+
+# --- VISTAS DE IMPORTACIÓN ---
+
+@login_required
+def importar_estados(request):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    
+    if request.method == 'POST' and request.FILES.get('archivo'):
+        datos = obtener_datos_archivo(request.FILES['archivo'])
+        if datos is None:
+            return JsonResponse({'success': False, 'mensaje': 'Formato no soportado.'})
+
+        contador = 0
+        try:
+            for fila in datos:
+                # fila[0] es NOMBRE en tu CSV
+                if fila and len(fila) >= 1 and fila[0]:
+                    nombre = str(fila[0]).strip().upper()
+                    Estado.objects.get_or_create(
+                        nombre_estado=nombre,
+                        defaults={
+                            'creado_por': request.user.id,
+                            'actualizado_por': request.user.id,
+                            'esta_activo': True
+                        }
+                    )
+                    contador += 1
+            return JsonResponse({'success': True, 'mensaje': f'¡Fino! Se procesaron {contador} estados.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+    return JsonResponse({'success': False, 'mensaje': 'Solicitud inválida.'})
+
+
+@login_required
+def importar_municipios(request):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    
+    if request.method == 'POST' and request.FILES.get('archivo'):
+        datos = obtener_datos_archivo(request.FILES['archivo'])
+        if datos is None: 
+            return JsonResponse({'success': False, 'mensaje': 'Formato no soportado.'})
+
+        contador = 0
+        errores = 0
+        try:
+            for fila in datos:
+                # Tu CSV tiene: ESTADO (fila[0]), NOMBRE (fila[1])
+                if fila and len(fila) >= 2:
+                    nom_est = str(fila[0]).strip()
+                    nom_mun = str(fila[1]).strip().upper()
+                    
+                    obj_estado = Estado.objects.filter(nombre_estado__iexact=nom_est).first()
+                    if obj_estado:
+                        Municipio.objects.get_or_create(
+                            nombre_municipio=nom_mun,
+                            estado=obj_estado,
+                            defaults={
+                                'creado_por': request.user.id,
+                                'actualizado_por': request.user.id
+                            }
+                        )
+                        contador += 1
+                    else:
+                        errores += 1
+            
+            msj = f'Se importaron {contador} municipios.'
+            if errores > 0:
+                msj += f' No se encontraron {errores} estados referenciados.'
+                
+            return JsonResponse({'success': True, 'mensaje': msj})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+    return JsonResponse({'success': False, 'mensaje': 'Error en la petición.'})
+
+
+@login_required
+def importar_parroquias(request):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    
+    if request.method == 'POST' and request.FILES.get('archivo'):
+        datos = obtener_datos_archivo(request.FILES['archivo'])
+        if datos is None: return JsonResponse({'success': False, 'mensaje': 'Formato no soportado.'})
+
+        contador = 0
+        errores = 0
+        try:
+            for fila in datos:
+                # Estructura de TU archivo: ESTADO(0), MUNICIPIO(1), PARROQUIA(2)
+                if fila and len(fila) >= 3:
+                    nom_est = str(fila[0]).strip()
+                    nom_mun = str(fila[1]).strip()
+                    nom_par = str(fila[2]).strip().upper()
+                    
+                    obj_mun = Municipio.objects.filter(
+                        nombre_municipio__iexact=nom_mun,
+                        estado__nombre_estado__iexact=nom_est
+                    ).first()
+                    
+                    if obj_mun:
+                        Parroquia.objects.get_or_create(
+                            nombre_parroquia=nom_par,
+                            municipio=obj_mun,
+                            defaults={'creado_por': request.user.id}
+                        )
+                        contador += 1
+                    else:
+                        errores += 1
+                        
+            msj = f'¡Fino! Se importaron {contador} parroquias exitosamente.'
+            if errores > 0:
+                msj += f' Hubo {errores} filas ignoradas por no coincidir el Municipio/Estado.'
+                
+            return JsonResponse({'success': True, 'mensaje': msj})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': f'Error en procesamiento: {str(e)}'})
+    return JsonResponse({'success': False, 'mensaje': 'Archivo no recibido.'})
+
+
+# --- VISTAS DE ACCIONES AJAX (TOGGLE ESTATUS) ---
+
+@login_required
+@require_POST
+def toggle_municipio(request, municipio_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    
+    try:
+        municipio = Municipio.objects.get(id=municipio_id)
+        # Obtenemos el nuevo estado del body del fetch
+        data = json.loads(request.body)
+        nuevo_estatus = data.get('esta_activo', True)
+        
+        municipio.esta_activo = nuevo_estatus
+        municipio.actualizado_por = request.user.id
+        municipio.save()
+        
+        estado_texto = "habilitado" if nuevo_estatus else "inhabilitado"
+        return JsonResponse({'success': True, 'mensaje': f'El municipio ha sido {estado_texto}.'})
+        
+    except Municipio.DoesNotExist:
+        return JsonResponse({'success': False, 'mensaje': 'El municipio no existe.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+
+@login_required
+@require_POST
+def toggle_estado(request, estado_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    
+    try:
+        estado = Estado.objects.get(id=estado_id)
+        data = json.loads(request.body)
+        nuevo_estatus = data.get('esta_activo', True)
+        
+        estado.esta_activo = nuevo_estatus
+        estado.actualizado_por = request.user.id
+        estado.save()
+        
+        estado_texto = "habilitado" if nuevo_estatus else "inhabilitado"
+        return JsonResponse({'success': True, 'mensaje': f'El estado ha sido {estado_texto}.'})
+        
+    except Estado.DoesNotExist:
+        return JsonResponse({'success': False, 'mensaje': 'El estado no existe.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+
+
+# --- GESTIÓN DE IDENTIFICACIÓN ---
+
+@login_required
+def configuracion_identidad(request):
+    return render(request, 'configuracion/identidad_menu.html')
+
+@login_required
+def listar_tipos_docs(request):
+    documentos = TipoDocIdentificacion.objects.all().order_by('id')
+    # CAMBIO: 'identificacion' -> 'identidad'
+    return render(request, 'configuracion/identidad/listar_tipos_docs.html', {'documentos': documentos})
+
+@login_required
+@require_POST
+def crear_tipo_documento(request):
+    try:
+        sigla = request.POST.get('sigla', '').strip().upper()
+        descripcion = request.POST.get('descripcion', '').strip()
+        ente_emisor = request.POST.get('ente_emisor', '').strip()
+        aplica_a = request.POST.get('aplica_a', '').strip()
+
+        if not sigla or not descripcion:
+            return JsonResponse({'success': False, 'error': 'Sigla y Descripción son obligatorios.'})
+
+        if TipoDocIdentificacion.objects.filter(sigla=sigla).exists():
+            return JsonResponse({'success': False, 'error': f'La sigla "{sigla}" ya está registrada.'})
+
+        TipoDocIdentificacion.objects.create(
+            sigla=sigla,
+            descripcion=descripcion,
+            ente_emisor=ente_emisor if ente_emisor else None,
+            aplica_a=aplica_a,
+            esta_activo=True,
+            creado_por=request.user.id,
+            actualizado_por=request.user.id
+        )
+
+        return JsonResponse({
+            'success': True, 
+            'message': f'Documento "{sigla}" registrado con éxito.'
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def listar_sexos(request):
+    sexos = Sexo.objects.all().order_by('id')
+    # CAMBIO: 'identificacion' -> 'identidad'
+    return render(request, 'configuracion/identidad/listar_sexos.html', {'sexos': sexos})
+
+@login_required
+def listar_estados_civiles(request):
+    estados_civiles = EstadoCivil.objects.all().order_by('id')
+    # CAMBIO: 'identificacion' -> 'identidad'
+    return render(request, 'configuracion/identidad/listar_estados_civiles.html', {'estados_civiles': estados_civiles})
+
+@login_required
+def listar_tipos_contactos(request):
+    contactos = TipoContacto.objects.all().order_by('id')
+    # CAMBIO: 'identificacion' -> 'identidad'
+    return render(request, 'configuracion/identidad/listar_tipos_contactos.html', {'contactos': contactos})
+
+@login_required
+@require_POST
+def toggle_parroquia(request, parroquia_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    
+    try:
+        parroquia = Parroquia.objects.get(id=parroquia_id)
+        data = json.loads(request.body)
+        nuevo_estatus = data.get('esta_activo', True)
+        
+        parroquia.esta_activo = nuevo_estatus
+        parroquia.actualizado_por = request.user.id
+        parroquia.save()
+        
+        estado_texto = "habilitado" if nuevo_estatus else "inhabilitado"
+        return JsonResponse({'success': True, 'mensaje': f'La parroquia ha sido {estado_texto}.'})
+        
+    except Parroquia.DoesNotExist:
+        return JsonResponse({'success': False, 'mensaje': 'La parroquia no existe.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+
+@login_required
+def configuracion_institucion(request):
+    return render(request, 'configuracion/institucion_menu.html')
+
+@login_required
+def configuracion_estructura(request):
+    return render(request, 'configuracion/estructura_menu.html')
+
+@login_required
+def configuracion_laboral(request):
+    return render(request, 'configuracion/laboral_menu.html')
+
+@login_required
+def configuracion_entorno(request):
+    return render(request, 'configuracion/entorno_menu.html')
+
+@login_required
+def configuracion_dotacion(request):
+    return render(request, 'configuracion/dotacion_menu.html')
+
+@login_required
+def configuracion_electoral(request):
+    return render(request, 'configuracion/electoral_menu.html')
+
+
+@login_required
+@require_POST
+def toggle_tipo_doc(request, doc_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    
+    try:
+        documento = TipoDocIdentificacion.objects.get(id=doc_id)
+        data = json.loads(request.body)
+        nuevo_estatus = data.get('esta_activo', True)
+        
+        documento.esta_activo = nuevo_estatus
+        documento.actualizado_por = request.user.id
+        documento.save()
+        
+        estado_texto = "habilitado" if nuevo_estatus else "inhabilitado"
+        return JsonResponse({'success': True, 'mensaje': f'El documento ha sido {estado_texto}.'})
+        
+    except TipoDocIdentificacion.DoesNotExist:
+        return JsonResponse({'success': False, 'mensaje': 'El tipo de documento no existe.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+    
+@login_required
+@require_POST
+def editar_tipo_documento(request, doc_id):
+    try:
+        documento = TipoDocIdentificacion.objects.get(id=doc_id)
+        documento.sigla = request.POST.get('sigla', '').strip().upper()
+        documento.descripcion = request.POST.get('descripcion', '').strip()
+        documento.ente_emisor = request.POST.get('ente_emisor', '').strip()
+        documento.aplica_a = request.POST.get('aplica_a', '').strip()
+        
+        documento.actualizado_por = request.user.id
+        documento.save()
+        
+        return JsonResponse({'success': True, 'message': 'Documento actualizado con éxito.'})
+    except TipoDocIdentificacion.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'El documento no existe.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def listar_centros_votaciones(request):
+    # Usamos select_related para traer la jerarquía geográfica en una sola consulta
+    centros = CentroVotacion.objects.select_related('parroquia__municipio__estado').all().order_by('codigo_cne')
+    return render(request, 'configuracion/centros_votaciones/listar_centros_votaciones.html', {'centros': centros})
+
+@login_required
+@require_POST
+def toggle_centro_votacion(request, centro_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    try:
+        centro = CentroVotacion.objects.get(id=centro_id)
+        data = json.loads(request.body)
+        nuevo_estatus = data.get('esta_activo', True)
+        
+        centro.esta_activo = nuevo_estatus
+        centro.actualizado_por = request.user.id
+        centro.save()
+        
+        estado_texto = "habilitado" if nuevo_estatus else "inhabilitado"
+        return JsonResponse({'success': True, 'mensaje': f'El centro ha sido {estado_texto}.'})
+    except CentroVotacion.DoesNotExist:
+        return JsonResponse({'success': False, 'mensaje': 'El centro no existe.'})
+
+@login_required
+def importar_centros_votaciones(request):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'mensaje': 'Acceso denegado.'})
+    
+    if request.method == 'POST' and request.FILES.get('archivo'):
+        datos = obtener_datos_archivo(request.FILES['archivo'])
+        if datos is None: 
+            return JsonResponse({'success': False, 'mensaje': 'Formato no soportado.'})
+
+        contador = 0
+        errores = 0
+        try:
+            for fila in datos:
+                # Estructura del archivo: ESTADO(0), MUNICIPIO(1), PARROQUIA(2), NOMBRE(3), CODIGO(4)
+                if fila and len(fila) >= 5:
+                    nom_est = str(fila[0]).strip()
+                    nom_mun = str(fila[1]).strip()
+                    nom_par = str(fila[2]).strip()
+                    nom_cen = str(fila[3]).strip().upper()
+                    # zfill(9) para asegurar que el código CNE no pierda el cero inicial
+                    cod_cne = str(fila[4]).strip().zfill(9)
+                    
+                    # Buscamos la parroquia exacta
+                    obj_par = Parroquia.objects.filter(
+                        nombre_parroquia__iexact=nom_par,
+                        municipio__nombre_municipio__iexact=nom_mun,
+                        municipio__estado__nombre_estado__iexact=nom_est
+                    ).first()
+                    
+                    if obj_par:
+                        # Usamos update_or_create para evitar duplicados si se resube el archivo
+                        CentroVotacion.objects.update_or_create(
+                            codigo_cne=cod_cne,
+                            defaults={
+                                'parroquia': obj_par,
+                                'nombre_centro': nom_cen,
+                                'esta_activo': True,
+                                'creado_por': request.user.id,
+                                'actualizado_por': request.user.id
+                            }
+                        )
+                        contador += 1
+                    else:
+                        errores += 1
+                        
+            msj = f'¡Éxito! Se procesaron {contador} centros de votación.'
+            if errores > 0:
+                msj += f' No se encontraron {errores} ubicaciones geográficas referenciadas.'
+                
+            return JsonResponse({'success': True, 'mensaje': msj})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': f'Error en procesamiento: {str(e)}'})
+            
+    return JsonResponse({'success': False, 'mensaje': 'Archivo no recibido.'})
+    
+def get_centros_por_parroquia(request, parroquia_id):
+    from .models import CentroVotacion
+    centros = CentroVotacion.objects.filter(parroquia_id=parroquia_id, esta_activo=True).values('id', 'nombre_centro').order_by('nombre_centro')
+    return JsonResponse(list(centros), safe=False)
+
+
+seguridad/modesl.py
+from django.db import models
+from django.conf import settings
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+
+# --- 1. MODELO DE PERMISOS (Tabla: permisos_sis) ---
+# Se pone de primero porque Rol y RolPermiso dependen de él
+class PermisoSis(models.Model):
+    nombre_permiso = models.CharField(max_length=100, unique=True)
+    descripcion = models.TextField(null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'permisos_sis'
+        managed = False # Django no tocará esta tabla, ya existe en tu DB
+        verbose_name = "Permiso del Sistema"
+
+    def __str__(self):
+        return self.nombre_permiso
+
+# --- 2. MODELO DE ROLES (Tabla: roles) ---
+class Rol(models.Model):
+    nombre_rol = models.CharField(max_length=100, unique=True)
+    descripcion = models.TextField(null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    
+    # Relación ManyToMany usando tu tabla intermedia
+    permisos = models.ManyToManyField(
+        PermisoSis, 
+        through='RolPermiso', 
+        related_name='roles'
+    )
+
+    class Meta:
+        db_table = 'roles'
+        managed = False
+
+    def __str__(self):
+        return self.nombre_rol
+
+# --- 3. MODELO INTERMEDIO (Tabla: roles_permisos) ---
+class RolPermiso(models.Model):
+    rol = models.ForeignKey(Rol, on_delete=models.CASCADE, db_column='rol_id')
+    permiso_sis = models.ForeignKey(PermisoSis, on_delete=models.CASCADE, db_column='permiso_sis_id')
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'roles_permisos'
+        managed = False
+
+# --- 4. MANAGER DE USUARIO ---
+class UsuarioManager(BaseUserManager):
+    def create_user(self, nombre_usuario, password=None, **extra_fields):
+        if not nombre_usuario:
+            raise ValueError('El usuario debe tener una cédula (nombre_usuario)')
+        user = self.model(nombre_usuario=nombre_usuario, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, nombre_usuario, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(nombre_usuario, password, **extra_fields)
+
+# --- 5. MODELO DE USUARIO (Tabla: usuarios) ---
+class Usuario(AbstractBaseUser):
+    # Mapeo de campos de Django a tus columnas en español
+    password = models.CharField(max_length=128, db_column='contrasena_hash')
+    last_login = models.DateTimeField(null=True, blank=True, db_column='ultimo_acceso')
+    is_staff = models.BooleanField(default=False, db_column='es_staff')
+    is_superuser = models.BooleanField(default=False, db_column='es_superusuario')
+
+    # Tus campos reales
+    nombre_usuario = models.CharField(max_length=50, unique=True)
+    requiere_cambio_clave = models.BooleanField(default=True)
+    esta_activo = models.BooleanField(default=True)
+    
+    # Llaves foráneas reales
+    trabajador_id = models.IntegerField(null=True, blank=True) 
+    rol = models.ForeignKey(Rol, on_delete=models.SET_NULL, null=True, blank=True, db_column='rol_id')
+
+    # Auditoría
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    objects = UsuarioManager()
+    USERNAME_FIELD = 'nombre_usuario'
+
+    class Meta:
+        db_table = 'usuarios'
+        managed = False 
+
+    def __str__(self):
+        return self.nombre_usuario
+
+    def has_perm(self, perm, obj=None):
+        return self.is_superuser
+
+    def has_module_perms(self, app_label):
+        return self.is_superuser
+
+seguridad/views.py
+import json
+import secrets
+import string
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.contrib.auth import get_user_model
+# IMPORTANTE: Importamos el modelo Rol para poder usarlo
+from .models import Rol
+from .models import PermisoSis
+
+Usuario = get_user_model() 
+
+# --- FUNCIÓN DE SEGURIDAD (INTERNA) ---
+def generar_clave_robusta(longitud=12):
+    letras_minus = string.ascii_lowercase + "ñ"
+    letras_mayus = string.ascii_uppercase + "Ñ"
+    numeros = string.digits
+    especiales = "!@#$%&*+-=." 
+    
+    todos = letras_minus + letras_mayus + numeros + especiales
+    
+    while True:
+        password = ''.join(secrets.choice(todos) for _ in range(longitud))
+        if (any(c in letras_minus for c in password)
+            and any(c in letras_mayus for c in password)
+            and any(c in numeros for c in password)
+            and any(c in especiales for c in password)
+            and (len(password) >= 8)):
+            return password
+
+# --- VISTAS DE SESIÓN ---
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('inicio') 
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            cedula = data.get('cedula')
+            password = data.get('password')
+            user = authenticate(request, nombre_usuario=cedula, password=password)
+
+            if user is not None:
+                if user.esta_activo:
+                    login(request, user)
+                    return JsonResponse({
+                        'success': True, 
+                        'mensaje': '¡Bienvenido al sistema SACAT!',
+                        'is_superuser': user.is_superuser
+                    })
+                else:
+                    return JsonResponse({'success': False, 'mensaje': 'Cuenta suspendida.'})
+            else:
+                return JsonResponse({'success': False, 'mensaje': 'Cédula o contraseña incorrectas.'})
+        except Exception:
+            return JsonResponse({'success': False, 'mensaje': 'Error en el servidor.'})
+
+    return render(request, 'seguridad/login.html')
+
+@login_required
+def inicio_view(request):
+    return render(request, 'seguridad/inicio.html')
+
+def salir_sistema(request):
+    logout(request)
+    return redirect('login')
+
+# --- GESTIÓN DE USUARIOS ---
+@login_required
+def listar_usuarios(request):
+    usuarios = Usuario.objects.all().order_by('-id')
+    return render(request, 'seguridad/listar_usuarios.html', {'usuarios': usuarios})
+
+@login_required
+def crear_superusuario_view(request):
+    return render(request, 'seguridad/crear_superusuario.html')
+
+@login_required
+def guardar_superusuario(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            cedula = data.get('nombre_usuario')
+            
+            if Usuario.objects.filter(nombre_usuario=cedula).exists():
+                return JsonResponse({'success': False, 'mensaje': 'Esta cédula ya está registrada.'})
+
+            clave_temporal = generar_clave_robusta(12)
+
+            # 1. Buscamos el objeto Rol 'Superusuario' en tu tabla 'roles'
+            try:
+                rol_su = Rol.objects.get(nombre_rol='Superusuario')
+            except Rol.DoesNotExist:
+                return JsonResponse({'success': False, 'mensaje': 'Error Crítico: El rol Superusuario no existe en la tabla roles. Créalo en el /admin primero.'})
+
+            # 2. Creamos el usuario base
+            nuevo_user = Usuario.objects.create_user(
+                nombre_usuario=cedula,
+                password=clave_temporal
+            )
+            
+            # 3. AUTOMATIZACIÓN: Si el rol es Superusuario, prendemos los interruptores de Django
+            nuevo_user.rol = rol_su  # Se guarda en tu columna 'rol_id'
+            
+            # Aquí ocurre la magia:
+            if rol_su.nombre_rol == 'Superusuario':
+                nuevo_user.is_superuser = True  # Se guarda en 'es_superusuario'
+                nuevo_user.is_staff = True      # Se guarda en 'es_staff'
+            
+            nuevo_user.requiere_cambio_clave = True
+            nuevo_user.creado_por = request.user.id
+            nuevo_user.save()
+
+            return JsonResponse({
+                'success': True, 
+                'clave': clave_temporal,
+                'mensaje': f'Usuario {cedula} creado y configurado como Superusuario automáticamente.'
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+
+@login_required
+def cambiar_estado_usuario(request, username):
+    if request.method == 'POST':
+        user = get_object_or_404(Usuario, nombre_usuario=username)
+        if request.user == user:
+            return JsonResponse({'success': False, 'mensaje': 'No puedes inhabilitarte a ti mismo.'})
+        
+        user.esta_activo = not user.esta_activo 
+        user.save()
+        estado = "habilitado" if user.esta_activo else "inhabilitado"
+        return JsonResponse({'success': True, 'mensaje': f'Usuario {estado} correctamente.'})
+
+@login_required
+def resetear_clave_usuario(request, username):
+    if request.method == 'POST':
+        user = get_object_or_404(Usuario, nombre_usuario=username)
+        nueva_clave = generar_clave_robusta(12)
+        
+        user.set_password(nueva_clave)
+        user.requiere_cambio_clave = True
+        user.save()
+        
+        return JsonResponse({
+            'success': True, 
+            'clave': nueva_clave,
+            'mensaje': f'La clave de {username} ha sido reseteada.'
+        })
+
+@login_required
+def editar_usuario_view(request, username):
+    user_editar = get_object_or_404(Usuario, nombre_usuario=username)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_editar.is_superuser = True
+            user_editar.is_staff = data.get('is_staff', True)
+            user_editar.save()
+            return JsonResponse({'success': True, 'mensaje': 'Permisos actualizados correctamente.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+    return render(request, 'seguridad/editar_usuario.html', {'user_editar': user_editar})
+
+# --- VISTA DE CAMBIO DE CLAVE OBLIGATORIO ---
+@login_required
+def cambiar_clave_obligatorio_view(request):
+    if not request.user.requiere_cambio_clave:
+        return redirect('inicio')
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nueva_clave = data.get('nueva_clave')
+            caracteres_especiales = "!@#$%&*+-=." 
+
+            if (len(nueva_clave) < 8 or 
+                not any(c.isdigit() for c in nueva_clave) or 
+                not any(c.isupper() or c == 'Ñ' for c in nueva_clave) or
+                not any(c.islower() or c == 'ñ' for c in nueva_clave) or
+                not any(c in caracteres_especiales for c in nueva_clave)):
+                
+                return JsonResponse({
+                    'success': False, 
+                    'mensaje': 'La clave no cumple con los requisitos de seguridad.'
+                })
+
+            request.user.set_password(nueva_clave)
+            request.user.requiere_cambio_clave = False
+            request.user.save()
+            
+            update_session_auth_hash(request, request.user)
+
+            return JsonResponse({'success': True, 'mensaje': '¡Contraseña actualizada!'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
+
+    return render(request, 'seguridad/cambiar_clave.html')
+
+# --- SUBMÓDULO DE ROLES ---
+@login_required
+def crear_rol_view(request):
+    """Esta es la función que faltaba para cargar el modal de crear rol"""
+    return render(request, 'seguridad/crear_rol.html')
+
+@login_required
+def listar_roles(request):
+    # Traemos todos los roles de tu tabla 'roles'
+    roles = Rol.objects.all().order_by('id')
+    return render(request, 'seguridad/listar_roles.html', {'roles': roles})
+
+@login_required
+def guardar_rol(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nombre = data.get('nombre_rol')
+            descripcion = data.get('descripcion')
+
+            if Rol.objects.filter(nombre_rol=nombre).exists():
+                return JsonResponse({'success': False, 'mensaje': 'Este nombre de rol ya existe.'})
+
+            nuevo_rol = Rol.objects.create(
+                nombre_rol=nombre,
+                descripcion=descripcion,
+                creado_por=request.user.id # Auditoría automática
+            )
+            
+            return JsonResponse({'success': True, 'mensaje': f'Rol "{nombre}" creado exitosamente.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': str(e)})
+
+@login_required
+def editar_rol_view(request, rol_id):
+    rol = get_object_or_404(Rol, id=rol_id)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            rol.nombre_rol = data.get('nombre_rol')
+            rol.descripcion = data.get('descripcion')
+            rol.actualizado_por = request.user.id
+            rol.save()
+            return JsonResponse({'success': True, 'mensaje': 'Rol actualizado correctamente.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': str(e)})
+            
+    return render(request, 'seguridad/editar_rol.html', {'rol': rol})
+
+def listar_permisos(request):
+    permisos = PermisoSis.objects.all().order_by('-fecha_creacion')
+    return render(request, 'seguridad/listar_permisos.html', {'permisos': permisos})
+
+# Vista para el formulario de creación (Página aparte)
+def crear_permiso(request):
+    return render(request, 'seguridad/crear_permiso.html')
+
+# Guardar Permiso (AJAX)
+def guardar_permiso(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nombre = data.get('nombre_permiso')
+            descripcion = data.get('descripcion')
+
+            if PermisoSis.objects.filter(nombre_permiso=nombre).exists():
+                return JsonResponse({'success': False, 'mensaje': 'Este permiso ya existe.'})
+
+            nuevo_permiso = PermisoSis.objects.create(
+                nombre_permiso=nombre,
+                descripcion=descripcion,
+                creado_por=request.user.id # Si usas autenticación
+            )
+
+            return JsonResponse({
+                'success': True, 
+                'mensaje': f'Permiso "{nuevo_permiso.nombre_permiso}" registrado con éxito.'
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': str(e)})
+    return JsonResponse({'success': False, 'mensaje': 'Método no permitido.'})
+
+# 1. VISTA PARA RENDERIZAR EL FORMULARIO
+def crear_permiso(request):
+    return render(request, 'seguridad/crear_permiso.html')
+
+# 2. FUNCIÓN PARA GUARDAR EL PERMISO (POR AJAX)
+def guardar_permiso(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nombre = data.get('nombre_permiso').strip().lower().replace(" ", "_") # Limpiamos el nombre
+            descripcion = data.get('descripcion')
+
+            # Validación: Evitar duplicados
+            if PermisoSis.objects.filter(nombre_permiso=nombre).exists():
+                return JsonResponse({'success': False, 'mensaje': f'El permiso "{nombre}" ya existe.'})
+
+            # Creamos el registro
+            PermisoSis.objects.create(
+                nombre_permiso=nombre,
+                descripcion=descripcion,
+                creado_por=request.user.id if request.user.is_authenticated else None
+            )
+            return JsonResponse({'success': True, 'mensaje': 'Permiso creado exitosamente.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': str(e)})
+    return JsonResponse({'success': False, 'mensaje': 'Método no permitido'})
+
+# 3. FUNCIÓN PARA EDITAR (CARGAR DATOS Y GUARDAR)
+def editar_permiso(request, pk):
+    permiso = get_object_or_404(PermisoSis, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            permiso.descripcion = data.get('descripcion')
+            permiso.esta_activo = data.get('esta_activo')
+            permiso.actualizado_por = request.user.id if request.user.is_authenticated else None
+            permiso.save()
+            return JsonResponse({'success': True, 'mensaje': 'Permiso actualizado.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'mensaje': str(e)})
+            
+    return render(request, 'seguridad/editar_permiso.html', {'permiso': permiso})
+
+trabajadores/models.py
+from django.db import models
+from configuracion.models import (
+    TipoDocIdentificacion, Sexo, EstadoCivil, 
+    Estado, Municipio, Parroquia, Direccion, TipoContacto,
+    TiposVivienda, CondicionesVivienda, CentroVotacion,
+    TipoDiscapacidad, TipoPatologia, NivelesFormacion, 
+    EstatusFormacion, UnidadesOrganizativas, CargosGenerico, 
+    CargosEstructural, TiposTrabajadore, EstatusTrabajadore,
+    Parentesco, TipoRecaudo, TallasDotaciones,
+    TipoFormacion, Modalidad 
+)
+
+# ==============================================================================
+# MÓDULO DE IDENTIDAD (LA PERSONA) - PASO 1
+# ==============================================================================
+
+class Persona(models.Model):
+    tipo_doc_identificacion = models.ForeignKey(TipoDocIdentificacion, on_delete=models.PROTECT, db_column='tipo_doc_identificacion_id')
+    cedula = models.CharField(max_length=20, unique=True)
+    
+    # 🌟 CAMPOS NUEVOS DE IDENTIDAD 🌟
+    rif = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    fecha_vencimiento_cedula = models.DateField(null=True, blank=True)
+    fecha_vencimiento_rif = models.DateField(null=True, blank=True)
+    
+    primer_nombre = models.CharField(max_length=50)
+    segundo_nombre = models.CharField(max_length=50, null=True, blank=True)
+    primer_apellido = models.CharField(max_length=50)
+    segundo_apellido = models.CharField(max_length=50, null=True, blank=True)
+    es_naturalizado = models.BooleanField(default=False)
+    nro_gaceta = models.CharField(max_length=50, null=True, blank=True)
+    fecha_gaceta = models.DateField(null=True, blank=True)
+    fecha_nacimiento = models.DateField()
+    lugar_nacimiento = models.CharField(max_length=150, null=True, blank=True)
+    sexo = models.ForeignKey(Sexo, on_delete=models.PROTECT, db_column='sexo_id')
+    estado_civil = models.ForeignKey(EstadoCivil, on_delete=models.PROTECT, db_column='estado_civil_id')
+    
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'personas'
+        managed = False
+
+    def __str__(self):
+        return f"{self.primer_nombre} {self.primer_apellido} ({self.cedula})"
+
+
+# ==============================================================================
+# MÓDULO DE UBICACIÓN Y VIVIENDA - PASO 2
+# ==============================================================================
+
+class PersonaDireccion(models.Model):
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE, db_column='persona_id')
+    direccion = models.ForeignKey(Direccion, on_delete=models.CASCADE, db_column='direccion_id')
+    es_principal = models.BooleanField(default=False)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'personas_direcciones'
+        managed = False
+
+# Busca la clase Vivienda y déjala así:
+class Vivienda(models.Model):
+    direccion = models.ForeignKey(Direccion, on_delete=models.CASCADE, db_column='direccion_id')
+    tipo_vivienda = models.ForeignKey(TiposVivienda, on_delete=models.PROTECT, db_column='tipo_vivienda_id')
+    # AGREGA ESTA LÍNEA QUE FALTA:
+    condicion_vivienda = models.ForeignKey(CondicionesVivienda, on_delete=models.PROTECT, db_column='condicion_vivienda_id')
+    
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'viviendas'
+        managed = False
+
+class PersonaVivienda(models.Model):
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE, db_column='persona_id')
+    vivienda = models.ForeignKey(Vivienda, on_delete=models.CASCADE, db_column='vivienda_id')
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'personas_viviendas'
+        managed = False
+
+class DatosElectorales(models.Model):
+    persona = models.OneToOneField(Persona, on_delete=models.CASCADE, db_column='persona_id')
+    centro_votacion = models.ForeignKey(CentroVotacion, on_delete=models.PROTECT, db_column='centro_votacion_id')
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'datos_electorales'
+        managed = False
+
+
+# ==============================================================================
+# MÓDULO DE CONTACTOS - PASO 3
+# ==============================================================================
+
+class ContactoPersonal(models.Model):
+    tipo_contacto = models.ForeignKey(TipoContacto, on_delete=models.PROTECT, db_column='tipo_contacto_id')
+    valor_contacto = models.CharField(max_length=150, unique=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'contactos_personales'
+        managed = False
+
+class PersonaContactoPersonal(models.Model):
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE, db_column='persona_id')
+    contacto_personal = models.ForeignKey(ContactoPersonal, on_delete=models.CASCADE, db_column='contacto_personal_id')
+    es_principal = models.BooleanField(default=False)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'personas_contactos_personales'
+        managed = False
+
+class ContactoEmergencia(models.Model):
+    primer_nombre = models.CharField(max_length=50)
+    segundo_nombre = models.CharField(max_length=50, null=True, blank=True)
+    primer_apellido = models.CharField(max_length=50)
+    segundo_apellido = models.CharField(max_length=50, null=True, blank=True)
+    telefono = models.CharField(max_length=50)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'contactos_emergencia'
+        managed = False
+
+class PersonaContactoEmergencia(models.Model):
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE, db_column='persona_id')
+    contacto_emergencia = models.ForeignKey(ContactoEmergencia, on_delete=models.CASCADE, db_column='contacto_emergencia_id')
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'personas_contactos_emergencia'
+        managed = False
+
+
+# ==============================================================================
+# MÓDULO DE FORMACIÓN - PASOS 4 Y 5
+# ==============================================================================
+
+class FormacionAcademica(models.Model):
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE, db_column='persona_id')
+    nivel_formacion = models.ForeignKey(NivelesFormacion, on_delete=models.PROTECT, db_column='nivel_formacion_id')
+    estatus_formacion = models.ForeignKey(EstatusFormacion, on_delete=models.PROTECT, db_column='estatus_formacion_id')
+    institucion = models.CharField(max_length=150)
+    especialidad = models.CharField(max_length=150, null=True, blank=True)
+    fecha_inicio = models.DateField(null=True, blank=True)
+    fecha_fin = models.DateField(null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'formaciones_academicas'
+        managed = False
+
+# Nota: Si no las tienes importadas arriba, asegúrate de importar las tablas catálogo
+# from configuracion.models import TipoFormacion, Modalidad
+
+class FormacionAdicional(models.Model):
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE, db_column='persona_id')
+    
+    # 🌟 AQUI ESTÁN LAS DOS RELACIONES NUEVAS 🌟
+    tipo_formacion = models.ForeignKey('configuracion.TipoFormacion', on_delete=models.PROTECT, db_column='tipo_formacion_id', null=True, blank=True)
+    modalidad = models.ForeignKey('configuracion.Modalidad', on_delete=models.PROTECT, db_column='modalidad_id', null=True, blank=True)
+    
+    # El resto de tus campos intactos
+    nombre_formacion_ad = models.CharField(max_length=150)
+    institucion = models.CharField(max_length=150)
+    duracion_horas = models.IntegerField(null=True, blank=True)
+    fecha_culminacion = models.DateField(null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'formaciones_adicionales'
+        managed = False
+
+
+# ==============================================================================
+# MÓDULO DE SALUD - PASO 6
+# ==============================================================================
+
+class PersonaSalud(models.Model):
+    persona = models.OneToOneField(Persona, on_delete=models.CASCADE, db_column='persona_id')
+    tipo_discapacidad = models.ForeignKey(TipoDiscapacidad, on_delete=models.PROTECT, db_column='tipo_discapacidad_id', null=True, blank=True)
+    nro_conapdis = models.CharField(max_length=50, null=True, blank=True)
+    tipo_sangre = models.CharField(max_length=5, null=True, blank=True)
+    alergias = models.TextField(null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'personas_salud'
+        managed = False
+
+class PersonaPatologia(models.Model):
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE, db_column='persona_id')
+    tipo_patologia = models.ForeignKey(TipoPatologia, on_delete=models.PROTECT, db_column='tipo_patologia_id')
+    descripcion_adicional = models.TextField(null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'personas_patologias'
+        managed = False
+
+
+# ==============================================================================
+# MÓDULO DE CARGA FAMILIAR - PASO 7
+# ==============================================================================
+
+class CargaFamiliar(models.Model):
+    cedula = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    primer_nombre = models.CharField(max_length=50)
+    segundo_nombre = models.CharField(max_length=50, null=True, blank=True)
+    primer_apellido = models.CharField(max_length=50)
+    segundo_apellido = models.CharField(max_length=50, null=True, blank=True)
+    sexo = models.ForeignKey(Sexo, on_delete=models.PROTECT, db_column='sexo_id')
+    fecha_nacimiento = models.DateField()
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'cargas_familiares'
+        managed = False
+
+class PersonaCargaFamiliar(models.Model):
+    persona = models.ForeignKey(Persona, on_delete=models.CASCADE, db_column='persona_id')
+    carga_familiar = models.ForeignKey(CargaFamiliar, on_delete=models.CASCADE, db_column='carga_familiar_id')
+    parentesco = models.ForeignKey(Parentesco, on_delete=models.PROTECT, db_column='parentesco_id')
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'personas_cargas_familiares'
+        managed = False
+
+
+# ==============================================================================
+# MÓDULO LABORAL (EL TRABAJADOR) - PASO 8
+# ==============================================================================
+
+# ==============================================================================
+# MÓDULO LABORAL (EL TRABAJADOR) - PASO 8
+# ==============================================================================
+
+class Trabajador(models.Model):
+    persona = models.OneToOneField('Persona', on_delete=models.CASCADE, db_column='persona_id')
+    
+    # Ubicación y Clasificación
+    sede = models.ForeignKey('configuracion.Sede', on_delete=models.PROTECT, db_column='sede_id')
+    nivel_jerarquico = models.ForeignKey('configuracion.NivelJerarquico', on_delete=models.PROTECT, db_column='nivel_jerarquico_id')
+    unidad_org = models.ForeignKey('configuracion.UnidadesOrganizativas', on_delete=models.PROTECT, db_column='unidad_org_id')
+    tipo_trabajador = models.ForeignKey('configuracion.TiposTrabajadore', on_delete=models.PROTECT, db_column='tipo_trabajador_id')
+    categoria = models.ForeignKey('configuracion.CategoriaPersonal', on_delete=models.PROTECT, db_column='categoria_id')
+    cargo_generico = models.ForeignKey('configuracion.CargosGenerico', on_delete=models.PROTECT, db_column='cargo_generico_id')
+    cargo_estructural = models.ForeignKey('configuracion.CargosEstructural', on_delete=models.PROTECT, db_column='cargo_estructural_id')
+    
+    codigo_nomina = models.CharField(max_length=50, unique=True)
+    fecha_ingreso_inst = models.DateField()
+    
+    # 🌟 CONTROL DE FASES SACAT 🌟
+    fase_actual = models.IntegerField(default=1) # 1: Registro Inicial (RRHH), 2: Completación (Trabajador)
+    registro_completado = models.BooleanField(default=False)
+
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'trabajadores'
+        managed = False
+
+    def __str__(self):
+        return f"{self.persona.primer_nombre} {self.persona.primer_apellido} - {self.codigo_nomina}"
+
+class ExperienciaPrevia(models.Model):
+    trabajador = models.ForeignKey(Trabajador, on_delete=models.CASCADE, db_column='trabajador_id')
+    empresa = models.CharField(max_length=150)
+    cargo = models.CharField(max_length=100)
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField(null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'experiencias_previas'
+        managed = False
+
+class Dotacion(models.Model):
+    trabajador = models.ForeignKey(Trabajador, on_delete=models.CASCADE, db_column='trabajador_id')
+    talla_dotacion = models.ForeignKey(TallasDotaciones, on_delete=models.PROTECT, db_column='talla_dotacion_id')
+    fecha_entrega = models.DateField()
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'dotaciones'
+        managed = False
+
+class ContactoInstitucional(models.Model):
+    trabajador = models.ForeignKey(Trabajador, on_delete=models.CASCADE, db_column='trabajador_id')
+    correo_corp = models.EmailField(max_length=150, null=True, blank=True)
+    ext_oficina = models.CharField(max_length=20, null=True, blank=True)
+    telefono_corp = models.CharField(max_length=50, null=True, blank=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'contactos_institucionales'
+        managed = False
+
+
+# ==============================================================================
+# MÓDULO DE RECAUDOS Y AUDITORÍA - PASO 9
+# ==============================================================================
+
+class Recaudo(models.Model):
+    trabajador = models.ForeignKey(Trabajador, on_delete=models.CASCADE, db_column='trabajador_id')
+    tipo_recaudo = models.ForeignKey(TipoRecaudo, on_delete=models.PROTECT, db_column='tipo_recaudo_id')
+    ruta_archivo = models.CharField(max_length=255) # Aquí guardamos la ruta del archivo
+    
+    # 🌟 NUEVOS CAMPOS PARA ALERTAS 🌟
+    fecha_vencimiento = models.DateField(null=True, blank=True)
+    observaciones = models.TextField(null=True, blank=True)
+    
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'recaudos'
+        managed = False
+
+class Auditoria(models.Model):
+    usuario_id = models.IntegerField() # Referencia manual al ID de la tabla usuarios
+    accion = models.CharField(max_length=50)
+    tabla_afectada = models.CharField(max_length=100)
+    registro_id = models.IntegerField(null=True, blank=True)
+    ip_conexion = models.CharField(max_length=45, null=True, blank=True)
+    fecha_hora = models.DateTimeField(auto_now_add=True)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'auditorias'
+        managed = False
+
+trabajadores/views.py
+# =============================================================
+# 1. IMPORTACIONES DE LIBRERÍAS ESTÁNDAR Y TERCEROS
+# =============================================================
+import json
+import base64
+import os
+import string
+import random
+import secrets
+from io import BytesIO
+from datetime import date
+
+import qrcode
+from xhtml2pdf import pisa
+
+# =============================================================
+# 2. IMPORTACIONES DEL NÚCLEO DE DJANGO
+# =============================================================
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse, HttpResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.db import transaction
+from django.urls import reverse
+from django.core.mail import send_mail
+from django.conf import settings
+from django.template.loader import get_template
+from django.contrib.auth.models import User # Por si lo usas para alguna validación extra
+
+# =============================================================
+# 3. SEGURIDAD Y LÓGICA PERSONALIZADA (TU FUNCIÓN ROBUSTA)
+# =============================================================
+from seguridad.views import generar_clave_robusta
+
+# =============================================================
+# 4. MODELOS DEL SISTEMA (USANDO WILDCARD * PARA EFICIENCIA)
+# =============================================================
+# Nota: Al usar *, traemos todas las clases de una vez.
+from configuracion.models import *
+from seguridad.models import *
+from .models import * # Estos son los modelos de la app 'trabajadores'
+
+# --- PASO 1: DATOS PERSONALES ---
+@login_required
+def registro_paso1(request):
+    if 'registro_persona_id' in request.session:
+        del request.session['registro_persona_id']
+    
+    contexto = {
+        'tipos_docs': TipoDocIdentificacion.objects.filter(
+            esta_activo=True, 
+            sigla__in=['V', 'E', 'P']
+        ).order_by('sigla'),
+        'sexos': Sexo.objects.filter(esta_activo=True).order_by('descripcion'),
+        'estados_civiles': EstadoCivil.objects.filter(esta_activo=True).order_by('descripcion'),
+    }
+    return render(request, 'registro/datos_personales.html', contexto)
+
+@login_required
+@require_POST
+def guardar_paso1(request):
+    try:
+        cedula = request.POST.get('cedula', '').strip()
+        fecha_nac_str = request.POST.get('fecha_nacimiento')
+        
+        if not fecha_nac_str:
+            return JsonResponse({'success': False, 'error': 'La fecha de nacimiento es obligatoria.'})
+            
+        fecha_nacimiento = date.fromisoformat(fecha_nac_str)
+        hoy = date.today()
+        edad = hoy.year - fecha_nacimiento.year - ((hoy.month, hoy.day) < (fecha_nacimiento.month, fecha_nacimiento.day))
+        
+        if edad < 16:
+            return JsonResponse({'success': False, 'error': f'El aspirante es menor de edad ({edad} años).'})
+
+        if Persona.objects.filter(cedula=cedula).exists():
+            return JsonResponse({'success': False, 'error': f'La cédula {cedula} ya está registrada.'})
+
+        with transaction.atomic():
+            nueva_persona = Persona.objects.create(
+                tipo_doc_identificacion_id = request.POST.get('tipo_doc'),
+                cedula = cedula,
+                primer_nombre = request.POST.get('nombre1', '').strip().upper(),
+                segundo_nombre = request.POST.get('nombre2', '').strip().upper() or None,
+                primer_apellido = request.POST.get('apellido1', '').strip().upper(),
+                segundo_apellido = request.POST.get('apellido2', '').strip().upper() or None,
+                fecha_nacimiento = fecha_nacimiento,
+                lugar_nacimiento = request.POST.get('lugar_nacimiento', '').strip().upper(),
+                sexo_id = request.POST.get('sexo'),
+                estado_civil_id = request.POST.get('estado_civil'),
+                es_naturalizado = 'es_naturalizado' in request.POST,
+                nro_gaceta = request.POST.get('nro_gaceta', '').strip().upper() or None,
+                fecha_gaceta = request.POST.get('fecha_gaceta') or None,
+                creado_por = request.user.id,
+                actualizado_por = request.user.id
+            )
+        
+        request.session['registro_persona_id'] = nueva_persona.id
+        return JsonResponse({'success': True, 'next_url': reverse('registro_paso2')})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+# --- PASO 2: UBICACIÓN Y ELECTORAL ---
+@login_required
+def registro_paso2(request):
+    if 'registro_persona_id' not in request.session: return redirect('registro_paso1')
+    contexto = {
+        'estados': Estado.objects.filter(esta_activo=True).order_by('nombre_estado'),
+        'tipos_viviendas': TiposVivienda.objects.filter(esta_activo=True).order_by('descripcion'),
+        'condiciones': CondicionesVivienda.objects.filter(esta_activo=True).order_by('descripcion'),
+    }
+    return render(request, 'registro/ubicacion_vivienda_centrov.html', contexto)
+
+@login_required
+@require_POST
+def guardar_paso2(request):
+    try:
+        persona_id = request.session.get('registro_persona_id')
+        user_id = request.user.id
+        
+        with transaction.atomic():
+            nueva_dir = Direccion.objects.create(
+                parroquia_id = request.POST.get('parroquia'),
+                direccion_exacta = request.POST.get('direccion_exacta', '').strip().upper(),
+                creado_por = user_id
+            )
+            PersonaDireccion.objects.create(persona_id=persona_id, direccion_id=nueva_dir.id, es_principal=True, creado_por=user_id)
+
+            nueva_v = Vivienda.objects.create(
+                direccion_id = nueva_dir.id,
+                tipo_vivienda_id = request.POST.get('tipo_vivienda'),
+                condicion_vivienda_id = request.POST.get('condicion_vivienda'),
+                creado_por = user_id
+            )
+            PersonaVivienda.objects.create(persona_id=persona_id, vivienda_id=nueva_v.id, creado_por=user_id)
+
+            centro_id = request.POST.get('centro_votacion_id')
+            if centro_id:
+                DatosElectorales.objects.update_or_create(
+                    persona_id=persona_id,
+                    defaults={'centro_votacion_id': centro_id, 'creado_por': user_id, 'actualizado_por': user_id}
+                )
+
+        return JsonResponse({'success': True, 'next_url': reverse('registro_paso3')})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+# --- PASO 3: CONTACTOS ---
+@login_required
+def registro_paso3(request):
+    if 'registro_persona_id' not in request.session: 
+        return redirect('registro_paso1')
+        
+    persona_id = request.session.get('registro_persona_id')
+    
+    # 🔍 PERSISTENCIA: Buscamos contactos y emergencias registrados
+    contactos_existentes = PersonaContactoPersonal.objects.filter(
+        persona_id=persona_id
+    ).select_related('contacto_personal', 'contacto_personal__tipo_contacto')
+    
+    emergencias_existentes = PersonaContactoEmergencia.objects.filter(
+        persona_id=persona_id
+    ).select_related('contacto_emergencia')
+
+    contexto = { 
+        'tipos_contactos': TipoContacto.objects.filter(esta_activo=True).order_by('descripcion'),
+        'contactos_existentes': contactos_existentes,
+        'emergencias_existentes': emergencias_existentes,
+    }
+    return render(request, 'registro/contactos.html', contexto)
+
+@login_required
+@require_POST
+def guardar_paso3(request):
+    try:
+        persona_id = request.session.get('registro_persona_id')
+        user_id = request.user.id
+        
+        # Capturamos los índices de los contactos marcados como principales
+        indices_principales = json.loads(request.POST.get('indices_principales', '[]'))
+
+        with transaction.atomic():
+            # 🧹 LIMPIEZA: Borramos los vínculos anteriores de esta persona
+            PersonaContactoPersonal.objects.filter(persona_id=persona_id).delete()
+            PersonaContactoEmergencia.objects.filter(persona_id=persona_id).delete()
+
+            # --- 1. GUARDAR CONTACTOS PERSONALES ---
+            tipos_p = request.POST.getlist('tipo_contacto[]')
+            valores_p = request.POST.getlist('valor_contacto[]')
+            
+            for i, (t, v) in enumerate(zip(tipos_p, valores_p)):
+                if t and v:
+                    valor_limpio = v.strip().lower()
+                    
+                    # 🚀 LÓGICA ANTIDUPLICADOS:
+                    # Usamos update_or_create para que si el valor (teléfono/correo) ya existe,
+                    # solo actualice el tipo o el rastro de auditoría, en lugar de intentar crearlo de nuevo.
+                    c_personal, created = ContactoPersonal.objects.update_or_create(
+                        valor_contacto=valor_limpio,
+                        defaults={
+                            'tipo_contacto_id': t,
+                            'actualizado_por': user_id
+                        }
+                    )
+                    
+                    # 🔗 Creamos el vínculo con el trabajador
+                    PersonaContactoPersonal.objects.create(
+                        persona_id=persona_id,
+                        contacto_personal_id=c_personal.id,
+                        es_principal=(i in indices_principales),
+                        creado_por=user_id
+                    )
+
+            # --- 2. GUARDAR CONTACTOS DE EMERGENCIA ---
+            # (Aquí aplicamos lo mismo por seguridad, aunque suelen ser únicos por persona)
+            nombres_e = request.POST.getlist('e_nombre[]')
+            apellidos_e = request.POST.getlist('e_apellido[]')
+            telefonos_e = request.POST.getlist('e_telefono[]')
+            
+            for n, a, tel in zip(nombres_e, apellidos_e, telefonos_e):
+                if n and tel:
+                    # Creamos el contacto de emergencia
+                    c_emergencia = ContactoEmergencia.objects.create(
+                        primer_nombre=n.strip().upper(),
+                        primer_apellido=a.strip().upper(),
+                        telefono=tel.strip(),
+                        creado_por=user_id
+                    )
+                    # Vinculamos
+                    PersonaContactoEmergencia.objects.create(
+                        persona_id=persona_id,
+                        contacto_emergencia_id=c_emergencia.id,
+                        creado_por=user_id
+                    )
+
+        return JsonResponse({'success': True, 'next_url': reverse('registro_paso4')})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+# --- PASO 4: FORMACIÓN ACADÉMICA ---
+@login_required
+def registro_paso4(request):
+    if 'registro_persona_id' not in request.session: 
+        return redirect('registro_paso1')
+    
+    persona_id = request.session.get('registro_persona_id')
+    
+    # 🔍 PERSISTENCIA: Buscamos estudios ya registrados
+    academicos_existentes = FormacionAcademica.objects.filter(
+        persona_id=persona_id,
+        esta_activo=True
+    ).select_related('nivel_formacion', 'estatus_formacion')
+
+    contexto = {
+        'niveles': NivelesFormacion.objects.filter(esta_activo=True).order_by('id'),
+        'estatus': EstatusFormacion.objects.filter(esta_activo=True).order_by('id'),
+        'academicos_existentes': academicos_existentes, # <--- Enviamos a la bandeja
+    }
+    return render(request, 'registro/formacion.html', contexto)
+
+@login_required
+@require_POST
+def guardar_paso4(request):
+    try:
+        persona_id = request.session.get('registro_persona_id')
+        user_id = request.user.id
+        
+        niveles = request.POST.getlist('nivel_id[]')
+        instituciones = request.POST.getlist('institucion[]')
+        estatus_ids = request.POST.getlist('estatus_id[]')
+        especialidades = request.POST.getlist('especialidad[]')
+        fechas_inicio = request.POST.getlist('fecha_inicio[]')
+        fechas_fin = request.POST.getlist('fecha_fin[]')
+
+        posee_formacion_adicional = request.POST.get('ir_a_cursos') == 'true'
+
+        with transaction.atomic():
+            # 🧹 LIMPIEZA: Borramos lo anterior para que la lista nueva sea la que mande
+            FormacionAcademica.objects.filter(persona_id=persona_id).delete()
+
+            for i in range(len(niveles)):
+                if niveles[i] and instituciones[i]:
+                    FormacionAcademica.objects.create(
+                        persona_id=persona_id, 
+                        nivel_formacion_id=niveles[i],
+                        estatus_formacion_id=estatus_ids[i],
+                        institucion=instituciones[i].strip().upper(),
+                        especialidad=especialidades[i].strip().upper() if especialidades[i] else None,
+                        fecha_inicio=fechas_inicio[i] if fechas_inicio[i] and fechas_inicio[i] != 'None' else None,
+                        fecha_fin=fechas_fin[i] if fechas_fin[i] and fechas_fin[i] != 'None' else None,
+                        creado_por=user_id,
+                        actualizado_por=user_id
+                    )
+
+        url_destino = reverse('registro_paso5') if posee_formacion_adicional else reverse('registro_paso6')
+        return JsonResponse({'success': True, 'next_url': url_destino})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+# --- PASO 5: ADIESTRAMIENTO ---
+@login_required
+def registro_paso5(request):
+    if 'registro_persona_id' not in request.session: 
+        return redirect('registro_paso1')
+    
+    persona_id = request.session.get('registro_persona_id')
+    
+    # 🔍 PERSISTENCIA: Buscamos cursos ya registrados para esta persona
+    cursos_guardados = FormacionAdicional.objects.filter(
+        persona_id=persona_id, 
+        esta_activo=True
+    ).select_related('tipo_formacion', 'modalidad')
+
+    contexto = {
+        'tipos_formaciones': TipoFormacion.objects.filter(esta_activo=True).order_by('id'),
+        'modalidades': Modalidad.objects.filter(esta_activo=True).order_by('id'),
+        'cursos_existentes': cursos_guardados, # <--- Enviamos la lista al HTML
+    }
+    return render(request, 'registro/adiestramiento.html', contexto)
+
+@login_required
+@require_POST
+def guardar_paso5(request):
+    try:
+        persona_id = request.session.get('registro_persona_id')
+        user_id = request.user.id
+        
+        # Capturamos las listas del HTML
+        tipos = request.POST.getlist('tipo_formacion_id[]')
+        nombres = request.POST.getlist('nombre_formacion_ad[]')
+        instituciones = request.POST.getlist('institucion[]')
+        modalidades = request.POST.getlist('modalidad_id[]')
+        horas = request.POST.getlist('duracion_horas[]')
+        fechas = request.POST.getlist('fecha_culminacion[]')
+
+        with transaction.atomic():
+            # 🧹 LIMPIEZA: Borramos las formaciones adicionales previas de esta persona
+            # para que la nueva lista sea la definitiva (evita duplicados al re-guardar)
+            FormacionAdicional.objects.filter(persona_id=persona_id).delete()
+
+            for i in range(len(nombres)):
+                if nombres[i] and instituciones[i] and tipos[i] and modalidades[i]:
+                    FormacionAdicional.objects.create(
+                        persona_id=persona_id, 
+                        tipo_formacion_id=tipos[i],
+                        modalidad_id=modalidades[i],
+                        nombre_formacion_ad=nombres[i].strip().upper(),
+                        institucion=instituciones[i].strip().upper(),
+                        duracion_horas=horas[i] if horas[i] and horas[i] != 'None' else None,
+                        fecha_culminacion=fechas[i] if fechas[i] and fechas[i] != 'None' else None,
+                        creado_por=user_id, 
+                        actualizado_por=user_id
+                    )
+
+        return JsonResponse({'success': True, 'next_url': reverse('registro_paso6')})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+# --- PASO 6: SALUD Y DISCAPACIDAD ---
+@login_required
+def registro_paso6(request):
+    if 'registro_persona_id' not in request.session: 
+        return redirect('registro_paso1')
+    
+    persona_id = request.session.get('registro_persona_id')
+    
+    # 🔍 PERSISTENCIA: Buscamos los datos que ya existen
+    salud_existente = PersonaSalud.objects.filter(persona_id=persona_id).first()
+    patologias_existentes = PersonaPatologia.objects.filter(persona_id=persona_id).select_related('tipo_patologia')
+
+    contexto = {
+        'discapacidades': TipoDiscapacidad.objects.filter(esta_activo=True).order_by('descripcion'),
+        'patologias': TipoPatologia.objects.filter(esta_activo=True).order_by('descripcion'),
+        'salud': salud_existente,  # Datos únicos: Sangre, Alergias, Discapacidad
+        'patologias_existentes': patologias_existentes, # Datos múltiples: Patologías
+    }
+    return render(request, 'registro/salud.html', contexto)
+
+@login_required
+@require_POST
+def guardar_paso6(request):
+    try:
+        persona_id = request.session.get('registro_persona_id')
+        user_id = request.user.id
+        
+        with transaction.atomic():
+            PersonaSalud.objects.update_or_create(
+                persona_id=persona_id,
+                defaults={
+                    'tipo_sangre': request.POST.get('tipo_sangre'),
+                    'nro_conapdis': request.POST.get('nro_conapdis', '').strip() or None,
+                    'alergias': request.POST.get('alergias', '').strip().upper() or None,
+                    'tipo_discapacidad_id': request.POST.get('discapacidad_id') or None,
+                    'creado_por': user_id, 'actualizado_por': user_id
+                }
+            )
+
+            patologias_ids = request.POST.getlist('patologia_id[]')
+            detalles = request.POST.getlist('patologia_detalle[]')
+            PersonaPatologia.objects.filter(persona_id=persona_id).delete()
+            for pid, det in zip(patologias_ids, detalles):
+                if pid:
+                    PersonaPatologia.objects.create(
+                        persona_id=persona_id, tipo_patologia_id=pid,
+                        descripcion_adicional=det.strip().upper() or None, creado_por=user_id
+                    )
+
+        return JsonResponse({'success': True, 'next_url': reverse('registro_paso7')})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+# --- PASO 7: CARGA FAMILIAR ---
+@login_required
+def registro_paso7(request):
+    if 'registro_persona_id' not in request.session: 
+        return redirect('registro_paso1')
+    
+    persona_id = request.session.get('registro_persona_id')
+    persona = get_object_or_404(Persona, id=persona_id)
+    
+    # 🔍 PERSISTENCIA: Buscamos familiares ya registrados para este trabajador
+    familiares_guardados = PersonaCargaFamiliar.objects.filter(
+        persona_id=persona_id, 
+        esta_activo=True
+    ).select_related('carga_familiar', 'parentesco')
+
+    # Filtro legal de parentescos según sexo del trabajador
+    sexo_trabajador = persona.sexo.descripcion.upper()
+    parentescos = Parentesco.objects.filter(esta_activo=True)
+    
+    if "FEMENINO" in sexo_trabajador:
+        parentescos = parentescos.exclude(descripcion__icontains='ESPOSA')
+    elif "MASCULINO" in sexo_trabajador:
+        parentescos = parentescos.exclude(descripcion__icontains='ESPOSO')
+
+    contexto = {
+        'parentescos': parentescos.order_by('descripcion'),
+        'sexos': Sexo.objects.filter(esta_activo=True).order_by('descripcion'),
+        'familiares_existentes': familiares_guardados, # <--- Enviamos la lista al HTML
+    }
+    return render(request, 'registro/carga_familiar.html', contexto)
+
+@login_required
+@require_POST
+def guardar_paso7(request):
+    try:
+        persona_id = request.session.get('registro_persona_id')
+        user_id = request.user.id
+        
+        # Capturamos las listas del formulario
+        nombres1 = request.POST.getlist('f_nombre1[]')
+        nombres2 = request.POST.getlist('f_nombre2[]')
+        apellidos1 = request.POST.getlist('f_apellido1[]')
+        apellidos2 = request.POST.getlist('f_apellido2[]')
+        parentescos_ids = request.POST.getlist('f_parentesco_id[]')
+        cedulas = request.POST.getlist('f_cedula[]')
+        fechas_nac = request.POST.getlist('f_nacimiento[]')
+        sexos_ids = request.POST.getlist('f_sexo[]')
+
+        unicos_legales = ['MADRE', 'PADRE', 'ESPOSO', 'ESPOSA', 'CONYUGE']
+        parentescos_enviados = []
+
+        with transaction.atomic():
+            # 🧹 LIMPIEZA: Borramos los VÍNCULOS anteriores de la persona.
+            # No borramos a los familiares de la tabla global, solo la relación con este trabajador.
+            from .models import PersonaCargaFamiliar, CargaFamiliar
+            PersonaCargaFamiliar.objects.filter(persona_id=persona_id).delete()
+            
+            for i in range(len(nombres1)):
+                if nombres1[i] and parentescos_ids[i]:
+                    cedula_val = cedulas[i].strip() if i < len(cedulas) and cedulas[i] else None
+                    
+                    # Validación de parentesco único (Lógica del 30-03)
+                    obj_p = Parentesco.objects.get(id=parentescos_ids[i])
+                    desc_p = obj_p.descripcion.upper()
+                    if desc_p in unicos_legales:
+                        if desc_p in parentescos_enviados:
+                            raise Exception(f"No puede registrar más de un(a) {desc_p}.")
+                        parentescos_enviados.append(desc_p)
+
+                    # 🚀 LÓGICA INTELIGENTE: Evitar el error de llave duplicada
+                    if cedula_val:
+                        # Si tiene cédula, usamos update_or_create para no chocar
+                        familiar, created = CargaFamiliar.objects.update_or_create(
+                            cedula=cedula_val,
+                            defaults={
+                                'primer_nombre': nombres1[i].strip().upper(),
+                                'segundo_nombre': nombres2[i].strip().upper() if i < len(nombres2) else None,
+                                'primer_apellido': apellidos1[i].strip().upper(),
+                                'segundo_apellido': apellidos2[i].strip().upper() if i < len(apellidos2) else None,
+                                'fecha_nacimiento': fechas_nac[i],
+                                'sexo_id': sexos_ids[i],
+                                'actualizado_por': user_id
+                            }
+                        )
+                    else:
+                        # Si es menor sin cédula, lo creamos directamente
+                        familiar = CargaFamiliar.objects.create(
+                            cedula=None,
+                            primer_nombre=nombres1[i].strip().upper(),
+                            segundo_nombre=nombres2[i].strip().upper() if i < len(nombres2) else None,
+                            primer_apellido=apellidos1[i].strip().upper(),
+                            segundo_apellido=apellidos2[i].strip().upper() if i < len(apellidos2) else None,
+                            fecha_nacimiento=fechas_nac[i],
+                            sexo_id=sexos_ids[i],
+                            creado_por=user_id
+                        )
+                    
+                    # 🔗 Creamos el nuevo vínculo con el trabajador
+                    PersonaCargaFamiliar.objects.create(
+                        persona_id=persona_id,
+                        carga_familiar_id=familiar.id,
+                        parentesco_id=parentescos_ids[i],
+                        creado_por=user_id
+                    )
+
+        return JsonResponse({'success': True, 'next_url': reverse('registro_paso8')})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+# --- PASO 8: DATOS LABORALES ---
+@login_required
+def registro_paso8(request):
+    if 'registro_persona_id' not in request.session: 
+        return redirect('registro_paso1')
+    
+    persona_id = request.session.get('registro_persona_id')
+    
+    # 🔍 PERSISTENCIA: Buscamos si el trabajador ya tiene datos registrados
+    laboral_existente = Trabajador.objects.filter(persona_id=persona_id).first()
+
+    contexto = {
+        # Catálogos de Estructura (Nombres corregidos a singular según models.py)
+        'sedes': Sede.objects.filter(esta_activo=True).order_by('nombre_sede'),
+        'unidades': UnidadesOrganizativas.objects.filter(esta_activo=True).select_related('tipo_unidad').order_by('nombre_unidad'),
+        'niveles_jer': NivelJerarquico.objects.filter(esta_activo=True).order_by('id'),
+        
+        # Catálogos Contractuales (Sincronizados con tus modelos)
+        'categorias': CategoriaPersonal.objects.filter(esta_activo=True).order_by('id'),
+        'tipos_trab': TiposTrabajadore.objects.filter(esta_activo=True).order_by('id'),
+        'cargos_gen': CargosGenerico.objects.filter(esta_activo=True).order_by('nombre_cargo'),
+        'cargos_est': CargosEstructural.objects.filter(esta_activo=True).order_by('nombre_cargo_estruct'),
+        
+        # Objeto para persistencia en el formulario
+        'laboral': laboral_existente,
+    }
+    return render(request, 'registro/datos_laborales.html', contexto)
+
+@login_required
+@require_POST
+def guardar_paso8(request):
+    try:
+        persona_id = request.session.get('registro_persona_id')
+        user_id = request.user.id
+        
+        # Extraemos y limpiamos el código de nómina
+        cod_nomina = request.POST.get('codigo_nomina', '').strip().upper()
+
+        with transaction.atomic():
+            # 🚀 update_or_create: Si ya existe la persona en Trabajadores, actualiza.
+            # Si no, crea el registro nuevo.
+            Trabajador.objects.update_or_create(
+                persona_id=persona_id,
+                defaults={
+                    'sede_id': request.POST.get('sede_id'),
+                    'unidad_org_id': request.POST.get('unidad_id'),
+                    'nivel_jerarquico_id': request.POST.get('nivel_id'),
+                    'tipo_trabajador_id': request.POST.get('tipo_trabajador_id'),
+                    'categoria_id': request.POST.get('categoria_id'),
+                    'cargo_generico_id': request.POST.get('cargo_gen_id'),
+                    'cargo_estructural_id': request.POST.get('cargo_est_id'),
+                    'codigo_nomina': cod_nomina,
+                    'fecha_ingreso_inst': request.POST.get('fecha_ingreso'),
+                    'actualizado_por': user_id,
+                }
+            )
+            
+        return JsonResponse({'success': True, 'next_url': reverse('registro_paso9')})
+        
+    except Exception as e:
+        # Manejo de error por si el código de nómina ya existe (llave única en DB)
+        error_msg = str(e)
+        if "codigo_nomina" in error_msg.lower():
+            error_msg = "El código de nómina ingresado ya pertenece a otro trabajador."
+        return JsonResponse({'success': False, 'error': error_msg})
+
+def get_unidades_por_nivel(request):
+    nivel_id = request.GET.get('nivel_id')
+    # Traemos las unidades que pertenecen al nivel, 
+    # ordenadas alfabéticamente para que el usuario las encuentre rápido.
+    unidades = UnidadesOrganizativas.objects.filter(
+        nivel_jerarquico_id=nivel_id, 
+        esta_activo=True
+    ).values('id', 'nombre_unidad')
+    
+    return JsonResponse(list(unidades), safe=False)
+
+# --- PASO 9: CREDENCIALES Y FINALIZACIÓN ---
+@login_required
+def registro_paso9(request):
+    if 'registro_persona_id' not in request.session: 
+        return redirect('registro_paso1')
+    
+    persona = get_object_or_404(Persona, id=request.session['registro_persona_id'])
+    
+    # BUSQUEDA EXACTA: Tipo que contenga 'CORREO' y que sea PRINCIPAL
+    correo_obj = PersonaContactoPersonal.objects.filter(
+        persona=persona, 
+        es_principal=True, 
+        contacto_personal__tipo_contacto__descripcion__icontains='CORREO'
+    ).select_related('contacto_personal').first()
+    
+    # Si no hay principal, buscamos cualquier correo de esa persona
+    if not correo_obj:
+        correo_obj = PersonaContactoPersonal.objects.filter(
+            persona=persona, 
+            contacto_personal__tipo_contacto__descripcion__icontains='CORREO'
+        ).select_related('contacto_personal').first()
+
+    correo_electronico = correo_obj.contacto_personal.valor_contacto if correo_obj else "Sin correo registrado"
+    
+    # Generamos la clave aquí para mostrarla en el HTML y tenerla lista
+    # Ejemplo: J12345678* (Inicial + Cédula + *)
+    password_generada = f"{persona.primer_nombre[0].upper()}{persona.cedula}*"
+    
+    contexto = {
+        'persona': persona, 
+        'correo': correo_electronico,
+        'password_generada': password_generada
+    }
+    
+    return render(request, 'registro/finalizar.html', contexto)
+
+@login_required
+def registro_paso9(request):
+    if 'registro_persona_id' not in request.session: 
+        return redirect('registro_paso1')
+    
+    persona = get_object_or_404(Persona, id=request.session['registro_persona_id'])
+    
+    # Buscamos los roles para el select
+    roles = Rol.objects.filter(esta_activo=True).order_by('nombre_rol')
+    
+    # Tu búsqueda de correo principal
+    correo_obj = PersonaContactoPersonal.objects.filter(
+        persona=persona, 
+        es_principal=True, 
+        contacto_personal__tipo_contacto__descripcion__icontains='CORREO'
+    ).select_related('contacto_personal').first()
+    
+    correo_electronico = correo_obj.contacto_personal.valor_contacto if correo_obj else "Sin correo registrado"
+    
+    # USAMOS TU FUNCIÓN ROBUSTA DE SEGURIDAD
+    password_temporal = generar_clave_robusta(12)
+    
+    contexto = {
+        'persona': persona, 
+        'correo': correo_electronico,
+        'password_generada': password_temporal,
+        'roles': roles # <--- Mandamos los roles
+    }
+    return render(request, 'registro/finalizar.html', contexto)
+
+@login_required
+@require_POST
+def finalizar_registro(request):
+    try:
+        persona_id = request.session.get('registro_persona_id')
+        persona = get_object_or_404(Persona, id=persona_id)
+        trabajador = Trabajador.objects.get(persona=persona)
+        
+        # Datos del formulario
+        email_destino = request.POST.get('email_envio')
+        password_generada = request.POST.get('password_generada')
+        crear_acceso = request.POST.get('crear_usuario') == 'true'
+        rol_id = request.POST.get('rol_id')
+
+        with transaction.atomic():
+            if crear_acceso:
+                # Verificamos si ya existe un usuario con esa cédula
+                usuario_existente = Usuario.objects.filter(nombre_usuario=persona.cedula).first()
+                
+                if usuario_existente:
+                    # CASO JADE: El usuario ya existe (Superusuario o previo)
+                    # 1. Lo vinculamos a su ficha si no tiene trabajador_id asignado
+                    if not usuario_existente.trabajador_id:
+                        usuario_existente.trabajador_id = trabajador.id
+                        usuario_existente.save()
+                    
+                    # 2. Preparamos el correo de notificación de vinculación
+                    if email_destino and email_destino != "Sin correo registrado":
+                        asunto = 'Actualización de Perfil - SACAT Almacenadora Caracas'
+                        mensaje = (
+                            f"Hola {persona.primer_nombre},\n\n"
+                            f"Tu ficha de trabajador ha sido vinculada exitosamente a tu usuario existente.\n"
+                            f"Usuario: {persona.cedula}\n\n"
+                            "Ya puedes acceder al sistema con tus credenciales de siempre."
+                        )
+                        send_mail(asunto, mensaje, settings.EMAIL_HOST_USER, [email_destino])
+                
+                else:
+                    # CASO NUEVO: El usuario no existe, se crea desde cero
+                    Usuario.objects.create_user(
+                        nombre_usuario=persona.cedula,
+                        password=password_generada,
+                        trabajador_id=trabajador.id,
+                        rol_id=rol_id,
+                        requiere_cambio_clave=True,
+                        creado_por=request.user.id
+                    )
+                    
+                    # Correo de bienvenida con la clave temporal generada
+                    if email_destino and email_destino != "Sin correo registrado":
+                        asunto = 'Bienvenido al SACAT - Almacenadora Caracas'
+                        mensaje = (
+                            f"Hola {persona.primer_nombre},\n\n"
+                            f"Tu registro ha sido exitoso. Tus credenciales son:\n"
+                            f"Usuario: {persona.cedula}\n"
+                            f"Clave Temporal: {password_generada}\n\n"
+                            "Por seguridad, el sistema te pedirá cambiar tu clave al ingresar."
+                        )
+                        send_mail(asunto, mensaje, settings.EMAIL_HOST_USER, [email_destino])
+
+            # Limpiar la sesión siempre al finalizar con éxito
+            if 'registro_persona_id' in request.session:
+                del request.session['registro_persona_id']
+            
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+# --- AUXILIARES AJAX ---
+@login_required
+def get_municipios(request, estado_id):
+    municipios = Municipio.objects.filter(estado_id=estado_id, esta_activo=True).values('id', 'nombre_municipio').order_by('nombre_municipio')
+    return JsonResponse(list(municipios), safe=False)
+
+@login_required
+def get_parroquias(request, municipio_id):
+    parroquias = Parroquia.objects.filter(municipio_id=municipio_id, esta_activo=True).values('id', 'nombre_parroquia').order_by('nombre_parroquia')
+    return JsonResponse(list(parroquias), safe=False)
+
+
+@login_required
+def generar_pdf_ficha(request, persona_id):
+    persona = get_object_or_404(Persona, id=persona_id)
+    
+    # 1. GENERACIÓN DEL CÓDIGO QR
+    # Mantenemos tu lógica "criminal" que está excelente para la validación
+    link_verificacion = request.build_absolute_uri('/') 
+    datos_qr = (
+        f"SACAT-ID: {persona.cedula}\n"
+        f"Trabajador: {persona.primer_nombre} {persona.primer_apellido}\n"
+        f"Validado por: {request.user.nombre_usuario}\n"
+        f"Fecha: {date.today()}"
+    )
+    
+    qr = qrcode.QRCode(version=1, box_size=10, border=2)
+    qr.add_data(datos_qr)
+    qr.make(fit=True)
+    
+    img_qr = qr.make_image(fill_color="black", back_color="white")
+    buffer_qr = BytesIO()
+    img_qr.save(buffer_qr, format="PNG")
+    qr_base64 = base64.b64encode(buffer_qr.getvalue()).decode()
+
+    # 2. RECOLECCIÓN MAESTRA DE DATOS (Sincronizada con el nuevo Paso 8)
+    # Aquí es donde ocurre la magia: traemos todas las relaciones de una vez
+    datos_laborales = Trabajador.objects.filter(persona=persona).select_related(
+        'sede', 
+        'nivel_jerarquico', 
+        'unidad_org', 
+        'tipo_trabajador', 
+        'categoria', 
+        'cargo_generico', 
+        'cargo_estructural'
+    ).first()
+
+    contexto = {
+        'persona': persona,
+        'qr_code': qr_base64,
+        'hoy': date.today(),
+        
+        # Ubicación y Vivienda
+        'direccion': PersonaDireccion.objects.filter(persona=persona, es_principal=True).select_related('direccion__parroquia__municipio__estado').first(),
+        'vivienda': PersonaVivienda.objects.filter(persona=persona).select_related('vivienda__tipo_vivienda', 'vivienda__condicion_vivienda').first(),
+        
+        # Datos Electorales y Sociales
+        'electoral': DatosElectorales.objects.filter(persona=persona).select_related('centro_votacion').first(),
+        'salud': PersonaSalud.objects.filter(persona=persona).select_related('tipo_discapacidad').first(),
+        'patologias': PersonaPatologia.objects.filter(persona=persona).select_related('tipo_patologia'),
+        
+        # Contactos
+        'contactos': PersonaContactoPersonal.objects.filter(persona=persona).select_related('contacto_personal__tipo_contacto'),
+        'emergencia': PersonaContactoEmergencia.objects.filter(persona=persona).select_related('contacto_emergencia').first(),
+        
+        # Formación y Familia
+        'academicos': FormacionAcademica.objects.filter(persona=persona).select_related('nivel_formacion', 'estatus_formacion').order_by('-fecha_fin'),
+        'cursos': FormacionAdicional.objects.filter(persona=persona).order_by('-fecha_culminacion'),
+        'familia': PersonaCargaFamiliar.objects.filter(persona=persona).select_related('carga_familiar', 'parentesco'),
+        
+        # 🌟 DATA LABORAL COMPLETA 🌟
+        'laboral': datos_laborales,
+    }
+
+    # 3. RENDERIZADO Y GENERACIÓN DEL PDF
+    # Importante: verifica que la ruta del template sea exacta
+    template = get_template('registro/ficha_trabajador_maestra.html')
+    html = template.render(contexto)
+    result = BytesIO()
+
+    # Generamos el documento
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        # 'inline' para que se abra en el navegador, 'attachment' para que se descargue solo
+        response['Content-Disposition'] = f'inline; filename="Ficha_{persona.cedula}.pdf"'
+        return response
+    
+    return HttpResponse("Error crítico al generar la Ficha Técnica SACAT", status=400)
+
+
+
+# =============================================================
+# VERSION 2
+# =============================================================
+
+# --- AUXILIAR: VERIFICACIÓN DE UNICIDAD ---
+@login_required
+def verificar_cedula_ajax(request):
+    """Verifica si una cédula ya existe para evitar duplicados en el registro."""
+    cedula = request.GET.get('cedula', '').strip()
+    # Retornamos True si existe, False si está disponible
+    existe = Persona.objects.filter(cedula=cedula).exists()
+    return JsonResponse({'exists': existe})
+
+# ==============================================================================
+# FASE 1: REGISTRO INICIAL (RESPONSABILIDAD DE GESTIÓN HUMANA)
+# ==============================================================================
+
+# --- PASO 1: IDENTIDAD v2 ---
+@login_required
+def registro_paso1_v2(request):
+    """Renderiza el formulario de identidad (Legal -> Personal)."""
+    # Si iniciamos un registro nuevo, limpiamos la sesión del ID anterior
+    if 'registro_persona_id' in request.session:
+        del request.session['registro_persona_id']
+    
+    contexto = {
+        # Traemos solo los necesarios. Sigla servirá para el label en el HTML
+        'tipos_docs': TipoDocIdentificacion.objects.filter(esta_activo=True, sigla__in=['V', 'E', 'P']).order_by('sigla'),
+        'sexos': Sexo.objects.filter(esta_activo=True).order_by('descripcion'),
+        'estados_civiles': EstadoCivil.objects.filter(esta_activo=True).order_by('descripcion'),
+    }
+    return render(request, 'registrov2/fase1/paso1_identidad.html', contexto)
+
+@login_required
+@require_POST
+def guardar_paso1_v2(request):
+    """Guarda datos siguiendo el orden lógico: Legal y luego Personal."""
+    try:
+        cedula = request.POST.get('cedula', '').strip()
+        tipo_doc_id = request.POST.get('tipo_doc')
+        tipo_doc = get_object_or_404(TipoDocIdentificacion, id=tipo_doc_id)
+        
+        # 🛡️ VALIDACIÓN SAIME: Extranjeros >= 80.000.000
+        if tipo_doc.sigla == 'E' and int(cedula) < 80000000:
+            return JsonResponse({'success': False, 'error': 'Cédulas extranjeras (E) deben ser mayores a 80.000.000'})
+        
+        # 🛡️ VALIDACIÓN EDAD: Mínimo 16 años
+        fecha_nac_str = request.POST.get('fecha_nacimiento')
+        if not fecha_nac_str:
+            return JsonResponse({'success': False, 'error': 'La fecha de nacimiento es obligatoria.'})
+            
+        fecha_nacimiento = date.fromisoformat(fecha_nac_str)
+        edad = (date.today() - fecha_nacimiento).days // 365
+        if edad < 16:
+            return JsonResponse({'success': False, 'error': f'El trabajador debe ser mayor de 16 años. (Edad detectada: {edad})'})
+
+        with transaction.atomic():
+            # 1. Creamos o actualizamos la Persona (Orden Lógico de Campos)
+            persona, created = Persona.objects.update_or_create(
+                cedula=cedula,
+                defaults={
+                    # --- Bloque Legal ---
+                    'tipo_doc_identificacion_id': tipo_doc_id,
+                    'fecha_vencimiento_cedula': request.POST.get('fecha_vencimiento_id') or None,
+                    'es_naturalizado': 'es_naturalizado' in request.POST,
+                    'nro_gaceta': request.POST.get('nro_gaceta', '').strip().upper() or None,
+                    'es_extraordinaria': request.POST.get('es_extraordinaria') == 'true',
+                    'fecha_gaceta': request.POST.get('fecha_gaceta') or None,
+                    
+                    # --- Bloque Personal ---
+                    'primer_nombre': request.POST.get('nombre1', '').strip().upper(),
+                    'segundo_nombre': request.POST.get('nombre2', '').strip().upper() or None,
+                    'primer_apellido': request.POST.get('apellido1', '').strip().upper(),
+                    'segundo_apellido': request.POST.get('apellido2', '').strip().upper() or None,
+                    'fecha_nacimiento': fecha_nacimiento,
+                    'lugar_nacimiento': request.POST.get('lugar_nacimiento', '').strip().upper(),
+                    'sexo_id': request.POST.get('sexo'),
+                    'estado_civil_id': request.POST.get('estado_civil'),
+                    
+                    'actualizado_por': request.user.id
+                }
+            )
+            
+            if created: 
+                persona.creado_por = request.user.id
+            
+            # 2. Manejo del Archivo Digital (Cédula/Pasaporte)
+            if request.FILES.get('archivo_cedula'):
+                persona.archivo_cedula = request.FILES.get('archivo_cedula')
+            
+            persona.save()
+
+        request.session['registro_persona_id'] = persona.id
+        return JsonResponse({'success': True})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f"Error en servidor: {str(e)}"})
+
+# --- PASO 2: CONTACTOS v2 ---
+@login_required
+def registro_paso2_v2(request):
+    """RRHH registra solo los medios necesarios para la emisión de credenciales."""
+    if 'registro_persona_id' not in request.session: return redirect('registro_paso1_v2')
+    
+    persona_id = request.session.get('registro_persona_id')
+    contactos = PersonaContactoPersonal.objects.filter(persona_id=persona_id).select_related('contacto_personal__tipo_contacto')
+    
+    contexto = { 
+        'tipos_contactos': TipoContacto.objects.filter(esta_activo=True),
+        'contactos_existentes': contactos
+    }
+    return render(request, 'registrov2/fase1/paso2_contactos.html', contexto)
+
+@login_required
+@require_POST
+def guardar_paso2_v2(request):
+    """Guarda la lista de contactos asegurando que el Correo sea capturado."""
+    try:
+        persona_id = request.session.get('registro_persona_id')
+        tipos = request.POST.getlist('tipo_id[]')
+        valores = request.POST.getlist('valor[]')
+        principales = request.POST.getlist('es_principal[]')
+
+        with transaction.atomic():
+            PersonaContactoPersonal.objects.filter(persona_id=persona_id).delete()
+            for t_id, val, pri in zip(tipos, valores, principales):
+                contacto, _ = ContactoPersonal.objects.update_or_create(
+                    valor_contacto=val.strip().lower(),
+                    defaults={'tipo_contacto_id': t_id, 'actualizado_por': request.user.id}
+                )
+                PersonaContactoPersonal.objects.create(
+                    persona_id=persona_id,
+                    contacto_personal_id=contacto.id,
+                    es_principal=(pri == 'true'),
+                    creado_por=request.user.id
+                )
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+# --- PASO 3: ASIGNACIÓN LABORAL v2 ---
+@login_required
+def registro_paso3_v2(request):
+    """Asignación de sede, nivel y unidad según la nueva estructura jerárquica."""
+    if 'registro_persona_id' not in request.session: return redirect('registro_paso1_v2')
+    
+    persona_id = request.session.get('registro_persona_id')
+    laboral = Trabajador.objects.filter(persona_id=persona_id).first()
+
+    contexto = {
+        'sedes': Sede.objects.filter(esta_activo=True).order_by('nombre_sede'),
+        'niveles': NivelJerarquico.objects.filter(esta_activo=True).order_by('id'),
+        'categorias': CategoriaPersonal.objects.filter(esta_activo=True),
+        'tipos_trab': TiposTrabajadore.objects.filter(esta_activo=True),
+        'cargos_gen': CargosGenerico.objects.filter(esta_activo=True).order_by('nombre_cargo'),
+        'cargos_est': CargosEstructural.objects.filter(esta_activo=True).order_by('nombre_cargo_estruct'),
+        'laboral': laboral
+    }
+    return render(request, 'registrov2/fase1/paso3_laboral.html', contexto)
+
+@login_required
+def get_unidades_v2(request):
+    """Helper AJAX para filtrar unidades por SEDE y NIVEL simultáneamente."""
+    sede_id = request.GET.get('sede_id')
+    nivel_id = request.GET.get('nivel_id')
+    unidades = UnidadesOrganizativas.objects.filter(
+        sede_id=sede_id, 
+        nivel_jerarquico_id=nivel_id, 
+        esta_activo=True
+    ).values('id', 'nombre_unidad')
+    return JsonResponse(list(unidades), safe=False)
+
+@login_required
+@require_POST
+def guardar_paso3_v2(request):
+    """Finaliza la carga de datos de RRHH y deja al trabajador en Fase 1."""
+    try:
+        persona_id = request.session.get('registro_persona_id')
+        with transaction.atomic():
+            Trabajador.objects.update_or_create(
+                persona_id=persona_id,
+                defaults={
+                    'sede_id': request.POST.get('sede_id'),
+                    'unidad_org_id': request.POST.get('unidad_id'),
+                    'nivel_jerarquico_id': request.POST.get('nivel_id'),
+                    'tipo_trabajador_id': request.POST.get('tipo_trabajador_id'),
+                    'categoria_id': request.POST.get('categoria_id'),
+                    'cargo_generico_id': request.POST.get('cargo_gen_id'),
+                    'cargo_estructural_id': request.POST.get('cargo_est_id'),
+                    'codigo_nomina': request.POST.get('codigo_nomina', '').strip().upper() or None,
+                    'fecha_ingreso_inst': request.POST.get('fecha_ingreso'),
+                    'fase_actual': 1, # Se mantiene en fase 1 hasta que se cierre en el paso 4
+                    'actualizado_por': request.user.id
+                }
+            )
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+# --- PASO 4: COMPROBANTE Y EMISIÓN v2 ---
+@login_required
+def paso4_comprobante_v1(request):
+    """Genera la clave robusta (Ñ incluida) y muestra el resumen final de Fase 1."""
+    persona_id = request.session.get('registro_persona_id')
+    if not persona_id: return redirect('registro_paso1_v2')
+    
+    persona = get_object_or_404(Persona, id=persona_id)
+    laboral = get_object_or_404(Trabajador, persona=persona)
+    
+    # Buscamos el correo principal para la notificación
+    correo_obj = PersonaContactoPersonal.objects.filter(
+        persona=persona, es_principal=True, 
+        contacto_personal__tipo_contacto__descripcion__icontains='CORREO'
+    ).select_related('contacto_personal').first()
+    
+    # Generamos la clave robusta usando tu función centralizada en seguridad
+    if 'temp_pass' not in request.session:
+        request.session['temp_pass'] = generar_clave_robusta(12) 
+        
+    contexto = {
+        'persona': persona,
+        'laboral': laboral,
+        'correo_principal': correo_obj.contacto_personal.valor_contacto if correo_obj else "N/A",
+        'password_generada': request.session['temp_pass'],
+        'roles': Rol.objects.filter(esta_activo=True).order_by('nombre_rol')
+    }
+    return render(request, 'registrov2/fase1/paso4_comprobante.html', contexto)
+
+@login_required
+@require_POST
+def finalizar_fase1_v2(request):
+    """Dispara la creación del usuario, envía correo y cambia la fase a 2."""
+    try:
+        persona_id = request.session.get('registro_persona_id')
+        persona = Persona.objects.get(id=persona_id)
+        trabajador = Trabajador.objects.get(persona=persona)
+        password_temp = request.session.get('temp_pass')
+        rol_id = request.POST.get('rol_id')
+
+        with transaction.atomic():
+            # 1. Crear Usuario usando tu Manager (AbstractBaseUser)
+            Usuario.objects.create_user(
+                nombre_usuario=persona.cedula,
+                password=password_temp,
+                trabajador_id=trabajador.id,
+                rol_id=rol_id,
+                requiere_cambio_clave=True,
+                creado_por=request.user.id
+            )
+            # 2. Promover a Fase 2 (Responsabilidad del Trabajador)
+            trabajador.fase_actual = 2
+            trabajador.save()
+            
+            # Limpieza de sesión
+            del request.session['registro_persona_id']
+            del request.session['temp_pass']
+            
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+# --- GENERACIÓN DE FICHA INICIAL PDF v2 ---
+@login_required
+def generar_ficha_inicial_v2(request, persona_id):
+    """Genera la Ficha Inicial Maestra con QR y datos de los 3 pasos cargados."""
+    persona = get_object_or_404(Persona, id=persona_id)
+    
+    # Data para el código QR de validación
+    datos_qr = f"SACAT-ID: {persona.cedula}\nValidador: {request.user.nombre_usuario}\nFase 1 OK"
+    qr = qrcode.make(datos_qr)
+    buf = BytesIO()
+    qr.save(buf, format="PNG")
+    qr_b64 = base64.b64encode(buf.getvalue()).decode()
+
+    laboral = Trabajador.objects.filter(persona=persona).select_related(
+        'sede', 'nivel_jerarquico', 'unidad_org', 'tipo_trabajador', 
+        'categoria', 'cargo_generico', 'cargo_estructural'
+    ).first()
+
+    contactos = PersonaContactoPersonal.objects.filter(persona=persona).select_related('contacto_personal__tipo_contacto')
+    correo_obj = contactos.filter(es_principal=True, contacto_personal__tipo_contacto__descripcion__icontains='CORREO').first()
+
+    contexto = {
+        'persona': persona,
+        'laboral': laboral,
+        'contactos': contactos,
+        'correo_principal': correo_obj.contacto_personal.valor_contacto if correo_obj else "N/A",
+        'qr_code': qr_b64,
+        'hoy': date.today()
+    }
+
+    template = get_template('registrov2/fase1/ficha_inicial_trabajadores.html')
+    html = template.render(contexto)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="Ficha_Inicial_{persona.cedula}.pdf"'
+        return response
+    return HttpResponse("Error crítico al generar la Ficha Técnica SACAT v2", status=400)
+
+
+fijate bien, que tambien te estoy enviado por aca por escrito mis archivos views.py de cada modulo, es para que puedas entender bien los archivos que llaman a otro archivo models.py veas que tiene, que le falta, y los archivos que llaman funciones que se encuentran en otros archivos.
+
+Por otro lado, tambien debes fijarte que en mi base de datos hay una tabla llamada tipo de recaudo, y otra llamada recaudo, es importante que el archivo documento de identidad se guarde en la tabla recuado, supongo que para eso tenemos que crear el tipo recaudo en la tabla tipo recaudo, lo otro es que debe guardarse es la ruta donde se va a guardar dicho archivo.
+
+tambien fijate que en mi tablas personas como dices, hay un apartado para el rif, y su fecha de vencimiento, pero lo ideal es que cuando hagamos la fase 2, alli colocaremos los 9 pasos con toda la informacion que debe registrar y actualizar luego la persona, para que asi, solo le dejamos ciertos datos necesarios a gestion humana llene lo necesario y lo demas lo carguen las personas o trabajadores mejor dicho. Sin embargo, ahorita nos vamos a centrar en que la fase 1 funcione correctamente con sus validaciones de ajax que lo hagan seguro y sus demas validaciones, asi como el guardado de los datos.
+

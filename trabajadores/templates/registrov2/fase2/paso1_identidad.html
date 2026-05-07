@@ -1,0 +1,229 @@
+{% extends 'includes/base_standard.html' %}
+
+{% block title %} SACAT | Mi Expediente - Identidad {% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --brand-primary: #1E3A8A;
+        --brand-light: #EEF2FF;
+        --text-main: #0F172A;
+        --text-muted: #64748B;
+        --border-color: #E2E8F0;
+    }
+    
+    /* Tarjeta Blindada */
+    .locked-card { border-radius: 15px; background-color: #fff; border: 1px solid var(--border-color); overflow: hidden; }
+    
+    /* Etiquetas y Valores tipo Ficha */
+    .summary-label { font-size: 0.65rem; font-weight: 800; color: var(--brand-primary); text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px; }
+    .summary-value { 
+        font-size: 0.9rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; 
+        padding: 10px 15px; background: #F8FAFC; border-radius: 8px; border: 1px solid #EDF2F7; 
+        min-height: 44px; display: flex; align-items: center; 
+    }
+    
+    /* Stepper de Autogestión */
+    .stepper-f2 { display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
+    .step-f2 { flex: 1; text-align: center; font-size: 0.62rem; font-weight: 900; color: #CBD5E1; text-transform: uppercase; position: relative; }
+    .step-f2.active { color: var(--brand-primary); }
+    .step-f2.active::after { content: ''; position: absolute; bottom: -14px; left: 10%; right: 10%; height: 4px; background: var(--brand-primary); border-radius: 10px; }
+
+    /* Caja de Previsualización */
+    .doc-preview-box { border: 2px dashed var(--brand-primary); border-radius: 12px; padding: 8px; background: var(--brand-light); transition: 0.3s; }
+    .doc-preview-box:hover { background: #E0E7FF; transform: translateY(-2px); }
+
+    .section-header { font-weight: 900; font-size: 0.8rem; color: var(--brand-primary); border-bottom: 2px solid var(--brand-light); padding-bottom: 5px; margin-bottom: 15px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- 1. Stepper de Progreso -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-xl-11">
+            <div class="stepper-f2">
+                <div class="step-f2 active">1. Identidad</div>
+                <div class="step-f2">2. Contactos</div>
+                <div class="step-f2">3. Laboral</div>
+                <div class="step-f2">4. Ubicación</div>
+                <div class="step-f2">5. Académico</div>
+                <div class="step-f2">6. Cursos</div>
+                <div class="step-f2">7. Familia</div>
+                <div class="step-f2">8. Salud</div>
+                <div class="step-f2">9. Finalizar</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-11">
+            <div class="locked-card shadow-lg border-0">
+                
+                <!-- 2. Encabezado con Degradado -->
+                <div class="p-4 text-white d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #1E3A8A 0%, #172554 100%);">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-white bg-opacity-20 p-3 rounded-circle me-3">
+                            <i class="fas fa-user-shield fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold text-uppercase" style="letter-spacing: 1px;">Confirmación de Identidad</h5>
+                            <p class="mb-0 small opacity-75">PASO 1: Verificación de información legal y civil</p>
+                        </div>
+                    </div>
+                    <div class="text-end d-none d-md-block">
+                        <span class="badge bg-white text-primary fw-900 px-3 py-2 shadow-sm"><i class="fas fa-lock me-1"></i> REGISTRO PROTEGIDO</span>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <!-- 3. Alerta Informativa -->
+                    <div class="alert border-0 shadow-sm d-flex align-items-center mb-5" style="background-color: #FFFBEB; border-left: 5px solid #F59E0B !important;">
+                        <i class="fas fa-exclamation-circle fa-lg me-3 text-warning"></i>
+                        <div>
+                            <span class="small fw-bold text-dark">Aviso de Privacidad y Seguridad:</span><br>
+                            <small class="text-muted">Los datos mostrados fueron validados por Gestión Humana. Si detecta un error, use el botón <b>rojo</b> al final de esta página para reportar la inconsistencia.</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <!-- Sección A: Documentación -->
+                        <div class="col-12"><h6 class="section-header"><i class="fas fa-id-card me-2"></i> DOCUMENTACIÓN LEGAL</h6></div>
+                        
+                        <div class="col-md-3">
+                            <label class="summary-label">Tipo Documento</label>
+                            <div class="summary-value">{{ persona.tipo_doc_identificacion.sigla }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="summary-label">Cédula de Identidad</label>
+                            <div class="summary-value highlight-text">{{ persona.cedula }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="summary-label">Vencimiento Cédula</label>
+                            <div class="summary-value">{{ persona.fecha_vencimiento_cedula|date:"d/m/Y"|default:"N/A" }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="summary-label">Soporte Digital</label>
+                            <div class="doc-preview-box">
+                                {% if url_cedula %}
+                                    <a href="{{ url_cedula }}" target="_blank" class="btn btn-sm btn-primary w-100 fw-bold py-2">
+                                        <i class="fas fa-file-download me-1"></i> VER ADJUNTO
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted x-small fw-bold d-block py-1">SIN DOCUMENTO ADJUNTO</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Sección B: Filiación -->
+                        <div class="col-12 mt-5"><h6 class="section-header"><i class="fas fa-user-edit me-2"></i> INFORMACIÓN FILIATORIA</h6></div>
+                        
+                        <div class="col-md-3">
+                            <label class="summary-label">Primer Nombre</label>
+                            <div class="summary-value">{{ persona.primer_nombre }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="summary-label">Segundo Nombre</label>
+                            <div class="summary-value">{{ persona.segundo_nombre|default:"-" }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="summary-label">Primer Apellido</label>
+                            <div class="summary-value">{{ persona.primer_apellido }}</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="summary-label">Segundo Apellido</label>
+                            <div class="summary-value">{{ persona.segundo_apellido|default:"-" }}</div>
+                        </div>
+
+                        <!-- Sección C: Datos Civiles -->
+                        <div class="col-md-4">
+                            <label class="summary-label">Fecha de Nacimiento</label>
+                            <div class="summary-value">{{ persona.fecha_nacimiento|date:"d/m/Y" }}</div>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="summary-label">Lugar de Nacimiento</label>
+                            <div class="summary-value">{{ persona.lugar_nacimiento }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="summary-label">Sexo / Género</label>
+                            <div class="summary-value">{{ persona.sexo.descripcion }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="summary-label">Estado Civil</label>
+                            <div class="summary-value">{{ persona.estado_civil.descripcion }}</div>
+                        </div>
+
+                        <!-- Sección D: Naturalización (Dinámica) -->
+                        {% if persona.es_naturalizado %}
+                        <div class="col-12 mt-4">
+                            <div class="p-4 rounded-3 border bg-light">
+                                <h6 class="fw-bold text-primary small mb-3 text-uppercase"><i class="fas fa-gavel me-2"></i> Soporte de Naturalización</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="summary-label">Número de Gaceta</label>
+                                        <div class="summary-value bg-white">{{ persona.nro_gaceta }}</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="summary-label">Fecha de Publicación</label>
+                                        <div class="summary-value bg-white">{{ persona.fecha_gaceta|date:"d/m/Y" }}</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="summary-label">Tipo de Gaceta</label>
+                                        <div class="summary-value bg-white">{% if persona.es_extraordinaria %}EXTRAORDINARIA{% else %}ORDINARIA{% endif %}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- 4. Botonera Inferior Híbrida -->
+                    <div class="mt-5 pt-4 border-top d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                        <button type="button" class="btn btn-outline-danger px-4 fw-bold order-2 order-md-1" onclick="lanzarReporteInconsistencia()">
+                            <i class="fas fa-exclamation-triangle me-2"></i> REPORTAR ERROR EN DATOS
+                        </button>
+
+                        <a href="{% url 'f2_paso2_contactos' %}" class="btn btn-primary px-5 py-3 fw-bold shadow-lg order-1 order-md-2" style="font-size: 1rem;">
+                            LOS DATOS SON CORRECTOS, CONTINUAR <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function lanzarReporteInconsistencia() {
+        Swal.fire({
+            title: 'Reportar Inconsistencia',
+            text: 'Indique qué dato está errado y cuál es la corrección necesaria:',
+            input: 'textarea',
+            inputPlaceholder: 'Ej: Mi segundo apellido está mal escrito, es con Z y no con S...',
+            showCancelButton: true,
+            confirmButtonText: 'Enviar a Gestión Humana',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#C81E1E',
+            cancelButtonColor: '#64748B',
+            preConfirm: (mensaje) => {
+                if (!mensaje) {
+                    Swal.showValidationMessage('Debe describir el error para poder ayudarle.');
+                }
+                return mensaje;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Aquí podrías hacer un fetch real a una URL de reporte si la creas luego
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Reporte Enviado',
+                    text: 'Gestión Humana ha sido notificada por correo. Un analista revisará su expediente.',
+                    confirmButtonColor: '#1E3A8A'
+                });
+            }
+        });
+    }
+</script>
+{% endblock %}

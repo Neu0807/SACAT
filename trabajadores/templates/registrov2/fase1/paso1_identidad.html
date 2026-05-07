@@ -221,10 +221,14 @@
                             <div class="feedback-box text-danger"></div>
                         </div>
 
-                        <div class="col-12 col-md-8 col-lg-6">
-                            <label class="form-label">Nro. de Documento <span class="req-pin">*</span></label>
-                            <input type="text" name="cedula" id="cedula" class="form-control custom-input" 
-                                   placeholder="Elija tipo primero" required disabled autocomplete="off">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Nro. de Documento<span class="req-pin">*</span></label>
+                            <div class="input-group">
+                                <input type="text" name="cedula" id="cedula" class="form-control custom-input" placeholder="Ej: 20123456" required>
+                                <button class="btn btn-outline-primary" type="button" id="btnSeniat" title="Consultar Nombres en SENIAT">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
                             <div id="feedback_cedula" class="feedback-box text-danger"></div>
                         </div>
 
@@ -356,6 +360,7 @@
         const divGaceta = document.getElementById('divGaceta');
         const btnSiguiente = document.getElementById('btnSiguiente');
         const feedbackArchivo = document.getElementById('feedback_archivo');
+        const btnSeniat = document.getElementById('btnSeniat'); // Lupa PNP
 
         const fields = {
             'nombre1': document.getElementById('nombre1'),
@@ -370,8 +375,7 @@
             'es_extraordinaria': document.querySelector('[name="es_extraordinaria"]')
         };
 
-        // --- FUNCIONES AUXILIARES DE ESTADO (EL CORAZÓN DE LA SOLUCIÓN) ---
-        
+        // --- [2. FUNCIONES DE ESTADO Y ALERTAS DE GUÍA] ---
         function setValid(el) {
             if (!el) return;
             el.classList.remove('is-invalid');
@@ -388,56 +392,46 @@
             if (fb && fb.classList.contains('feedback-box')) fb.innerText = msg;
         }
 
-        // --- [2. REGLA DE EDAD] ---
+        // --- [3. REGLAS DE NEGOCIO (Edad mínima 16 años)] ---
         const hoy = new Date();
         const maxFechaNac = new Date(hoy.getFullYear() - 16, hoy.getMonth(), hoy.getDate());
         if (inpNacimiento) inpNacimiento.max = maxFechaNac.toISOString().split("T")[0];
 
-        // --- [3. MÁSCARA MM/AAAA] ---
-        inpVencimiento.addEventListener('input', function() {
-            let val = this.value.replace(/\D/g, ''); 
-            if (val.length > 2) this.value = val.substring(0, 2) + '/' + val.substring(2, 6);
-            else this.value = val;
-            
-            // Validación manual mientras escribe
-            if (val.length === 6) setValid(this);
-        });
+        // --- [4. MÁSCARA MM/AAAA PARA VENCIMIENTO] ---
+        if (inpVencimiento) {
+            inpVencimiento.addEventListener('input', function() {
+                let val = this.value.replace(/\D/g, ''); 
+                if (val.length > 2) this.value = val.substring(0, 2) + '/' + val.substring(2, 6);
+                else this.value = val;
+                if (val.length === 6) setValid(this);
+            });
+        }
 
-        // --- [4. RESETEO AL CAMBIAR TIPO] ---
+        // --- [5. RESETEO AL CAMBIAR TIPO DE DOCUMENTO] ---
         tipoDoc.addEventListener('change', function() {
             inpCedula.readOnly = false;
             inpCedula.disabled = false;
             inpCedula.value = '';
             inpCedula.style.backgroundColor = '';
-            inpCedula.style.pointerEvents = 'auto';
             const sigla = this.options[this.selectedIndex].getAttribute('data-sigla');
             inpCedula.placeholder = (sigla === 'P') ? "Alfanumérico (Pasaporte)" : "Solo números (Mín 6)";
+            
+            // RESET DE ARCHIVO: Vuelve a ser obligatorio para registros nuevos
             inpArchivo.required = true;
             if(feedbackArchivo) feedbackArchivo.innerHTML = '';
+            inpArchivo.classList.remove('is-valid', 'is-invalid');
             
-            // Limpiar estados de todo el form para empezar de cero
-            document.querySelectorAll('.is-valid, .is-invalid').forEach(el => el.classList.remove('is-valid', 'is-invalid'));
+            document.querySelectorAll('.is-valid, .is-invalid').forEach(el => {
+                if(el.id !== 'archivo_cedula') el.classList.remove('is-valid', 'is-invalid');
+            });
         });
 
-        // --- [5. FORMATEO CÉDULA] ---
-        inpCedula.addEventListener('input', function() {
-            if (this.readOnly) return;
-            const sigla = tipoDoc.options[tipoDoc.selectedIndex]?.getAttribute('data-sigla');
-            if (sigla === 'V' || sigla === 'E') {
-                this.value = this.value.replace(/\D/g, '').substring(0, 9);
-            } else if (sigla === 'P') {
-                this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 12);
-            }
-        });
-
-        // --- [6. BÚSQUEDA Y AUTOCOMPLETADO (ESCENARIO 2: DATA EXISTENTE)] ---
+        // --- [6. BÚSQUEDA LOCAL E INTELIGENCIA DE ARCHIVO ACTUALIZACIÓN] ---
         inpCedula.addEventListener('change', function() {
             const val = this.value.trim();
-            const feedbackCedula = document.getElementById('feedback_cedula');
-            
+            const fbC = document.getElementById('feedback_cedula');
             if (val.length >= 6 && !this.readOnly) {
-                if(feedbackCedula) feedbackCedula.innerText = "Buscando...";
-
+                if(fbC) fbC.innerText = "Consultando base de datos interna...";
                 fetch(`{% url 'verificar_cedula_ajax' %}?cedula=${val}`)
                 .then(r => r.json())
                 .then(data => {
@@ -447,39 +441,32 @@
                         tipoDoc.style.pointerEvents = 'none';
                         tipoDoc.style.backgroundColor = '#f8f9fa';
 
-                        // Llenado de campos y forzado de estado VÁLIDO (Sin alertas rojas)
                         const autoLlenar = (id, valor) => {
-                            const field = fields[id];
-                            if (field) {
-                                field.value = valor || '';
-                                setValid(field); // Forzamos el verde porque viene de DB
-                            }
+                            const f = fields[id];
+                            if (f) { f.value = valor || ''; setValid(f); }
                         };
 
-                        autoLlenar('nombre1', p.nombre1);
-                        autoLlenar('nombre2', p.nombre2);
-                        autoLlenar('apellido1', p.apellido1);
-                        autoLlenar('apellido2', p.apellido2);
+                        autoLlenar('nombre1', p.nombre1); autoLlenar('nombre2', p.nombre2);
+                        autoLlenar('apellido1', p.apellido1); autoLlenar('apellido2', p.apellido2);
                         autoLlenar('lugar_nacimiento', p.lugar_nacimiento);
-                        
                         if(inpNacimiento) { inpNacimiento.value = p.fecha_nacimiento || ''; setValid(inpNacimiento); }
                         if(inpVencimiento) { inpVencimiento.value = p.vencimiento || ''; setValid(inpVencimiento); }
-                        
-                        autoLlenar('sexo', p.sexo);
-                        autoLlenar('estado_civil', p.estado_civil);
+                        autoLlenar('sexo', p.sexo); autoLlenar('estado_civil', p.estado_civil);
 
-                        // Archivo Digital
-                        if (p.url_archivo && feedbackArchivo) {
-                            feedbackArchivo.innerHTML = `
-                                <div class="alert alert-info py-2 mt-2 shadow-sm border-0" style="background-color: #e0f2fe; color: #0369a1;">
-                                    <i class="fas fa-file-check me-2"></i> <strong>Cédula cargada:</strong> 
-                                    <a href="${p.url_archivo}" target="_blank" class="fw-bold text-decoration-underline">Ver Archivo</a>
-                                </div>`;
+                        // 📂 LÓGICA DE ARCHIVO DIGITAL:
+                        if (p.url_archivo) {
                             inpArchivo.required = false; 
-                            setValid(inpArchivo);
+                            setValid(inpArchivo); 
+                            if (feedbackArchivo) {
+                                feedbackArchivo.innerHTML = `
+                                    <div class="alert alert-info py-2 mt-2 mb-0 shadow-sm border-0" style="background-color: #e0f2fe; color: #0369a1;">
+                                        <i class="fas fa-file-check me-2"></i>
+                                        <a href="${p.url_archivo}" target="_blank" class="fw-bold text-decoration-underline">Ver Documento Actual</a>
+                                        <small class="text-muted">(Suba uno nuevo solo si desea reemplazarlo)</small>
+                                    </div>`;
+                            }
                         }
 
-                        // Gaceta / Naturalización
                         if (p.es_naturalizado) {
                             checkNat.checked = true;
                             divGaceta.style.display = 'block';
@@ -488,34 +475,66 @@
                             autoLlenar('es_extraordinaria', p.es_extraordinaria);
                         }
 
-                        Swal.fire({ 
-                            icon: 'success', 
-                            title: '¡Datos Recuperados!', 
-                            text: `Se cargó la información de ${p.nombre1}. El registro pasará a modo actualización.`,
-                            confirmButtonColor: '#1E3A8A'
-                        });
-                        if(feedbackCedula) feedbackCedula.innerText = "";
-                    } else {
-                        if(feedbackCedula) feedbackCedula.innerText = "";
+                        Swal.fire({ icon: 'success', title: '¡Persona Registrada!', text: `Se cargó la información de ${p.nombre1}. El sistema pasará a modo actualización.`, confirmButtonColor: '#1E3A8A' });
                     }
-                })
-                .catch(err => console.error("Error AJAX:", err));
+                    if(fbC) fbC.innerText = "";
+                });
             }
         });
 
-        // --- [7. VALIDACIÓN ARCHIVO (ESCENARIO 1: MANUAL)] ---
+        // --- [7. CONSULTA SISTEMAS PNP (Automática)] ---
+        if (btnSeniat) {
+            btnSeniat.onclick = function() {
+                const cedula = inpCedula.value.trim();
+                if (cedula.length < 6) return Swal.fire('Atención', 'Ingrese una cédula válida para consultar.', 'warning');
+
+                btnSeniat.disabled = true;
+                btnSeniat.innerHTML = '<i class="fas fa-brain fa-spin"></i>';
+
+                Swal.fire({
+                    title: 'Sincronizando Identidad...',
+                    html: 'El SACAT está resolviendo la operación matemática y recuperando los nombres oficiales.',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                fetch(`{% url 'consultar_datos_seniat' %}?cedula=${cedula}`)
+                .then(r => r.json())
+                .then(data => {
+                    Swal.close();
+                    btnSeniat.disabled = false;
+                    btnSeniat.innerHTML = '<i class="fas fa-search"></i>';
+                    if (data.success) {
+                        const s = data.sugerencia;
+                        if (fields.apellido1) { fields.apellido1.value = s.apellido1; setValid(fields.apellido1); }
+                        if (fields.apellido2) { fields.apellido2.value = s.apellido2; setValid(fields.apellido2); }
+                        if (fields.nombre1) { fields.nombre1.value = s.nombre1; setValid(fields.nombre1); }
+                        if (fields.nombre2) { fields.nombre2.value = s.nombre2; setValid(fields.nombre2); }
+                        Swal.fire({ icon: 'success', title: 'Sincronizado', text: 'Nombres y apellidos oficiales cargados correctamente.', timer: 2000, showConfirmButton: false });
+                    } else {
+                        Swal.fire('Atención', data.error, 'error');
+                    }
+                })
+                .catch(() => {
+                    Swal.close(); btnSeniat.disabled = false; btnSeniat.innerHTML = '<i class="fas fa-search"></i>';
+                    Swal.fire('Error', 'No se pudo contactar con el portal de datos externo.', 'error');
+                });
+            };
+        }
+
+        // --- [8. VALIDACIONES DE ARCHIVO Y NOMBRES] ---
         inpArchivo.addEventListener('change', function() {
             if (this.files.length > 0) {
                 if (this.files[0].size > 5 * 1024 * 1024) {
                     setInvalid(this, "El archivo supera los 5MB.");
                     this.value = ""; 
-                } else {
+                } else { 
                     setValid(this);
+                    if(feedbackArchivo) feedbackArchivo.innerHTML = '<small class="text-success fw-bold">Nuevo archivo listo para subir.</small>';
                 }
             }
         });
 
-        // --- [8. MAYÚSCULAS Y VALIDACIÓN MANUAL MIENTRAS ESCRIBE] ---
         form.querySelectorAll('.val-name').forEach(input => {
             input.addEventListener('input', function() { 
                 this.value = this.value.toUpperCase();
@@ -526,28 +545,17 @@
             });
         });
 
-        // --- [9. TOGGLE GACETA] ---
-        checkNat.addEventListener('change', function() {
-            divGaceta.style.display = this.checked ? 'block' : 'none';
-            divGaceta.querySelectorAll('input, select').forEach(i => {
-                i.required = this.checked;
-                if(!this.checked) i.classList.remove('is-invalid', 'is-valid');
+        if (checkNat) {
+            checkNat.addEventListener('change', function() {
+                divGaceta.style.display = this.checked ? 'block' : 'none';
+                divGaceta.querySelectorAll('input, select').forEach(i => {
+                    i.required = this.checked;
+                    if(!this.checked) i.classList.remove('is-invalid', 'is-valid');
+                });
             });
-        });
-
-        // --- [10. RESET MANUAL] ---
-        function resetManualCapa8() {
-            inpCedula.readOnly = false;
-            inpCedula.value = '';
-            tipoDoc.style.pointerEvents = 'auto';
-            tipoDoc.style.backgroundColor = '';
-            form.reset();
-            divGaceta.style.display = 'none';
-            if(feedbackArchivo) feedbackArchivo.innerHTML = '';
-            document.querySelectorAll('.is-valid, .is-invalid').forEach(el => el.classList.remove('is-valid', 'is-invalid'));
         }
 
-        // --- [11. SUBMIT FINAL (EL ÚLTIMO FILTRO)] ---
+        // --- [9. SUBMIT FINAL (Con Redirección al Paso 2)] ---
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             let esValido = true;
@@ -579,7 +587,7 @@
                     btnSiguiente.innerHTML = 'GUARDAR Y CONTINUAR';
                 }
             })
-            .catch(err => {
+            .catch(() => {
                 Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo contactar al servidor SACAT.' });
                 btnSiguiente.disabled = false;
                 btnSiguiente.innerHTML = 'GUARDAR Y CONTINUAR';

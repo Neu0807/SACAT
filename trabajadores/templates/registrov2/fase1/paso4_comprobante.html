@@ -338,6 +338,18 @@
                             </div>
                         </div>
 
+                        <div class="row justify-content-center mt-4">
+                            <div class="col-12 col-md-8 text-start">
+                                <label class="summary-label d-block text-center mb-2">Asignar Perfil de Acceso al Sistema <span class="text-danger">*</span></label>
+                                <select name="rol_id" id="rol_id" class="form-select custom-input text-center fw-bold" style="border: 1px solid var(--brand-primary) !important;">
+                                    <option value="" selected disabled>Seleccione el nivel de permisos...</option>
+                                    {% for r in roles %}
+                                        <option value="{{ r.id }}">{{ r.nombre_rol }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="alert alert-info border-0 mt-4 mb-0 py-2 shadow-sm" style="background-color: var(--brand-light); border-left: 4px solid var(--brand-primary) !important;">
                             <p class="mb-0 x-small fw-800 text-sacat-primary">
                                 <i class="fas fa-envelope-open-text me-1"></i> LAS CREDENCIALES HAN SIDO NOTIFICADAS AL CORREO: <strong>{{ correo_principal }}</strong>
@@ -371,13 +383,25 @@
     document.getElementById('btnFinalizar').onclick = function() {
         const btn = this;
         const originalContent = btn.innerHTML;
+        
+        // 1. Capturamos el Rol seleccionado del elemento <select> 
+        const rolId = document.getElementById('rol_id').value;
+
+        // 2. Validación: Si no se ha seleccionado un rol, detenemos el proceso 
+        if (!rolId) {
+            return Swal.fire({ 
+                icon: 'warning', 
+                title: 'Atención', 
+                text: 'Por favor, asigne un Rol de Acceso al trabajador antes de finalizar.' 
+            });
+        }
 
         Swal.fire({
             title: '¿Confirmar Cierre de Fase 1?',
-            text: "Se habilitará el acceso al sistema y la ficha inicial será anexada automáticamente al expediente digital.",
+            text: "Se habilitará el acceso al sistema con el rol seleccionado y se generará la ficha en el expediente.",
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: 'var(--brand-primary)',
+            confirmButtonColor: '#1E3A8A',
             cancelButtonColor: '#64748B',
             confirmButtonText: 'Sí, finalizar registro',
             cancelButtonText: 'Revisar detalles'
@@ -386,8 +410,13 @@
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-sync fa-spin me-2"></i> PROCESANDO...';
 
+                // 3. Preparamos los datos para enviar (incluyendo el rol_id) 
+                const formData = new FormData();
+                formData.append('rol_id', rolId);
+
                 fetch("{% url 'finalizar_fase1_v2' %}", {
                     method: "POST",
+                    body: formData, // Enviamos el cuerpo con el rol 
                     headers: { "X-CSRFToken": "{{ csrf_token }}" }
                 })
                 .then(r => r.json())
@@ -396,24 +425,28 @@
                         Swal.fire({
                             icon: 'success',
                             title: '¡Proceso Exitoso!',
-                            text: 'El trabajador ha sido notificado y su expediente digital actualizado.',
-                            confirmButtonColor: 'var(--brand-primary)'
+                            text: 'El trabajador ha sido incorporado con su rol correspondiente y el expediente actualizado.',
+                            confirmButtonColor: '#1E3A8A'
                         }).then(() => {
-                            window.location.href = "{% url 'inicio' %}";
+                            window.location.href = "{% url 'listar_trabajadores' %}";
                         });
                     } else {
                         Swal.fire({ 
                             icon: 'error', 
                             title: 'Error de proceso', 
                             text: data.error,
-                            confirmButtonColor: 'var(--brand-primary)'
+                            confirmButtonColor: '#1E3A8A'
                         });
                         btn.disabled = false;
                         btn.innerHTML = originalContent;
                     }
                 })
                 .catch(err => {
-                    Swal.fire({ icon: 'error', title: 'Error de Red', text: 'No se pudo contactar con el SACAT.' });
+                    Swal.fire({ 
+                        icon: 'error', 
+                        title: 'Error de Red', 
+                        text: 'No se pudo contactar con el servidor SACAT.' 
+                    });
                     btn.disabled = false;
                     btn.innerHTML = originalContent;
                 });

@@ -74,9 +74,62 @@ def guardar_paso1(request):
         if edad < 16:
             return JsonResponse({'success': False, 'error': f'El aspirante es menor de edad ({edad} años).'})
 
-        if Persona.objects.filter(cedula=cedula).exists():
-            return JsonResponse({'success': False, 'error': f'La cédula {cedula} ya está registrada.'})
+        # --- [BLOQUE DE INTELIGENCIA: TRABAJADOR EXISTENTE] ---
+        persona_existente = Persona.objects.filter(cedula=cedula).first()
+        
+        if persona_existente:
+            # 1. Guardamos en sesión para que el sistema sepa con quién estamos trabajando
+            request.session['registro_persona_id'] = persona_existente.id
+            
+            # 2. Verificamos si ya tiene un usuario creado
+            trabajador = Trabajador.objects.filter(persona=persona_existente).first()
+            if trabajador:
+                usuario = Usuario.objects.filter(trabajador=trabajador).first()
+                
+                if usuario:
+                    # GENERACIÓN DE NUEVA CLAVE (Usando tu función robusta)
+                    clave_temporal = generar_clave_robusta() 
+                    
+                    with transaction.atomic():
+                        usuario.set_password(clave_temporal)
+                        usuario.requiere_cambio_clave = True
+                        usuario.save()
 
+                    # BÚSQUEDA DE CORREO PARA EL ENVÍO
+                    correo_obj = PersonaContactoPersonal.objects.filter(
+                        persona=persona_existente, 
+                        contacto_personal__tipo_contacto__descripcion__icontains='CORREO'
+                    ).select_related('contacto_personal').first()
+
+                    if correo_obj:
+                        email_destino = correo_obj.contacto_personal.valor_contacto
+                        asunto = 'Restablecimiento de Acceso - SACAT'
+                        mensaje = f"""
+                        Hola {persona_existente.primer_nombre}, 
+                        Detectamos que ya posees un registro en el sistema. 
+                        Tus credenciales han sido restablecidas:
+                        
+                        Usuario: {persona_existente.cedula}
+                        Nueva Clave Temporal: {clave_temporal}
+                        
+                        Ingresa al sistema para completar o actualizar tu expediente.
+                        """
+                        send_mail(asunto, mensaje, settings.EMAIL_HOST_USER, [email_destino])
+                        
+                        return JsonResponse({
+                            'success': True, 
+                            'info': 'Cédula registrada anteriormente. Se enviaron nuevas credenciales a su correo.',
+                            'next_url': reverse('inicio') # Lo mandamos al login
+                        })
+
+            # Si existe la persona pero NO tiene usuario, lo dejamos seguir para completar el registro
+            return JsonResponse({
+                'success': True, 
+                'info': 'Continuando con el registro iniciado anteriormente.',
+                'next_url': reverse('registro_paso2')
+            })
+
+        # --- [REGISTRO DE PERSONA NUEVA] ---
         with transaction.atomic():
             nueva_persona = Persona.objects.create(
                 tipo_doc_identificacion_id = request.POST.get('tipo_doc'),
@@ -98,6 +151,7 @@ def guardar_paso1(request):
         
         request.session['registro_persona_id'] = nueva_persona.id
         return JsonResponse({'success': True, 'next_url': reverse('registro_paso2')})
+
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
@@ -996,48 +1050,108 @@ def guardar_paso1_v2(request):
 
     except Exception as e:
         return JsonResponse({'success': False, 'error': f"Falla técnica en SACAT: {str(e)}"})
+     
 
-# --- PASO 2: CONTACTOS v2 ---
+# --- PASO 2: CONTACTOS v2 (Vista de Carga) ---
 @login_required
 def registro_paso2_v2(request):
-    """RRHH registra solo los medios necesarios para la emisión de credenciales."""
-    if 'registro_persona_id' not in request.session: return redirect('registro_paso1_v2')
+    """RRHH registra o actualiza medios para la emisión de credenciales."""
+    if 'registro_persona_id' not in request.session: 
+        return redirect('registro_paso1_v2')
     
     persona_id = request.session.get('registro_persona_id')
-    contactos = PersonaContactoPersonal.objects.filter(persona_id=persona_id).select_related('contacto_personal__tipo_contacto')
+    
+    # Traemos los contactos vinculados con select_related para optimizar ⚡
+    contactos = PersonaContactoPersonal.objects.filter(
+        persona_id=persona_id
+    ).select_related('contacto_personal__tipo_contacto')
     
     contexto = { 
         'tipos_contactos': TipoContacto.objects.filter(esta_activo=True),
-        'contactos_existentes': contactos
+        'contactos_guardados': contactos # Este nombre sincroniza con tu HTML
     }
     return render(request, 'registrov2/fase1/paso2_contactos.html', contexto)
 
+
+# --- PASO 2: CONTACTOS v2 (Vista de Guardado) ---
 @login_required
 @require_POST
 def guardar_paso2_v2(request):
-    """Guarda la lista de contactos asegurando que el Correo sea capturado."""
+    """
+    Lógica de guardado inteligente: 
+    1. Si viene un ID, actualiza el registro existente.
+    2. Si no viene ID, crea uno nuevo.
+    3. Asegura que el Correo Principal sea obligatorio.
+    """
     try:
         persona_id = request.session.get('registro_persona_id')
+        if not persona_id:
+            return JsonResponse({'success': False, 'error': 'Sesión expirada. Vuelva al Paso 1.'})
+
+        # Recibimos las listas del formulario (Incluyendo el ID secreto)
+        contactos_ids = request.POST.getlist('contacto_id[]') 
         tipos = request.POST.getlist('tipo_id[]')
         valores = request.POST.getlist('valor[]')
         principales = request.POST.getlist('es_principal[]')
 
+        # 1. Traemos los IDs de los tipos que son "Correo" de una sola vez
+        ids_correos = list(TipoContacto.objects.filter(
+            descripcion__icontains='CORREO', 
+            esta_activo=True
+        ).values_list('id', flat=True))
+
+        # 2. VALIDACIÓN DE SEGURIDAD: ¿Hay un correo principal en la lista?
+        tiene_email_principal = False
+        for t_id, pri in zip(tipos, principales):
+            if int(t_id) in ids_correos and str(pri).lower() == 'true':
+                tiene_email_principal = True
+                break
+        
+        if not tiene_email_principal:
+            return JsonResponse({'success': False, 'error': 'Requisito SACAT: Se requiere un Correo Electrónico marcado como PRINCIPAL.'})
+
         with transaction.atomic():
+            # 3. "RESET" de Relaciones: Borramos los vínculos actuales de la persona
+            # Esto permite que si el usuario quitó un contacto de la lista, se borre el vínculo.
             PersonaContactoPersonal.objects.filter(persona_id=persona_id).delete()
-            for t_id, val, pri in zip(tipos, valores, principales):
-                contacto, _ = ContactoPersonal.objects.update_or_create(
-                    valor_contacto=val.strip().lower(),
-                    defaults={'tipo_contacto_id': t_id, 'actualizado_por': request.user.id}
-                )
+            
+            # 4. Procesamos la lista que viene del Frontend
+            for c_id, t_id, val, pri in zip(contactos_ids, tipos, valores, principales):
+                valor_limpio = val.strip().lower()
+                if not valor_limpio:
+                    continue
+
+                # --- LÓGICA DE ACTUALIZACIÓN REAL ---
+                # Si c_id tiene valor, es un registro que ya existía en ContactoPersonal
+                if c_id and c_id != 'None' and c_id != '':
+                    contacto = ContactoPersonal.objects.get(id=c_id)
+                    contacto.valor_contacto = valor_limpio
+                    contacto.tipo_contacto_id = t_id
+                    contacto.actualizado_por = request.user.id
+                    contacto.save()
+                else:
+                    # Si no hay ID, es un contacto nuevo (o modificado sin ID)
+                    # Usamos update_or_create por valor para evitar duplicar el mismo correo en la tabla global
+                    contacto, _ = ContactoPersonal.objects.update_or_create(
+                        valor_contacto=valor_limpio,
+                        defaults={
+                            'tipo_contacto_id': t_id, 
+                            'actualizado_por': request.user.id
+                        }
+                    )
+                
+                # 5. Creamos el nuevo vínculo con el trabajador
                 PersonaContactoPersonal.objects.create(
                     persona_id=persona_id,
                     contacto_personal_id=contacto.id,
-                    es_principal=(pri == 'true'),
+                    es_principal=(str(pri).lower() == 'true'),
                     creado_por=request.user.id
                 )
+                
         return JsonResponse({'success': True})
+
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+        return JsonResponse({'success': False, 'error': f"Error en Motor SACAT: {str(e)}"})
 
 # --- PASO 3: ASIGNACIÓN LABORAL v2 ---
 @login_required
@@ -1150,17 +1264,17 @@ def guardar_paso3_v2(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': f"Error en SACAT: {str(e)}"})
 
-# --- PASO 4: COMPROBANTE Y EMISIÓN v2 (REFORZADO) ---
+# --- PASO 4: COMPROBANTE Y EMISIÓN v2 ---
 @login_required
 def paso4_comprobante_v1(request):
-    """Genera la clave y prepara el resumen final con jerarquía y nivel."""
+    """Genera la clave y prepara el resumen final con selección de ROL."""
     persona_id = request.session.get('registro_persona_id')
     if not persona_id: return redirect('registro_paso1_v2')
     
     persona = get_object_or_404(Persona, id=persona_id)
     trabajador = get_object_or_404(Trabajador, persona=persona)
     
-    # 1. Recuperar Contactos (Principal)
+    # 1. Recuperar Contactos para el resumen
     correo_obj = PersonaContactoPersonal.objects.filter(
         persona=persona, es_principal=True, 
         contacto_personal__tipo_contacto__descripcion__icontains='CORREO'
@@ -1171,27 +1285,29 @@ def paso4_comprobante_v1(request):
         contacto_personal__tipo_contacto__descripcion__icontains='TELEFONO'
     ).select_related('contacto_personal').first()
 
-    # 2. MOTOR DE JERARQUÍA SINCERADA
+    # 2. Motor de Jerarquía
     u_final = trabajador.unidad_org 
     u_n1, u_n2, u_n3 = None, None, None
 
-    if u_final.unidad_sup: 
-        padre = u_final.unidad_sup
-        if padre.unidad_sup: 
-            u_n1 = padre.unidad_sup
-            u_n2 = padre
-            u_n3 = u_final
+    if u_final:
+        if u_final.unidad_sup: 
+            padre = u_final.unidad_sup
+            if padre.unidad_sup: 
+                u_n1 = padre.unidad_sup
+                u_n2 = padre
+                u_n3 = u_final
+            else: 
+                u_n1 = padre
+                u_n2 = u_final
         else: 
-            u_n1 = padre
-            u_n2 = u_final
-    else: 
-        u_n1 = u_final
+            u_n1 = u_final
 
-    # 3. EXTRAER EL NIVEL JERÁRQUICO (Lo que nos faltaba)
-    # Lo sacamos de u_n1 porque es la unidad raíz que define el nivel (Superior, Apoyo, etc.)
     nombre_nivel = "NO DEFINIDO"
     if u_n1 and u_n1.nivel_jerarquico:
         nombre_nivel = u_n1.nivel_jerarquico.descripcion
+
+    # 🌟 NUEVO: Buscamos los roles activos para el dropdown
+    roles = Rol.objects.filter(esta_activo=True).order_by('nombre_rol')
 
     if 'temp_pass' not in request.session:
         request.session['temp_pass'] = generar_clave_robusta(12) 
@@ -1202,69 +1318,71 @@ def paso4_comprobante_v1(request):
         'u_n1': u_n1, 
         'u_n2': u_n2, 
         'u_n3': u_n3,
-        'nivel_jerarquico': nombre_nivel, # <--- ¡Aquí está el dato!
+        'nivel_jerarquico': nombre_nivel,
         'correo_principal': correo_obj.contacto_personal.valor_contacto if correo_obj else "N/A",
         'telefono_principal': tlf_obj.contacto_personal.valor_contacto if tlf_obj else "N/A",
         'password_generada': request.session['temp_pass'],
+        'roles': roles, # <--- Enviamos los roles al HTML
     }
     return render(request, 'registrov2/fase1/paso4_comprobante.html', contexto)
 
 @login_required
 @require_POST
 def finalizar_fase1_v2(request):
-    """Cierra la fase 1, crea usuario y guarda la ficha en el expediente."""
     try:
         persona_id = request.session.get('registro_persona_id')
         persona = Persona.objects.get(id=persona_id)
         trabajador = Trabajador.objects.get(persona=persona)
-        password_temp = request.session.get('temp_pass')
+        password_temp = request.session.get('temp_pass') # La que generamos en el flujo
+        
+        rol_id = request.POST.get('rol_id')
 
         with transaction.atomic():
-            # 1. Crear Usuario (Rol 3 = Trabajador Fase 2)
-            Usuario.objects.create_user(
-                nombre_usuario=persona.cedula,
-                password=password_temp,
-                trabajador_id=trabajador.id,
-                rol_id=3,
-                requiere_cambio_clave=True,
-                creado_por=request.user.id
-            )
-
-            # 2. LOGICA DE RECAUDO: Guardar Ficha Inicial en Carpeta
-            # Usamos la misma ruta definida en el Paso 1
-            folder_path = os.path.join('expedientes', persona.cedula, 'recaudos')
-            full_path = os.path.join(settings.MEDIA_ROOT, folder_path)
-            if not os.path.exists(full_path): os.makedirs(full_path)
-
-            # --- Aquí llamarías a tu función de generar PDF ---
-            # Supongamos que genera un archivo llamado ficha_inicial.pdf
-            nombre_archivo = f"FICHA_INICIAL_{persona.cedula}.pdf"
-            ruta_db = os.path.join(folder_path, nombre_archivo)
-            
-            # 3. Registrar en Tabla Recaudos
-            # Buscamos o creamos el tipo de recaudo
-            tipo_rec, _ = Recaudo.objects.get_or_create(nombre_recaudo='FICHA INICIAL')
-            
-            RecaudosTrabajador.objects.update_or_create(
-                trabajador=trabajador,
-                recaudo=tipo_rec,
+            # --- AQUÍ ESTÁ LA MAGIA ---
+            # En lugar de create_user, usamos update_or_create para evitar el error de llave duplicada
+            usuario, creado = Usuario.objects.update_or_create(
+                nombre_usuario = persona.cedula,
                 defaults={
-                    'archivo_path': ruta_db,
-                    'esta_validado': True,
-                    'creado_por': request.user.id
+                    'trabajador_id': trabajador.id,
+                    'rol_id': rol_id,
+                    'requiere_cambio_clave': True,
+                    'actualizado_por': request.user.id
                 }
             )
+            
+            # Seteamos la contraseña por separado (porque Django la hashea)
+            usuario.set_password(password_temp)
+            usuario.save()
 
-            # 4. Promover a Fase 2
+            # --- GATILLO DEL CORREO ---
+            correo_obj = PersonaContactoPersonal.objects.filter(
+                persona=persona, 
+                contacto_personal__tipo_contacto__descripcion__icontains='CORREO'
+            ).select_related('contacto_personal').first()
+
+            if correo_obj:
+                email_destino = correo_obj.contacto_personal.valor_contacto
+                asunto = 'Acceso al Sistema SACAT'
+                mensaje = f"""
+                Hola {persona.primer_nombre}, 
+                
+                Se ha finalizado su registro en el sistema. 
+                Sus credenciales de acceso son:
+                Usuario: {persona.cedula}
+                Clave Temporal: {password_temp}
+                
+                El sistema le solicitará cambio de clave al ingresar.
+                """
+                send_mail(asunto, mensaje, settings.EMAIL_HOST_USER, [email_destino])
+
+            # Cerramos fase
             trabajador.fase_actual = 2
             trabajador.save()
-            
-            del request.session['registro_persona_id']
-            del request.session['temp_pass']
-            
+
         return JsonResponse({'success': True})
+
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+        return JsonResponse({'success': False, 'error': f"Error en envío/cierre: {str(e)}"})
 
 import os
 import base64
@@ -1365,3 +1483,294 @@ def generar_ficha_inicial_v2(request, persona_id):
         return response
     
     return HttpResponse("Error en generación de PDF", status=400)
+
+
+
+import requests
+import re
+from bs4 import BeautifulSoup
+from django.http import JsonResponse
+
+# URLs definitivas de Sistemas PNP
+URL_BASE_PNP = "https://www.sistemaspnp.com/cedula/"
+URL_RESULTADO_PNP = "https://www.sistemaspnp.com/cedula/resultado.php"
+
+def obtener_captcha_seniat(request):
+    """Función de compatibilidad para que el urls.py no chille."""
+    return JsonResponse({'success': True})
+
+def consultar_datos_seniat(request):
+    """
+    IA SACAT: Resuelve la suma y extrae los datos usando la estructura 
+    de etiquetas <p> y <strong> del portal.
+    """
+    cedula = request.GET.get('cedula', '').strip()
+    session = requests.Session()
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Referer': URL_BASE_PNP
+    }
+
+    try:
+        # 1. Obtener la operación matemática
+        res_inicio = session.get(URL_BASE_PNP, headers=headers, timeout=10, verify=False)
+        soup_inicio = BeautifulSoup(res_inicio.text, 'html.parser')
+        
+        label_captcha = soup_inicio.find('label', class_='captcha-question')
+        if not label_captcha:
+            return JsonResponse({'success': False, 'error': 'No se pudo leer el captcha del portal.'})
+
+        # 2. 🧠 Resolver la suma (Regex para capturar los números)
+        numeros = re.findall(r'\d+', label_captcha.get_text())
+        if len(numeros) >= 2:
+            resultado_suma = int(numeros[0]) + int(numeros[1])
+        else:
+            return JsonResponse({'success': False, 'error': 'Formato de suma no reconocido.'})
+
+        # 3. Consultar el resultado.php
+        payload = {
+            'cedula': cedula,
+            'captcha': resultado_suma,
+            'enviar': 'Consultar'
+        }
+        
+        res_final = session.post(URL_RESULTADO_PNP, data=payload, headers=headers, timeout=10, verify=False)
+        soup_res = BeautifulSoup(res_final.text, 'html.parser')
+
+        # 4. 🔍 Extracción precisa según el HTML de la card
+        p_tags = soup_res.find_all('p')
+        extraido = {}
+        
+        for p in p_tags:
+            strong = p.find('strong')
+            if strong:
+                # Obtenemos la clave (ej: Primer Apellido) y el valor (ej: ARAQUE)
+                clave = strong.get_text().replace(":", "").strip()
+                valor = p.get_text().replace(strong.get_text(), "").strip()
+                extraido[clave] = valor
+
+        if "Primer Apellido" in extraido:
+            # Dividimos los nombres por si vienen varios (ej: YUSMELY MARIEGA)
+            nombres_lista = extraido.get("Nombres", "").split()
+            
+            return JsonResponse({
+                'success': True,
+                'sugerencia': {
+                    'apellido1': extraido.get("Primer Apellido", ""),
+                    'apellido2': extraido.get("Segundo Apellido", ""),
+                    'nombre1': nombres_lista[0] if len(nombres_lista) > 0 else '',
+                    'nombre2': " ".join(nombres_lista[1:]) if len(nombres_lista) > 1 else ''
+                }
+            })
+        
+        return JsonResponse({'success': False, 'error': 'Cédula no encontrada o captcha fallido.'})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f"Error de conexión: {str(e)}"})
+    
+
+# En sacat_root/trabajadores/views.py
+@login_required
+def listar_trabajadores(request):
+    busqueda = request.GET.get('search', '')
+    
+    # ⚠️ REGLA DE ORO: Usamos .all() para ver todo mientras depuramos
+    # Si después quieres ocultar los eliminados, usa .filter(esta_activo=True)
+    trabajadores = Trabajador.objects.select_related(
+        'persona', 
+        'persona__sexo', 
+        'unidad_org', 
+        'cargo_estructural'
+    ).all() # <--- Cambia .filter(...) por .all()
+
+    if busqueda:
+        trabajadores = trabajadores.filter(
+            Q(persona__cedula__icontains=busqueda) |
+            Q(persona__primer_nombre__icontains=busqueda) |
+            Q(persona__primer_apellido__icontains=busqueda)
+        )
+
+    # Lógica de edad intacta
+    hoy = date.today()
+    for t in trabajadores:
+        if t.persona.fecha_nacimiento:
+            fn = t.persona.fecha_nacimiento
+            t.edad = hoy.year - fn.year - ((hoy.month, hoy.day) < (fn.month, fn.day))
+        else:
+            t.edad = "N/A"
+
+    contexto = {
+        'trabajadores': trabajadores,
+        'busqueda': busqueda,
+    }
+    return render(request, 'listado/listar_trabajadores.html', contexto)
+
+@login_required
+def detalle_trabajador_json(request, trabajador_id):
+    """Retorna los datos del trabajador para el modal del listado SACAT."""
+    try:
+        # Buscamos el trabajador con todas sus relaciones para que la respuesta sea flash ⚡
+        t = get_object_or_404(
+            Trabajador.objects.select_related('persona', 'unidad_org', 'cargo_estructural', 'sede'), 
+            id=trabajador_id
+        )
+        
+        # Preparamos la data para el modal
+        data = {
+            'nombre_completo': f"{t.persona.primer_nombre} {t.persona.primer_apellido}",
+            'cedula': t.persona.cedula,
+            'cargo': t.cargo_estructural.nombre_cargo_estruct.upper() if t.cargo_estructural else "N/A",
+            'unidad': t.unidad_org.nombre_unidad.upper() if t.unidad_org else "N/A",
+            'sede': t.sede.nombre_sede.upper() if t.sede else "N/A",
+            'ingreso': t.fecha_ingreso_inst.strftime('%d/%m/%Y') if t.fecha_ingreso_inst else "N/A",
+            'nomina': t.codigo_nomina,
+            'persona_id': t.persona.id
+        }
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+def perfil_trabajador(request, trabajador_id):
+    # Traemos el trabajador con relaciones base
+    t = get_object_or_404(
+        Trabajador.objects.select_related(
+            'persona', 'persona__sexo', 'persona__estado_civil', 
+            'unidad_org', 'cargo_estructural', 'sede'
+        ), id=trabajador_id
+    )
+    
+    # Calculamos edad (Paso 1)
+    hoy = date.today()
+    nacimiento = t.persona.fecha_nacimiento
+    edad = hoy.year - nacimiento.year - ((hoy.month, hoy.day) < (nacimiento.month, nacimiento.day)) if nacimiento else "N/A"
+
+    # Consultamos las tablas relacionadas (Fase 2)
+    # Nota: Ajusta estos nombres según tus modelos reales en sacat_db
+    contexto = {
+        't': t,
+        'p': t.persona,
+        'edad': edad,
+        # Aquí traerías salud, familia, formación, etc.
+        # 'familia': CargaFamiliar.objects.filter(trabajador=t),
+        # 'salud': Salud.objects.filter(persona=t.persona).first(),
+    }
+    
+    return render(request, 'listado/perfil_trabajador.html', contexto)
+
+# --- FASE 2: AUTOGESTIÓN DEL TRABAJADOR (COMPLETACIÓN DE DATOS) ---
+
+@login_required
+def f2_paso1_identidad(request):
+    """
+    Paso 1 - Autogestión: Visualización de datos legales cargados por RRHH.
+    Muestra identidad, nombres, fechas y el documento adjunto (Solo Lectura).
+    """
+    # Usamos nombre_usuario porque es tu campo personalizado para la Cédula
+    trabajador = get_object_or_404(Trabajador, persona__cedula=request.user.nombre_usuario)
+    persona = trabajador.persona
+
+    # Validamos que el trabajador esté efectivamente en la Fase 2
+    if trabajador.fase_actual < 1:
+        return redirect('inicio')
+
+    # Buscamos el documento de identidad adjunto en la tabla Recaudo
+    recaudo_ci = Recaudo.objects.filter(
+        trabajador=trabajador, 
+        tipo_recaudo__descripcion__icontains='IDENTIDAD'
+    ).first()
+
+    contexto = {
+        'persona': persona,
+        'trabajador': trabajador,
+        'url_cedula': recaudo_ci.ruta_archivo.url if recaudo_ci and recaudo_ci.ruta_archivo else None
+    }
+    return render(request, 'registrov2/fase2/paso1_identidad.html', contexto)
+
+
+@login_required
+def f2_paso2_contactos(request):
+    """
+    Paso 2 - Autogestión: El trabajador edita sus medios de contacto 
+    e incorpora los datos de emergencia.
+    """
+    trabajador = get_object_or_404(Trabajador, persona__cedula=request.user.nombre_usuario)
+    persona = trabajador.persona
+
+    # 1. Recuperamos contactos personales existentes (los que cargó RRHH + nuevos)
+    contactos_p = PersonaContactoPersonal.objects.filter(
+        persona=persona
+    ).select_related('contacto_personal__tipo_contacto')
+    
+    # 2. Recuperamos contactos de emergencia
+    contactos_e = PersonaContactoEmergencia.objects.filter(
+        persona=persona
+    ).select_related('contacto_emergencia')
+
+    contexto = {
+        'persona': persona,
+        'trabajador': trabajador,
+        'contactos_guardados': contactos_p,
+        'emergencias_guardadas': contactos_e,
+        'tipos_contactos': TipoContacto.objects.filter(esta_activo=True),
+    }
+    return render(request, 'registrov2/fase2/paso2_contactos.html', contexto)
+
+
+@login_required
+@require_POST
+def guardar_f2_paso2(request):
+    """
+    Lógica de persistencia para el Paso 2.
+    Aplica borrado y carga nueva (persistencia anti-apagones).
+    """
+    try:
+        trabajador = get_object_or_404(Trabajador, persona__cedula=request.user.nombre_usuario)
+        persona = trabajador.persona
+        user_id = request.user.id
+
+        with transaction.atomic():
+            # --- A. CONTACTOS PERSONALES ---
+            tipos_p = request.POST.getlist('tipo_id[]')
+            valores_p = request.POST.getlist('valor[]')
+            principales_p = request.POST.getlist('es_principal[]')
+
+            PersonaContactoPersonal.objects.filter(persona=persona).delete()
+            for t, v, p in zip(tipos_p, valores_p, principales_p):
+                if t and v:
+                    # Evitamos duplicar el contacto físico en la tabla global
+                    obj_c, _ = ContactoPersonal.objects.update_or_create(
+                        valor_contacto=v.strip().lower(),
+                        defaults={'tipo_contacto_id': t, 'actualizado_por': user_id}
+                    )
+                    # Creamos el vínculo con esta persona
+                    PersonaContactoPersonal.objects.create(
+                        persona=persona,
+                        contacto_personal=obj_c,
+                        es_principal=(str(p).lower() == 'true'),
+                        creado_por=user_id
+                    )
+
+            # --- B. CONTACTOS DE EMERGENCIA ---
+            nombres_e = request.POST.getlist('e_nombre[]')
+            apellidos_e = request.POST.getlist('e_apellido[]')
+            telefonos_e = request.POST.getlist('e_telefono[]')
+
+            PersonaContactoEmergencia.objects.filter(persona=persona).delete()
+            for n, a, tel in zip(nombres_e, apellidos_e, telefonos_e):
+                if n and tel:
+                    obj_e = ContactoEmergencia.objects.create(
+                        primer_nombre=n.strip().upper(),
+                        primer_apellido=a.strip().upper(),
+                        telefono=tel.strip(),
+                        creado_por=user_id
+                    )
+                    PersonaContactoEmergencia.objects.create(
+                        persona=persona,
+                        contacto_emergencia=obj_e,
+                        creado_por=user_id
+                    )
+
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f"Error en Motor SACAT: {str(e)}"})
