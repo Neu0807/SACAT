@@ -1,0 +1,221 @@
+{% extends 'listado_generico.html' %}
+
+{% block title %}SACAT | Gestión de Usuarios{% endblock %}
+
+{% block breadcrumb %}
+<a href="{% url 'inicio' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+    <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
+</a>
+{% endblock %}
+
+{% block icono_titulo %}<i class="fas fa-users-cog me-2"></i>{% endblock %}
+{% block nombre_listado %}Gestión de Usuarios{% endblock %}
+
+{% block botones_extra %}
+<button type="button" class="btn btn-success fw-bold px-5 py-3 rounded-pill shadow-lg" data-bs-toggle="modal" data-bs-target="#modalExportarAvanzado">
+    <i class="fas fa-file-excel me-2"></i> EXPORTAR REGISTROS
+</button>
+{% endblock %}
+
+{% block table_columns %}
+<th>Usuario</th>
+<th>Rol</th>
+<th>Último Acceso</th>
+<th>Estado Clave</th>
+<th>Estatus</th>
+<th class="text-center">Acciones</th>
+{% endblock %}
+
+{% block table_body %}
+{% for user in usuarios %}
+<tr>
+    <td class="fw-bold">{{ user.nombre_usuario }}</td>
+    <td class="text-uppercase">
+        {% if user.is_superuser %} SUPERUSUARIO
+        {% elif user.rol %} {{ user.rol.nombre_rol }}
+        {% else %} SIN ROL ASIGNADO {% endif %}
+    </td>
+    <td>
+        {% if user.last_login %}
+            {{ user.last_login|date:"d/m/Y" }} <span class="text-muted small ms-1">{{ user.last_login|date:"H:i" }}</span>
+        {% else %}
+            00/00/0000
+        {% endif %}
+    </td>
+    <td class="text-uppercase">
+        {% if user.requiere_cambio_clave %} DESACTUALIZADA {% else %} ACTUALIZADA {% endif %}
+    </td>
+    <td class="text-uppercase">
+        {% if user.esta_activo %} ACTIVO {% else %} INACTIVO {% endif %}
+    </td>
+    <td class="text-center">
+        <div class="d-flex justify-content-center gap-2">
+            <a href="{% url 'editar_usuario' user.nombre_usuario %}" class="btn-action-sacat btn-edit" data-bs-toggle="tooltip" title="Editar Perfil">
+                <i class="fas fa-user-edit"></i>
+            </a>
+            <button type="button" class="btn-action-sacat btn-key btn-reset-clave"
+                    data-username="{{ user.nombre_usuario }}"
+                    data-url="{% url 'resetear_clave_usuario' username=user.nombre_usuario %}"
+                    data-bs-toggle="tooltip" title="Resetear Contraseña">
+                <i class="fas fa-key"></i>
+            </button>
+            <button type="button" class="btn-action-sacat btn-power btn-toggle-estatus"
+                    data-id="{{ user.nombre_usuario }}"
+                    data-nombre="{{ user.nombre_usuario }}"
+                    data-activo="{{ user.esta_activo|yesno:'true,false' }}"
+                    data-url="{% url 'cambiar_estado_usuario' username=user.nombre_usuario %}"
+                    data-bs-toggle="tooltip"
+                    title="{% if user.esta_activo %}Inhabilitar{% else %}Habilitar{% endif %}">
+                <i class="fas fa-power-off"></i>
+            </button>
+        </div>
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
+
+{% block modales %}
+<!-- Modal Exportación Avanzada -->
+<div class="modal fade" id="modalExportarAvanzado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden;">
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%); color: white;">
+                <div>
+                    <h4 class="modal-title fw-bold mb-0">Parámetros de Reporte</h4>
+                    <small class="opacity-75 text-uppercase fw-bold" style="font-size: 0.65rem;">Filtros de Auditoría Excel</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="filter-item" style="background: var(--bg-body); border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                    <label class="d-block fw-bold small text-uppercase text-muted mb-2">Filtrar por Rol</label>
+                    <select id="modal_rol" class="form-select border-0 bg-white">
+                        <option value="">-- TODOS LOS ROLES --</option>
+                    </select>
+                </div>
+                <div class="filter-item" style="background: var(--bg-body); border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                    <label class="d-block fw-bold small text-uppercase text-muted mb-2">Estado de la Clave</label>
+                    <select id="modal_clave" class="form-select border-0 bg-white">
+                        <option value="">-- CUALQUIER ESTADO --</option>
+                        <option value="ACTUALIZADA">ACTUALIZADA</option>
+                        <option value="DESACTUALIZADA">DESACTUALIZADA</option>
+                    </select>
+                </div>
+                <div class="filter-item" style="background: var(--bg-body); border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                    <label class="d-block fw-bold small text-uppercase text-muted mb-2">Estatus del Usuario</label>
+                    <select id="modal_estatus" class="form-select border-0 bg-white">
+                        <option value="">-- CUALQUIER ESTATUS --</option>
+                        <option value="ACTIVO">ACTIVO</option>
+                        <option value="INACTIVO">INACTIVO</option>
+                    </select>
+                </div>
+                <div class="alert alert-secondary border-0 small text-center">
+                    <i class="fas fa-info-circle me-1"></i> El reporte Excel contendrá únicamente los registros filtrados.
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">CANCELAR</button>
+                <button type="button" class="btn btn-success fw-bold px-5" id="btnProcesarExcel">
+                    <i class="fas fa-download me-2"></i> GENERAR EXCEL
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js_local %}
+// Inicializar tooltips de Bootstrap
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+tooltipTriggerList.forEach(function (el) { new bootstrap.Tooltip(el); });
+
+// Al abrir el modal de exportación, llenar el select de roles
+$('#modalExportarAvanzado').on('show.bs.modal', function() {
+    const table = $('#tablaListado').DataTable();
+    const roles = [...new Set(table.column(1).data().toArray().map(r => r.trim()))];
+    const select = $('#modal_rol');
+    select.empty().append('<option value="">-- TODOS LOS ROLES --</option>');
+    roles.forEach(function(r) {
+        if (r && r !== 'SIN ROL ASIGNADO') {
+            select.append(`<option value="${r}">${r}</option>`);
+        }
+    });
+});
+
+// Exportar con filtros
+$('#btnProcesarExcel').on('click', function() {
+    const table = $('#tablaListado').DataTable();
+    // Aplicar filtros a las columnas
+    table.column(1).search($('#modal_rol').val().toUpperCase());
+    table.column(3).search($('#modal_clave').val().toUpperCase());
+    table.column(4).search($('#modal_estatus').val().toUpperCase());
+    table.draw();
+
+    // Disparar botón Excel oculto
+    $('.buttons-excel').click();
+
+    // Restaurar vista y cerrar modal
+    setTimeout(function() {
+        table.columns().search('').draw();
+        var modalEl = document.getElementById('modalExportarAvanzado');
+        var modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+        Swal.fire({ icon: 'success', title: 'Excel generado', timer: 1500, showConfirmButton: false });
+    }, 500);
+});
+// --- Resetear contraseña (POST) ---
+$('.btn-reset-clave').off('click').on('click', function() {
+    const btn = $(this);
+    const username = btn.data('username');
+    const url = btn.data('url');
+    const csrfToken = '{{ csrf_token }}';
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    const swalBg = isDark ? '#1E293B' : '#ffffff';
+    const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
+    Swal.fire({
+        title: '¿Resetear contraseña?',
+        text: `Se generará una nueva clave temporal para ${username}.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d97706',
+        cancelButtonColor: 'var(--text-muted)',
+        confirmButtonText: 'Sí, resetear',
+        cancelButtonText: 'Cancelar',
+        background: swalBg,
+        color: swalColor
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Procesando...',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => Swal.showLoading()
+            });
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Contraseña reseteada',
+                        html: `<strong>Nueva clave:</strong> <code style="font-size:1.3rem;">${data.clave}</code>`,
+                        confirmButtonColor: 'var(--brand-primary)',
+                        background: swalBg,
+                        color: swalColor
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje });
+                }
+            })
+            .catch(() => Swal.fire('Error crítico', 'No se pudo conectar con el servidor.', 'error'));
+        }
+    });
+});
+{% endblock %}

@@ -1,0 +1,158 @@
+{% extends 'listado_generico.html' %}
+
+{% block title %}SACAT | Parroquias{% endblock %}
+
+{% block breadcrumb %}
+<a href="{% url 'configuracion_ubicacion' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+    <i class="fas fa-arrow-left me-2"></i>Volver a Ubicación
+</a>
+{% endblock %}
+
+{% block icono_titulo %}<i class="fas fa-house-flag me-2"></i>{% endblock %}
+{% block nombre_listado %}Gestión de Parroquias{% endblock %}
+
+{% block botones_extra %}
+{% if request.user.is_superuser %}
+    <button class="btn btn-outline-success rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalImportarParroquias">
+        <i class="fas fa-file-excel me-2"></i><span class="d-none d-sm-inline">Importar</span>
+    </button>
+{% endif %}
+{% endblock %}
+
+{% block boton_crear %}
+<button class="btn btn-primary rounded-pill px-4 shadow-sm">
+    <i class="fas fa-plus-circle me-2"></i><span class="d-none d-sm-inline">Crear</span>
+</button>
+{% endblock %}
+
+{% block table_columns %}
+<th>Parroquia</th>
+<th>Municipio</th>
+<th>Estado</th>
+<th class="text-center">Estatus</th>
+<th class="text-center">Acciones</th>
+{% endblock %}
+
+{% block table_body %}
+{% for p in parroquias %}
+<tr>
+    <td class="fw-bold">{{ p.nombre_parroquia }}</td>
+    <td>{{ p.municipio.nombre_municipio }}</td>
+    <td>{{ p.municipio.estado.nombre_estado }}</td>
+    <td class="text-center">
+        {% if p.esta_activo %}
+            <span class="text-status-active">ACTIVO</span>
+        {% else %}
+            <span class="text-status-inactive">INACTIVO</span>
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <button type="button" class="btn-action-sacat btn-power btn-toggle-estatus"
+                data-id="{{ p.id }}"
+                data-nombre="{{ p.nombre_parroquia }}"
+                data-activo="{{ p.esta_activo|yesno:'true,false' }}"
+                data-url="{% url 'toggle_parroquia' parroquia_id=p.id %}"
+                data-bs-toggle="tooltip"
+                title="{% if p.esta_activo %}Inhabilitar{% else %}Habilitar{% endif %}">
+            <i class="fas fa-power-off"></i>
+        </button>
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
+
+{% block modales %}
+<!-- Modal de importación de Parroquias (se mantiene tu diseño existente) -->
+<div class="modal fade" id="modalImportarParroquias" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden; transition: background-color 0.3s;">
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%); color: white;">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white bg-opacity-25 rounded-circle p-2 me-3" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-house-flag fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0">Importar Parroquias</h5>
+                        <small class="opacity-75">Carga Masiva Geográfica</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-4">
+                <div class="p-3 rounded-3 mb-4" style="background-color: rgba(245, 158, 11, 0.1); border-left: 4px solid #F59E0B;">
+                    <div class="d-flex small" style="color: var(--text-main);">
+                        <i class="fas fa-info-circle mt-1 me-2 text-warning"></i>
+                        <div>
+                            <strong>Orden de Columnas:</strong><br>
+                            A: <b>Estado</b> | B: <b>Municipio</b> | C: <b>Parroquia</b><br>
+                            <span style="color: var(--text-muted);" class="font-italic text-xs">Ej: DISTRITO CAPITAL | LIBERTADOR | EL RECREO</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="formImportarParroquias" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-4 text-center">
+                        <div class="upload-area p-4 border border-2 border-dashed rounded-3" id="dropZonePar" style="border-color: var(--border-color) !important; cursor: pointer; transition: all 0.3s ease; background-color: var(--bg-body);">
+                            <i class="fas fa-file-import fa-3x mb-2" style="color: var(--brand-primary); opacity: 0.5;"></i>
+                            <p class="small mb-0" style="color: var(--text-muted);">Seleccione el archivo consolidado</p>
+                            <input type="file" name="archivo" id="archivoPar" class="form-control d-none" accept=".xlsx, .xls, .csv" required>
+                            <div id="file-name-par" class="mt-2 fw-bold small" style="color: var(--brand-primary);"></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-3 shadow-sm fw-bold">PROCESAR ARCHIVO</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js_local %}
+// Tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+tooltipTriggerList.forEach(function (el) { new bootstrap.Tooltip(el); });
+
+// DropZone Parroquias
+const dropZonePar = document.getElementById('dropZonePar');
+const fileInputPar = document.getElementById('archivoPar');
+const fileNamePar = document.getElementById('file-name-par');
+if(dropZonePar){
+    dropZonePar.onclick = () => fileInputPar.click();
+    fileInputPar.onchange = () => {
+        if(fileInputPar.files.length > 0) {
+            fileNamePar.innerHTML = `<i class="fas fa-check-circle me-1"></i> ${fileInputPar.files[0].name}`;
+            dropZonePar.style.backgroundColor = 'var(--brand-light)';
+        }
+    };
+    dropZonePar.addEventListener('mouseover', () => dropZonePar.style.borderColor = 'var(--brand-primary)');
+    dropZonePar.addEventListener('mouseout', () => dropZonePar.style.borderColor = 'var(--border-color)');
+}
+
+// Importación Parroquias
+document.getElementById('formImportarParroquias').addEventListener('submit', function(e) {
+    e.preventDefault();
+    let formData = new FormData(this);
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    Swal.fire({
+        title: 'Importando Parroquias...',
+        text: 'Este proceso puede tardar un poco más, por favor espere.',
+        allowOutsideClick: false, showConfirmButton: false,
+        background: isDark ? '#1E293B' : '#ffffff', color: isDark ? '#F8FAFC' : '#0F172A',
+        didOpen: () => { Swal.showLoading(); }
+    });
+    fetch("{% url 'importar_parroquias' %}", {
+        method: 'POST', body: formData, headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({ icon: 'success', title: '¡Completado!', text: data.mensaje, confirmButtonColor: 'var(--brand-primary)' })
+                .then(() => location.reload());
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje });
+        }
+    });
+});
+{% endblock %}

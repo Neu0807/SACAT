@@ -1,0 +1,133 @@
+{% extends 'listado_generico.html' %}
+
+{% block title %}SACAT | Gestión de Roles{% endblock %}
+
+{% block breadcrumb %}
+<a href="{% url 'inicio' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+    <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
+</a>
+{% endblock %}
+
+{% block icono_titulo %}<i class="fas fa-id-badge me-2"></i>{% endblock %}
+{% block nombre_listado %}Gestión de Roles{% endblock %}
+
+{% block boton_crear %}
+<button onclick="abrirModalGestion('{% url 'crear_rol' %}', 'Crear Nuevo Rol')" class="btn btn-primary rounded-pill px-4 shadow-sm">
+    <i class="fas fa-plus-circle me-2"></i><span class="d-none d-sm-inline">Crear Rol</span>
+</button>
+{% endblock %}
+
+{% block table_columns %}
+<th>Nombre del Rol</th>
+<th>Descripción</th>
+<th>Estado</th>
+<th class="text-center">Acciones</th>
+{% endblock %}
+
+{% block table_body %}
+{% for r in roles %}
+<tr>
+    <td class="fw-bold">{{ r.nombre_rol }}</td>
+    <td class="small text-muted">{{ r.descripcion|default:"-" }}</td>
+    <td>
+        {% if r.esta_activo %}
+            <span class="text-status-active">ACTIVO</span>
+        {% else %}
+            <span class="text-status-inactive">INACTIVO</span>
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <div class="d-flex justify-content-center gap-2">
+            {# Editar #}
+            <button class="btn-action-sacat btn-edit" onclick="abrirModalGestion('/roles/editar/{{ r.id }}/', 'Editar Rol')" data-bs-toggle="tooltip" title="Editar Rol">
+                <i class="fas fa-edit"></i>
+            </button>
+
+            {# Permisos (futuro) #}
+            <button class="btn-action-sacat btn-key" onclick="abrirModalGestion('/roles/permisos/{{ r.id }}/', 'Asignar Permisos')" data-bs-toggle="tooltip" title="Permisos">
+                <i class="fas fa-key"></i>
+            </button>
+
+            {# Toggle estado #}
+            {% if r.nombre_rol != "Superusuario" %}
+                <button type="button" class="btn-action-sacat btn-power btn-toggle-estatus"
+                        data-id="{{ r.id }}"
+                        data-nombre="{{ r.nombre_rol }}"
+                        data-activo="{{ r.esta_activo|yesno:'true,false' }}"
+                        data-url="{% url 'cambiar_estado_rol' rol_id=r.id %}"
+                        data-bs-toggle="tooltip"
+                        title="{% if r.esta_activo %}Inhabilitar{% else %}Habilitar{% endif %}">
+                    <i class="fas fa-power-off"></i>
+                </button>
+            {% else %}
+                <button class="btn-action-sacat disabled opacity-25" data-bs-toggle="tooltip" title="Rol Protegido" style="pointer-events: none;">
+                    <i class="fas fa-shield-halved"></i>
+                </button>
+            {% endif %}
+        </div>
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
+
+{% block modales %}
+<!-- Modal para formularios (crear/editar/permisos) -->
+<div class="modal fade" id="modalGestionRoles" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden;">
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%); color: white;">
+                <h5 class="modal-title fw-bold" id="tituloModal">Gestión</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="location.reload()"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="contenedorCarga" class="p-4 text-center d-none">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+                <div id="contenidoDinamico"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js_local %}
+// Inicializar tooltips (necesario porque el listado genérico ya lo hace, pero lo reforzamos)
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+tooltipTriggerList.forEach(function (el) { new bootstrap.Tooltip(el); });
+
+// Instanciar el modal de gestión
+var modalRoles = new bootstrap.Modal(document.getElementById('modalGestionRoles'));
+
+// Función global para abrir el modal con contenido dinámico
+window.abrirModalGestion = function(url, titulo) {
+    document.getElementById('tituloModal').innerText = titulo;
+    var contenido = document.getElementById('contenidoDinamico');
+    var spinner = document.getElementById('contenedorCarga');
+    
+    // Limpiar y mostrar spinner
+    contenido.innerHTML = '';
+    spinner.classList.remove('d-none');
+    modalRoles.show();
+    
+    fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error('Error al cargar');
+            return response.text();
+        })
+        .then(html => {
+            spinner.classList.add('d-none');
+            contenido.innerHTML = html;
+            // Ejecutar scripts incrustados en el HTML cargado
+            var scripts = contenido.querySelectorAll('script');
+            scripts.forEach(function(oldScript) {
+                var newScript = document.createElement('script');
+                newScript.text = oldScript.text;
+                document.body.appendChild(newScript).parentNode.removeChild(newScript);
+            });
+        })
+        .catch(error => {
+            spinner.classList.add('d-none');
+            contenido.innerHTML = '<div class="p-4 text-center text-danger">Error al cargar la vista.</div>';
+        });
+};
+{% endblock %}

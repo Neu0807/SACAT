@@ -7,16 +7,18 @@
             </span>
         </div>
 
+        {# Nombre del Rol (bloqueado por seguridad) #}
         <div class="mb-3">
-            <label class="form-label fw-bold text-muted">Nombre del Rol (Protegido)</label>
+            <label class="form-label fw-bold text-muted small text-uppercase">Nombre del Rol (Protegido)</label>
             <div class="input-group">
                 <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock"></i></span>
                 <input type="text" class="form-control border-start-0 bg-light fw-bold" value="{{ rol.nombre_rol }}" readonly disabled>
             </div>
         </div>
 
+        {# Único campo editable #}
         <div class="mb-4">
-            <label class="form-label fw-bold" style="color: var(--brand-primary);">Actualizar Descripción</label>
+            <label class="form-label fw-bold small text-uppercase" style="color: var(--brand-primary);">Descripción del Rol</label>
             <textarea id="desc_edit" class="form-control shadow-sm" rows="5" required>{{ rol.descripcion }}</textarea>
         </div>
 
@@ -32,13 +34,26 @@
     document.getElementById('formEditarRol').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        Swal.fire({ title: 'Actualizando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const swalBg = isDark ? '#1E293B' : '#ffffff';
+        const swalColor = isDark ? '#F8FAFC' : '#0F172A';
+
+        Swal.fire({ 
+            title: 'Actualizando...', 
+            allowOutsideClick: false, 
+            background: swalBg,
+            color: swalColor,
+            didOpen: () => { Swal.showLoading(); } 
+        });
 
         fetch("{% url 'editar_rol' rol.id %}", {
             method: 'POST',
-            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+            headers: { 
+                'X-CSRFToken': '{{ csrf_token }}', 
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify({ 
-                nombre_rol: "{{ rol.nombre_rol }}",
+                nombre_rol: "{{ rol.nombre_rol|escapejs }}",
                 descripcion: document.getElementById('desc_edit').value 
             })
         })
@@ -49,11 +64,14 @@
                     icon: 'success',
                     title: '¡Actualizado!',
                     text: res.mensaje,
-                    confirmButtonColor: 'var(--brand-primary)'
+                    confirmButtonColor: 'var(--brand-primary)',
+                    background: swalBg,
+                    color: swalColor
                 }).then(() => location.reload());
             } else {
-                Swal.fire('Error', res.mensaje, 'error');
+                Swal.fire({ icon: 'error', title: 'Error', text: res.mensaje, background: swalBg, color: swalColor });
             }
-        });
+        })
+        .catch(err => Swal.fire('Error', 'No se pudo conectar con el servidor', 'error'));
     });
 </script>

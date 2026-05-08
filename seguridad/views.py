@@ -1,6 +1,8 @@
 import json
 import secrets
 import string
+from django.views.decorators.http import require_POST
+from django.contrib.auth import logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -57,11 +59,11 @@ def login_view(request):
         except Exception:
             return JsonResponse({'success': False, 'mensaje': 'Error en el servidor.'})
 
-    return render(request, 'seguridad/login.html')
+    return render(request, 'login/login.html')
 
 @login_required
 def inicio_view(request):
-    return render(request, 'seguridad/inicio.html')
+    return render(request, 'login/inicio.html')
 
 def salir_sistema(request):
     logout(request)
@@ -71,11 +73,11 @@ def salir_sistema(request):
 @login_required
 def listar_usuarios(request):
     usuarios = Usuario.objects.all().order_by('-id')
-    return render(request, 'seguridad/listar_usuarios.html', {'usuarios': usuarios})
+    return render(request, 'usuarios/listar_usuarios.html', {'usuarios': usuarios})
 
 @login_required
 def crear_superusuario_view(request):
-    return render(request, 'seguridad/crear_superusuario.html')
+    return render(request, 'usuarios/crear_superusuario.html')
 
 @login_required
 def guardar_superusuario(request):
@@ -161,7 +163,7 @@ def editar_usuario_view(request, username):
             return JsonResponse({'success': True, 'mensaje': 'Permisos actualizados correctamente.'})
         except Exception as e:
             return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
-    return render(request, 'seguridad/editar_usuario.html', {'user_editar': user_editar})
+    return render(request, 'usuarios/editar_usuario.html', {'user_editar': user_editar})
 
 # --- VISTA DE CAMBIO DE CLAVE OBLIGATORIO ---
 @login_required
@@ -189,6 +191,7 @@ def cambiar_clave_obligatorio_view(request):
             request.user.set_password(nueva_clave)
             request.user.requiere_cambio_clave = False
             request.user.save()
+            logout(request)
             
             update_session_auth_hash(request, request.user)
 
@@ -196,19 +199,19 @@ def cambiar_clave_obligatorio_view(request):
         except Exception as e:
             return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
 
-    return render(request, 'seguridad/cambiar_clave.html')
+    return render(request, 'usuarios/cambiar_clave.html')
 
 # --- SUBMÓDULO DE ROLES ---
 @login_required
 def crear_rol_view(request):
     """Esta es la función que faltaba para cargar el modal de crear rol"""
-    return render(request, 'seguridad/crear_rol.html')
+    return render(request, 'roles/crear_rol.html')
 
 @login_required
 def listar_roles(request):
     # Traemos todos los roles de tu tabla 'roles'
     roles = Rol.objects.all().order_by('id')
-    return render(request, 'seguridad/listar_roles.html', {'roles': roles})
+    return render(request, 'roles/listar_roles.html', {'roles': roles})
 
 @login_required
 def guardar_rol(request):
@@ -246,15 +249,31 @@ def editar_rol_view(request, rol_id):
         except Exception as e:
             return JsonResponse({'success': False, 'mensaje': str(e)})
             
-    return render(request, 'seguridad/editar_rol.html', {'rol': rol})
+    return render(request, 'roles/editar_rol.html', {'rol': rol})
 
 def listar_permisos(request):
     permisos = PermisoSis.objects.all().order_by('-fecha_creacion')
-    return render(request, 'seguridad/listar_permisos.html', {'permisos': permisos})
+    return render(request, 'permisos/listar_permisos.html', {'permisos': permisos})
 
 # Vista para el formulario de creación (Página aparte)
 def crear_permiso(request):
-    return render(request, 'seguridad/crear_permiso.html')
+    return render(request, 'permisos/crear_permiso.html')
+
+@login_required
+@require_POST
+def cambiar_estado_rol(request, rol_id):
+    rol = get_object_or_404(Rol, id=rol_id)
+    
+    if rol.nombre_rol == 'Superusuario':
+        return JsonResponse({'success': False, 'mensaje': 'El rol Superusuario no puede ser modificado.'})
+    
+    # Alternar el estado
+    rol.esta_activo = not rol.esta_activo
+    rol.actualizado_por = request.user.id
+    rol.save()
+    
+    estado = "habilitado" if rol.esta_activo else "inhabilitado"
+    return JsonResponse({'success': True, 'mensaje': f'Rol {estado} correctamente.'})
 
 # Guardar Permiso (AJAX)
 def guardar_permiso(request):
@@ -283,7 +302,7 @@ def guardar_permiso(request):
 
 # 1. VISTA PARA RENDERIZAR EL FORMULARIO
 def crear_permiso(request):
-    return render(request, 'seguridad/crear_permiso.html')
+    return render(request, 'permisos/crear_permiso.html')
 
 # 2. FUNCIÓN PARA GUARDAR EL PERMISO (POR AJAX)
 def guardar_permiso(request):
@@ -323,4 +342,14 @@ def editar_permiso(request, pk):
         except Exception as e:
             return JsonResponse({'success': False, 'mensaje': str(e)})
             
-    return render(request, 'seguridad/editar_permiso.html', {'permiso': permiso})
+    return render(request, 'permisos/editar_permiso.html', {'permiso': permiso})
+
+@login_required
+@require_POST
+def cambiar_estado_permiso(request, pk):
+    permiso = get_object_or_404(PermisoSis, pk=pk)
+    permiso.esta_activo = not permiso.esta_activo
+    permiso.actualizado_por = request.user.id if request.user.is_authenticated else None
+    permiso.save()
+    estado = "habilitado" if permiso.esta_activo else "inhabilitado"
+    return JsonResponse({'success': True, 'mensaje': f'Permiso {estado} correctamente.'})

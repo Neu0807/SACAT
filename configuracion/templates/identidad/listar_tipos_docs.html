@@ -1,0 +1,106 @@
+{% extends 'listado_generico.html' %}
+
+{% block breadcrumb %}
+<a href="{% url 'configuracion_identidad' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+    <i class="fas fa-arrow-left me-2"></i>Volver a Identidad
+</a>
+{% endblock %}
+
+{% block icono_titulo %}<i class="fas fa-id-card me-2"></i>{% endblock %}
+{% block nombre_listado %}Tipos de Documento{% endblock %}
+
+{% block boton_crear %}
+<button onclick="abrirModalGestion('{% url 'crear_tipo_documento' %}', 'Nuevo Tipo de Documento')" class="btn btn-primary rounded-pill px-4 shadow-sm">
+    <i class="fas fa-plus-circle me-2"></i><span class="d-none d-sm-inline">Crear</span>
+</button>
+{% endblock %}
+
+{% block table_columns %}
+<th>Sigla</th>
+<th>Descripción</th>
+<th>Ente Emisor</th>
+<th>Aplica a</th>
+<th class="text-center">Estatus</th>
+<th class="text-center">Acciones</th>
+{% endblock %}
+
+{% block table_body %}
+{% for doc in documentos %}
+<tr>
+    <td class="fw-bold">{{ doc.sigla }}</td>
+    <td>{{ doc.descripcion }}</td>
+    <td>{{ doc.ente_emisor|default:"-" }}</td>
+    <td>{{ doc.aplica_a|default:"-" }}</td>
+    <td class="text-center">
+        {% if doc.esta_activo %}
+            <span class="text-status-active">ACTIVO</span>
+        {% else %}
+            <span class="text-status-inactive">INACTIVO</span>
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <div class="d-flex justify-content-center gap-2">
+            <button class="btn-action-sacat btn-edit" onclick="abrirModalGestion('/identidad/documentos/editar/{{ doc.id }}/', 'Editar Tipo de Documento')" title="Editar">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button type="button" class="btn-action-sacat btn-power btn-toggle-estatus"
+                    data-id="{{ doc.id }}"
+                    data-nombre="{{ doc.sigla }}"
+                    data-activo="{{ doc.esta_activo|yesno:'true,false' }}"
+                    data-url="{% url 'toggle_tipo_doc' doc_id=doc.id %}"
+                    data-bs-toggle="tooltip"
+                    title="{% if doc.esta_activo %}Inhabilitar{% else %}Habilitar{% endif %}">
+                <i class="fas fa-power-off"></i>
+            </button>
+        </div>
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
+
+{% block modales %}
+<!-- Modal genérico para crear/editar (ya lo tienes en roles, aquí lo reutilizas) -->
+<div class="modal fade" id="modalGestionDocumentos" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden;">
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%); color: white;">
+                <h5 class="modal-title fw-bold" id="tituloModal">Gestión</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="location.reload()"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="contenedorCargaDocs" class="p-4 text-center d-none">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+                <div id="contenidoDinamicoDocs"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js_local %}
+// Tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+tooltipTriggerList.forEach(function (el) { new bootstrap.Tooltip(el); });
+
+// Modal dinámico para crear/editar
+var modalDocs = new bootstrap.Modal(document.getElementById('modalGestionDocumentos'));
+window.abrirModalGestion = function(url, titulo) {
+    document.getElementById('tituloModal').innerText = titulo;
+    var cont = document.getElementById('contenidoDinamicoDocs');
+    var spin = document.getElementById('contenedorCargaDocs');
+    cont.innerHTML = ''; spin.classList.remove('d-none');
+    modalDocs.show();
+    fetch(url)
+        .then(r => r.text())
+        .then(html => {
+            spin.classList.add('d-none');
+            cont.innerHTML = html;
+            cont.querySelectorAll('script').forEach(old => {
+                var s = document.createElement('script');
+                s.text = old.text;
+                document.body.appendChild(s).parentNode.removeChild(s);
+            });
+        });
+};
+{% endblock %}

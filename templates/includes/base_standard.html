@@ -19,6 +19,9 @@
             --brand-primary: #1E3A8A;
             --brand-dark: #172554;
             --accent-color: #0D9488;
+            --brand-light: #EEF2FF;
+            --color-success: #0E9F6E;
+            --color-error: #C81E1E;
             --sidebar-width: 260px;
             --sidebar-collapsed-width: 75px;
             --navbar-height: 65px;
@@ -31,6 +34,9 @@
             --text-main: #F1F5F9;
             --text-muted: #94A3B8;
             --border-color: #1E293B;
+            --brand-light: #1E293B;
+            --color-success: #34D399;
+            --color-error: #F87171;
         }
 
         body { font-family: 'Poppins', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; overflow: hidden; }
@@ -106,5 +112,6 @@
             }
         });
     </script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

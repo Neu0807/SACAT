@@ -1,41 +1,19 @@
-{% extends 'base.html' %}
+{% extends 'includes/base_standard.html' %}
 
-{% block content %}
+{% block title %}SACAT | Cambio de Clave Obligatorio{% endblock %}
+
+{% block extra_css %}
 <style>
-    /* 1. Mantenemos coherencia con el Sistema de Diseño del Login */
-    :root {
-        --brand-primary: #1E3A8A;
-        --brand-dark: #172554;
-        --bg-body: #F8FAFC;
-        --bg-card: #ffffff;
-        --text-main: #0F172A;
-        --text-muted: #64748B;
-        --border-color: #E2E8F0;
-    }
-
-    [data-bs-theme="dark"] {
-        --bg-body: #0F172A;
-        --bg-card: #1E293B;
-        --text-main: #F8FAFC;
-        --text-muted: #E2E8F0;
-        --border-color: #64748B;
-        --brand-primary: #0D9488; /* Teal en modo oscuro para resaltar */
-    }
-
     .card-security {
         background-color: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: 12px;
-        transition: all 0.3s ease;
     }
-
-    /* Cabecera con el degradado del login */
     .card-header-auth {
         background: linear-gradient(135deg, #1E3A8A 0%, #172554 100%);
         border-radius: 12px 12px 0 0 !important;
         padding: 1.5rem;
     }
-
     .form-control {
         background-color: var(--bg-body);
         border: 1px solid var(--border-color);
@@ -43,38 +21,27 @@
         border-radius: 8px;
         padding: 12px;
     }
-
     .form-control:focus {
-        background-color: var(--bg-body);
-        color: var(--text-main);
         border-color: var(--brand-primary);
         box-shadow: 0 0 0 0.25rem rgba(30, 58, 138, 0.1);
     }
-
     .btn-primary {
         background-color: var(--brand-primary);
         border: none;
         padding: 12px;
         border-radius: 8px;
-        transition: all 0.3s;
     }
-
     .btn-primary:hover:not(:disabled) {
         background-color: var(--brand-dark);
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
-
-    .input-group-text {
-        background-color: var(--bg-body);
-        border-color: var(--border-color);
-        color: var(--text-muted);
-    }
 </style>
+{% endblock %}
 
+{% block content %}
 <div class="container d-flex align-items-center justify-content-center" style="min-height: 85vh;">
     <div class="card shadow-lg card-security w-100" style="max-width: 500px;">
-        
         <div class="card-header-auth text-white text-center border-0">
             <div class="mb-2">
                 <i class="fas fa-shield-halved fa-2x opacity-75"></i>
@@ -82,7 +49,6 @@
             <h4 class="mb-0 fw-bold">Seguridad de la Cuenta</h4>
             <p class="small mb-0 opacity-75">Actualización obligatoria de credenciales</p>
         </div>
-
         <div class="card-body p-4">
             <p class="text-muted text-center small mb-4">
                 Por políticas de seguridad de la <strong>Almacenadora Caracas</strong>, debe sustituir su contraseña temporal antes de ingresar a la intranet.
@@ -144,6 +110,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     const pass1 = document.getElementById('pass1');
     const pass2 = document.getElementById('pass2');
@@ -151,7 +118,7 @@
     const meterText = document.getElementById('meterText');
     const btn = document.getElementById('btnGuardar');
 
-    // Lógica para detectar tema actual y ajustar SweetAlert
+    // Tema actual para SweetAlert
     const getSwalTheme = () => {
         const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
         return {
@@ -160,7 +127,7 @@
         };
     };
 
-    // --- 1. LÓGICA DEL MEDIDOR DE FUERZA ---
+    // --- Medidor de fuerza ---
     pass1.addEventListener('input', function() {
         let val = pass1.value;
         let score = 0;
@@ -194,6 +161,7 @@
 
     pass2.addEventListener('input', validarTodo);
 
+    // Mostrar/ocultar contraseña
     function togglePass(id) {
         const input = document.getElementById(id);
         const icon = event.currentTarget.querySelector('i');
@@ -202,7 +170,7 @@
         icon.classList.toggle('fa-eye-slash');
     }
 
-    // --- 2. ENVÍO DE DATOS ---
+    // --- Envío del formulario ---
     document.getElementById('formActualizarClave').addEventListener('submit', function(e) {
         e.preventDefault();
         const config = getSwalTheme();
@@ -230,14 +198,14 @@
             if (data.success) {
                 Swal.fire({
                     icon: 'success',
-                    title: '¡Operación Exitosa!',
-                    text: 'Su contraseña ha sido actualizada.',
+                    title: 'Contraseña actualizada',
+                    text: 'Por favor, inicie sesión con su nueva clave.',
                     background: config.bg,
                     color: config.color,
                     confirmButtonColor: 'var(--brand-primary)',
-                    confirmButtonText: 'Entrar al Sistema'
+                    confirmButtonText: 'Ir al Login'
                 }).then(() => {
-                    window.location.href = "{% url 'inicio' %}";
+                    window.location.href = "{% url 'login' %}";
                 });
             } else {
                 Swal.fire({

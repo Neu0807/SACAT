@@ -468,3 +468,8 @@ def get_centros_por_parroquia(request, parroquia_id):
     from .models import CentroVotacion
     centros = CentroVotacion.objects.filter(parroquia_id=parroquia_id, esta_activo=True).values('id', 'nombre_centro').order_by('nombre_centro')
     return JsonResponse(list(centros), safe=False)
+
+@login_required
+def listar_niveles_formacion(request):
+    niveles = NivelesFormacion.objects.all().order_by('id')
+    return render(request, 'entorno/listar_niveles_formacion.html', {'niveles': niveles})

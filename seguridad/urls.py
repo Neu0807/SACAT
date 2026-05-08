@@ -16,7 +16,9 @@ urlpatterns = [
     path('roles/crear/', views.crear_rol_view, name='crear_rol'), 
     path('roles/guardar/', views.guardar_rol, name='guardar_rol'),
     path('roles/editar/<int:rol_id>/', views.editar_rol_view, name='editar_rol'),
+    path('roles/cambiar-estado/<int:rol_id>/', views.cambiar_estado_rol, name='cambiar_estado_rol'),
     path('permisos/', views.listar_permisos, name='listar_permisos'),
     path('permisos/crear/', views.crear_permiso, name='crear_permiso'),
     path('permisos/guardar/', views.guardar_permiso, name='guardar_permiso'),
+    path('permisos/cambiar-estado/<int:pk>/', views.cambiar_estado_permiso, name='cambiar_estado_permiso'),
 ]

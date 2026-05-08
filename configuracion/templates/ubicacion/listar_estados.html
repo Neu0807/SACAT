@@ -1,0 +1,152 @@
+{% extends 'listado_generico.html' %}
+
+{% block title %}SACAT | Estados{% endblock %}
+
+{% block breadcrumb %}
+<a href="{% url 'configuracion_ubicacion' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+    <i class="fas fa-arrow-left me-2"></i>Volver a Ubicación
+</a>
+{% endblock %}
+
+{% block icono_titulo %}<i class="fas fa-map-marked-alt me-2"></i>{% endblock %}
+{% block nombre_listado %}Gestión de Estados{% endblock %}
+
+{% block botones_extra %}
+{% if request.user.is_superuser %}
+<button class="btn btn-outline-success rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalImportarEstados">
+    <i class="fas fa-file-excel me-2"></i><span class="d-none d-sm-inline">Importar</span>
+</button>
+{% endif %}
+{% endblock %}
+
+{% block boton_crear %}
+<button class="btn btn-primary rounded-pill px-4 shadow-sm">
+    <i class="fas fa-plus-circle me-2"></i><span class="d-none d-sm-inline">Crear</span>
+</button>
+{% endblock %}
+
+{% block table_columns %}
+<th>Estado</th>
+<th class="text-center">Estatus</th>
+<th class="text-center">Acciones</th>
+{% endblock %}
+
+{% block table_body %}
+{% for e in estados %}
+<tr>
+    <td class="fw-bold">{{ e.nombre_estado }}</td>
+    <td class="text-center">
+        {% if e.esta_activo %}
+            <span class="text-status-active">ACTIVO</span>
+        {% else %}
+            <span class="text-status-inactive">INACTIVO</span>
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <button type="button" class="btn-action-sacat btn-power btn-toggle-estatus"
+                data-id="{{ e.id }}"
+                data-nombre="{{ e.nombre_estado }}"
+                data-activo="{{ e.esta_activo|yesno:'true,false' }}"
+                data-url="{% url 'toggle_estado' estado_id=e.id %}"
+                data-bs-toggle="tooltip"
+                title="{% if e.esta_activo %}Inhabilitar{% else %}Habilitar{% endif %}">
+            <i class="fas fa-power-off"></i>
+        </button>
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
+
+{% block modales %}
+<!-- Modal de importación de Estados -->
+<div class="modal fade" id="modalImportarEstados" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden;">
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%); color: white;">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white bg-opacity-25 rounded-circle p-2 me-3" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-map fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0">Importar Estados</h5>
+                        <small class="opacity-75">Carga masiva 2026</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="p-3 rounded-3 mb-4" style="background-color: rgba(245, 158, 11, 0.1); border-left: 4px solid #F59E0B;">
+                    <div class="d-flex small" style="color: var(--text-main);">
+                        <i class="fas fa-exclamation-triangle mt-1 me-2 text-warning"></i>
+                        <div>
+                            <strong>Estructura requerida:</strong><br>
+                            Columna A: <b>Nombre del Estado</b><br>
+                            <span style="color: var(--text-muted);">La primera fila (encabezado) será ignorada.</span>
+                        </div>
+                    </div>
+                </div>
+                <form id="formImportarEstados" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-4 text-center">
+                        <div class="upload-area p-4 border border-2 border-dashed rounded-3" id="dropZoneEst" style="border-color: var(--border-color); cursor: pointer; transition: all 0.3s; background-color: var(--bg-body);">
+                            <i class="fas fa-file-csv fa-3x mb-2" style="color: var(--brand-primary); opacity: 0.5;"></i>
+                            <p class="small mb-0" style="color: var(--text-muted);">Arrastre aquí su archivo .xlsx o .csv</p>
+                            <input type="file" name="archivo" id="archivoEst" class="form-control d-none" accept=".xlsx, .xls, .csv" required>
+                            <div id="file-name-est" class="mt-2 fw-bold small" style="color: var(--brand-primary);"></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-3 shadow-sm fw-bold">PROCESAR ARCHIVO</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js_local %}
+// Tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+tooltipTriggerList.forEach(function (el) { new bootstrap.Tooltip(el); });
+
+// DropZone Estados
+const dropZoneEst = document.getElementById('dropZoneEst');
+const fileInputEst = document.getElementById('archivoEst');
+const fileNameEst = document.getElementById('file-name-est');
+if(dropZoneEst){
+    dropZoneEst.onclick = () => fileInputEst.click();
+    fileInputEst.onchange = () => {
+        if(fileInputEst.files.length > 0) {
+            fileNameEst.innerHTML = `<i class="fas fa-check-circle me-1"></i> ${fileInputEst.files[0].name}`;
+            dropZoneEst.style.backgroundColor = 'var(--brand-light)';
+        }
+    };
+    dropZoneEst.addEventListener('mouseover', () => dropZoneEst.style.borderColor = 'var(--brand-primary)');
+    dropZoneEst.addEventListener('mouseout', () => dropZoneEst.style.borderColor = 'var(--border-color)');
+}
+
+// Importación Estados
+document.getElementById('formImportarEstados').addEventListener('submit', function(e) {
+    e.preventDefault();
+    let formData = new FormData(this);
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    Swal.fire({
+        title: 'Procesando Estados...',
+        text: 'Validando archivo, espere...',
+        allowOutsideClick: false, showConfirmButton: false,
+        background: isDark ? '#1E293B' : '#ffffff', color: isDark ? '#F8FAFC' : '#0F172A',
+        didOpen: () => { Swal.showLoading(); }
+    });
+    fetch("{% url 'importar_estados' %}", {
+        method: 'POST', body: formData, headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({ icon: 'success', title: '¡Éxito!', text: data.mensaje, confirmButtonColor: 'var(--brand-primary)' })
+                .then(() => location.reload());
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje });
+        }
+    });
+});
+{% endblock %}
