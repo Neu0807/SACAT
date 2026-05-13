@@ -8,13 +8,23 @@ from django.contrib.auth import authenticate, login, logout, update_session_auth
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
-# IMPORTANTE: Importamos el modelo Rol para poder usarlo
+from django.db import transaction  # 🆕 Necesario para gestionar_permisos_rol
+
+# 🆕 Importamos el decorador personalizado de permisos
+from .decorators import permiso_requerido
+
+# IMPORTANTE: Importamos los modelos necesarios
 from .models import Rol
 from .models import PermisoSis
+from .models import RolPermiso  # 🆕 Necesario para gestionar_permisos_rol
 
-Usuario = get_user_model() 
+Usuario = get_user_model()
 
-# --- FUNCIÓN DE SEGURIDAD (INTERNA) ---
+
+# =============================================================================
+# FUNCIÓN AUXILIAR DE SEGURIDAD (INTERNA)
+# =============================================================================
+
 def generar_clave_robusta(longitud=12):
     letras_minus = string.ascii_lowercase + "ñ"
     letras_mayus = string.ascii_uppercase + "Ñ"
@@ -32,7 +42,11 @@ def generar_clave_robusta(longitud=12):
             and (len(password) >= 8)):
             return password
 
-# --- VISTAS DE SESIÓN ---
+
+# =============================================================================
+# VISTAS DE SESIÓN (PÚBLICAS)
+# =============================================================================
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('inicio') 
@@ -61,26 +75,40 @@ def login_view(request):
 
     return render(request, 'login/login.html')
 
+
 @login_required
 def inicio_view(request):
     return render(request, 'login/inicio.html')
+
 
 def salir_sistema(request):
     logout(request)
     return redirect('login')
 
-# --- GESTIÓN DE USUARIOS ---
+
+# =============================================================================
+# GESTIÓN DE USUARIOS
+# =============================================================================
+
 @login_required
+@permiso_requerido('ver_usuarios')  # 🆕
 def listar_usuarios(request):
+    """Listar todos los usuarios del sistema."""
     usuarios = Usuario.objects.all().order_by('-id')
     return render(request, 'usuarios/listar_usuarios.html', {'usuarios': usuarios})
 
-@login_required
-def crear_superusuario_view(request):
-    return render(request, 'usuarios/crear_superusuario.html')
 
 @login_required
+@permiso_requerido('crear_usuario')  # 🆕
+def crear_superusuario_view(request):
+    """Formulario para crear un nuevo usuario."""
+    return render(request, 'usuarios/crear_superusuario.html')
+
+
+@login_required
+@permiso_requerido('crear_usuario')  # 🆕
 def guardar_superusuario(request):
+    """Procesa la creación de un nuevo usuario (AJAX)."""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -123,8 +151,11 @@ def guardar_superusuario(request):
         except Exception as e:
             return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
 
+
 @login_required
+@permiso_requerido('inhabilitar_usuario')  # 🆕
 def cambiar_estado_usuario(request, username):
+    """Activar o inhabilitar un usuario."""
     if request.method == 'POST':
         user = get_object_or_404(Usuario, nombre_usuario=username)
         if request.user == user:
@@ -135,8 +166,11 @@ def cambiar_estado_usuario(request, username):
         estado = "habilitado" if user.esta_activo else "inhabilitado"
         return JsonResponse({'success': True, 'mensaje': f'Usuario {estado} correctamente.'})
 
+
 @login_required
+@permiso_requerido('resetear_clave_usuario')  # 🆕
 def resetear_clave_usuario(request, username):
+    """Resetear la contraseña de un usuario."""
     if request.method == 'POST':
         user = get_object_or_404(Usuario, nombre_usuario=username)
         nueva_clave = generar_clave_robusta(12)
@@ -151,8 +185,11 @@ def resetear_clave_usuario(request, username):
             'mensaje': f'La clave de {username} ha sido reseteada.'
         })
 
+
 @login_required
+@permiso_requerido('editar_usuario')  # 🆕
 def editar_usuario_view(request, username):
+    """Editar perfil de un usuario."""
     user_editar = get_object_or_404(Usuario, nombre_usuario=username)
     if request.method == 'POST':
         try:
@@ -165,9 +202,14 @@ def editar_usuario_view(request, username):
             return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
     return render(request, 'usuarios/editar_usuario.html', {'user_editar': user_editar})
 
-# --- VISTA DE CAMBIO DE CLAVE OBLIGATORIO ---
+
+# =============================================================================
+# CAMBIO DE CLAVE OBLIGATORIO
+# =============================================================================
+
 @login_required
 def cambiar_clave_obligatorio_view(request):
+    """Vista para cambio de clave obligatorio en primer ingreso."""
     if not request.user.requiere_cambio_clave:
         return redirect('inicio')
 
@@ -201,20 +243,30 @@ def cambiar_clave_obligatorio_view(request):
 
     return render(request, 'usuarios/cambiar_clave.html')
 
-# --- SUBMÓDULO DE ROLES ---
-@login_required
-def crear_rol_view(request):
-    """Esta es la función que faltaba para cargar el modal de crear rol"""
-    return render(request, 'roles/crear_rol.html')
+
+# =============================================================================
+# SUBMÓDULO DE ROLES
+# =============================================================================
 
 @login_required
+@permiso_requerido('crear_rol')  # 🆕
+def crear_rol_view(request):
+    """Carga el modal para crear un nuevo rol."""
+    return render(request, 'roles/crear_rol.html')
+
+
+@login_required
+@permiso_requerido('ver_roles')  # 🆕
 def listar_roles(request):
-    # Traemos todos los roles de tu tabla 'roles'
+    """Listar todos los roles del sistema."""
     roles = Rol.objects.all().order_by('id')
     return render(request, 'roles/listar_roles.html', {'roles': roles})
 
+
 @login_required
+@permiso_requerido('crear_rol')  # 🆕
 def guardar_rol(request):
+    """Guardar un nuevo rol (AJAX)."""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -234,8 +286,11 @@ def guardar_rol(request):
         except Exception as e:
             return JsonResponse({'success': False, 'mensaje': str(e)})
 
+
 @login_required
+@permiso_requerido('editar_rol')  # 🆕
 def editar_rol_view(request, rol_id):
+    """Editar un rol existente."""
     rol = get_object_or_404(Rol, id=rol_id)
     
     if request.method == 'POST':
@@ -251,17 +306,12 @@ def editar_rol_view(request, rol_id):
             
     return render(request, 'roles/editar_rol.html', {'rol': rol})
 
-def listar_permisos(request):
-    permisos = PermisoSis.objects.all().order_by('-fecha_creacion')
-    return render(request, 'permisos/listar_permisos.html', {'permisos': permisos})
-
-# Vista para el formulario de creación (Página aparte)
-def crear_permiso(request):
-    return render(request, 'permisos/crear_permiso.html')
 
 @login_required
+@permiso_requerido('inhabilitar_rol')  # 🆕
 @require_POST
 def cambiar_estado_rol(request, rol_id):
+    """Activar o inhabilitar un rol."""
     rol = get_object_or_404(Rol, id=rol_id)
     
     if rol.nombre_rol == 'Superusuario':
@@ -275,37 +325,30 @@ def cambiar_estado_rol(request, rol_id):
     estado = "habilitado" if rol.esta_activo else "inhabilitado"
     return JsonResponse({'success': True, 'mensaje': f'Rol {estado} correctamente.'})
 
-# Guardar Permiso (AJAX)
-def guardar_permiso(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            nombre = data.get('nombre_permiso')
-            descripcion = data.get('descripcion')
 
-            if PermisoSis.objects.filter(nombre_permiso=nombre).exists():
-                return JsonResponse({'success': False, 'mensaje': 'Este permiso ya existe.'})
+# =============================================================================
+# SUBMÓDULO DE PERMISOS
+# =============================================================================
 
-            nuevo_permiso = PermisoSis.objects.create(
-                nombre_permiso=nombre,
-                descripcion=descripcion,
-                creado_por=request.user.id # Si usas autenticación
-            )
+@login_required
+@permiso_requerido('ver_permisos')  # 🆕
+def listar_permisos(request):
+    """Listar todos los permisos del sistema."""
+    permisos = PermisoSis.objects.all().order_by('-fecha_creacion')
+    return render(request, 'permisos/listar_permisos.html', {'permisos': permisos})
 
-            return JsonResponse({
-                'success': True, 
-                'mensaje': f'Permiso "{nuevo_permiso.nombre_permiso}" registrado con éxito.'
-            })
-        except Exception as e:
-            return JsonResponse({'success': False, 'mensaje': str(e)})
-    return JsonResponse({'success': False, 'mensaje': 'Método no permitido.'})
 
-# 1. VISTA PARA RENDERIZAR EL FORMULARIO
+@login_required
+@permiso_requerido('crear_permiso')  # 🆕
 def crear_permiso(request):
+    """Formulario para crear un nuevo permiso."""
     return render(request, 'permisos/crear_permiso.html')
 
-# 2. FUNCIÓN PARA GUARDAR EL PERMISO (POR AJAX)
+
+@login_required
+@permiso_requerido('crear_permiso')  # 🆕
 def guardar_permiso(request):
+    """Guardar un nuevo permiso (AJAX)."""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -327,8 +370,11 @@ def guardar_permiso(request):
             return JsonResponse({'success': False, 'mensaje': str(e)})
     return JsonResponse({'success': False, 'mensaje': 'Método no permitido'})
 
-# 3. FUNCIÓN PARA EDITAR (CARGAR DATOS Y GUARDAR)
+
+@login_required
+@permiso_requerido('editar_permiso')  # 🆕
 def editar_permiso(request, pk):
+    """Editar un permiso existente."""
     permiso = get_object_or_404(PermisoSis, pk=pk)
     
     if request.method == 'POST':
@@ -344,12 +390,60 @@ def editar_permiso(request, pk):
             
     return render(request, 'permisos/editar_permiso.html', {'permiso': permiso})
 
+
 @login_required
+@permiso_requerido('inhabilitar_permiso')  # 🆕
 @require_POST
 def cambiar_estado_permiso(request, pk):
+    """Activar o inhabilitar un permiso."""
     permiso = get_object_or_404(PermisoSis, pk=pk)
     permiso.esta_activo = not permiso.esta_activo
     permiso.actualizado_por = request.user.id if request.user.is_authenticated else None
     permiso.save()
     estado = "habilitado" if permiso.esta_activo else "inhabilitado"
     return JsonResponse({'success': True, 'mensaje': f'Permiso {estado} correctamente.'})
+
+
+# =============================================================================
+# ASIGNACIÓN DE PERMISOS A ROLES
+# =============================================================================
+
+@login_required
+@permiso_requerido('asignar_permisos_rol')  # 🆕
+def gestionar_permisos_rol(request, rol_id):
+    """Gestionar los permisos asignados a un rol específico."""
+    rol = get_object_or_404(Rol, id=rol_id)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            permisos_ids = data.get('permisos_ids', [])  # lista de IDs de permisos activos
+
+            with transaction.atomic():
+                # Desactivar todos los permisos actuales del rol
+                RolPermiso.objects.filter(rol=rol).update(esta_activo=False)
+
+                # Activar o crear los permisos que vienen en la lista
+                for permiso_id in permisos_ids:
+                    RolPermiso.objects.update_or_create(
+                        rol=rol,
+                        permiso_sis_id=permiso_id,
+                        defaults={
+                            'esta_activo': True,
+                            'actualizado_por': request.user.id
+                        }
+                    )
+
+            return JsonResponse({'success': True, 'mensaje': 'Permisos actualizados correctamente.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    # GET: mostrar la pantalla con todos los permisos y los que ya tiene el rol
+    todos_permisos = PermisoSis.objects.filter(esta_activo=True).order_by('nombre_permiso')
+    permisos_rol = RolPermiso.objects.filter(rol=rol, esta_activo=True).values_list('permiso_sis_id', flat=True)
+
+    return render(request, 'permisos/gestionar_permisos_rol.html', {
+        'rol': rol,
+        'todos_permisos': todos_permisos,
+        'permisos_rol': list(permisos_rol),
+    })

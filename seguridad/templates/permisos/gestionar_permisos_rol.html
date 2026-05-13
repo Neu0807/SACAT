@@ -1,0 +1,639 @@
+{% load permisos_tags %}
+
+<div class="p-3">
+    <!-- Cabecera con título -->
+    <div class="text-center mb-3">
+        <span class="badge px-3 py-2 border" style="background-color: var(--brand-light); color: var(--brand-primary); border-color: var(--brand-primary) !important;">
+            <i class="fas fa-key me-2"></i>Asignando permisos a: <strong>{{ rol.nombre_rol }}</strong>
+        </span>
+    </div>
+
+    <!-- Selector de vista y buscador -->
+    <div class="row g-2 mb-3">
+        <div class="col-md-4">
+            <div class="btn-group w-100" role="group">
+                <input type="radio" class="btn-check" name="vistaPermisos" id="vistaAcordeon" value="acordeon" checked>
+                <label class="btn btn-outline-primary btn-sm" for="vistaAcordeon">
+                    <i class="fas fa-folder-tree me-1"></i> Por Módulos
+                </label>
+                <input type="radio" class="btn-check" name="vistaPermisos" id="vistaListado" value="listado">
+                <label class="btn btn-outline-primary btn-sm" for="vistaListado">
+                    <i class="fas fa-list me-1"></i> Listado Completo
+                </label>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                <input type="text" id="buscadorPermisos" class="form-control" placeholder="Buscar por nombre o descripción...">
+                <button class="btn btn-outline-secondary" type="button" id="btnLimpiarBusqueda" title="Limpiar búsqueda">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-primary btn-sm w-50" onclick="seleccionarTodos()">
+                    <i class="fas fa-check-double me-1"></i> Todos
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm w-50" onclick="deseleccionarTodos()">
+                    <i class="fas fa-times me-1"></i> Ninguno
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contador de permisos seleccionados -->
+    <div class="alert alert-info py-2 mb-3 text-center" id="contadorPermisos" style="background-color: var(--brand-light); border: none; color: var(--brand-primary);">
+        <i class="fas fa-info-circle me-1"></i> <strong id="cantidadSeleccionados">0</strong> de <strong>{{ todos_permisos|length }}</strong> permisos seleccionados
+    </div>
+
+    <!-- Formulario -->
+    <form id="formPermisosRol">
+        {% csrf_token %}
+        
+        <!-- ================================================================ -->
+        <!-- VISTA ACORDEÓN POR MÓDULOS -->
+        <!-- ================================================================ -->
+        <div id="contenedorAcordeon">
+            <div class="accordion" id="acordeonPermisos">
+                
+                <!-- SEGURIDAD -->
+                <div class="accordion-item border mb-2 modulo-permiso" data-modulo="seguridad">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#modSeguridad">
+                            <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                <span><i class="fas fa-shield-halved me-2 text-primary"></i><strong>Seguridad</strong></span>
+                                <small class="text-muted ms-2 contador-modulo" id="contadorSeguridad">0 seleccionados</small>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="modSeguridad" class="accordion-collapse collapse" data-bs-parent="#acordeonPermisos">
+                        <div class="accordion-body py-2">
+                            <div class="d-flex justify-content-end mb-2">
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modSeguridad', true)">Todo</button>
+                                <span class="text-muted mx-1">|</span>
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modSeguridad', false)">Nada</button>
+                            </div>
+                            <div class="row g-2">
+                                {% for permiso in todos_permisos %}
+                                    {% if permiso.nombre_permiso in 'ver_usuarios,crear_usuario,editar_usuario,inhabilitar_usuario,resetear_clave_usuario,ver_roles,crear_rol,editar_rol,inhabilitar_rol,ver_permisos,crear_permiso,editar_permiso,inhabilitar_permiso,asignar_permisos_rol' %}
+                                    {% include 'permisos/_permiso_item.html' %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- UBICACIÓN GEOGRÁFICA -->
+                <div class="accordion-item border mb-2 modulo-permiso" data-modulo="ubicacion">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#modUbicacion">
+                            <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                <span><i class="fas fa-map-location-dot me-2 text-success"></i><strong>Ubicación Geográfica</strong></span>
+                                <small class="text-muted ms-2 contador-modulo" id="contadorUbicacion">0 seleccionados</small>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="modUbicacion" class="accordion-collapse collapse" data-bs-parent="#acordeonPermisos">
+                        <div class="accordion-body py-2">
+                            <div class="d-flex justify-content-end mb-2">
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modUbicacion', true)">Todo</button>
+                                <span class="text-muted mx-1">|</span>
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modUbicacion', false)">Nada</button>
+                            </div>
+                            <div class="row g-2">
+                                {% for permiso in todos_permisos %}
+                                    {% if 'ver_ubicacion' in permiso.nombre_permiso or 'ver_estados' in permiso.nombre_permiso or 'inhabilitar_estado' in permiso.nombre_permiso or 'importar_estados' in permiso.nombre_permiso or 'ver_municipios' in permiso.nombre_permiso or 'inhabilitar_municipio' in permiso.nombre_permiso or 'importar_municipios' in permiso.nombre_permiso or 'ver_parroquias' in permiso.nombre_permiso or 'inhabilitar_parroquia' in permiso.nombre_permiso or 'importar_parroquias' in permiso.nombre_permiso %}
+                                    {% include 'permisos/_permiso_item.html' %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IDENTIDAD -->
+                <div class="accordion-item border mb-2 modulo-permiso" data-modulo="identidad">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#modIdentidad">
+                            <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                <span><i class="fas fa-id-card-clip me-2 text-info"></i><strong>Identidad</strong></span>
+                                <small class="text-muted ms-2 contador-modulo" id="contadorIdentidad">0 seleccionados</small>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="modIdentidad" class="accordion-collapse collapse" data-bs-parent="#acordeonPermisos">
+                        <div class="accordion-body py-2">
+                            <div class="d-flex justify-content-end mb-2">
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modIdentidad', true)">Todo</button>
+                                <span class="text-muted mx-1">|</span>
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modIdentidad', false)">Nada</button>
+                            </div>
+                            <div class="row g-2">
+                                {% for permiso in todos_permisos %}
+                                    {% if 'identidad' in permiso.nombre_permiso or 'tipo_doc' in permiso.nombre_permiso or 'tipo_documento' in permiso.nombre_permiso or 'sexo' in permiso.nombre_permiso or 'civil' in permiso.nombre_permiso or 'contacto' in permiso.nombre_permiso %}
+                                    {% include 'permisos/_permiso_item.html' %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INSTITUCIÓN Y ESTRUCTURA -->
+                <div class="accordion-item border mb-2 modulo-permiso" data-modulo="institucion">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#modInstitucion">
+                            <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                <span><i class="fas fa-building me-2 text-warning"></i><strong>Institución y Estructura</strong></span>
+                                <small class="text-muted ms-2 contador-modulo" id="contadorInstitucion">0 seleccionados</small>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="modInstitucion" class="accordion-collapse collapse" data-bs-parent="#acordeonPermisos">
+                        <div class="accordion-body py-2">
+                            <div class="d-flex justify-content-end mb-2">
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modInstitucion', true)">Todo</button>
+                                <span class="text-muted mx-1">|</span>
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modInstitucion', false)">Nada</button>
+                            </div>
+                            <div class="row g-2">
+                                {% for permiso in todos_permisos %}
+                                    {% if permiso.nombre_permiso in 'ver_institucion,ver_estructura,ver_laboral,ver_entorno' %}
+                                    {% include 'permisos/_permiso_item.html' %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DOTACIÓN -->
+                <div class="accordion-item border mb-2 modulo-permiso" data-modulo="dotacion">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#modDotacion">
+                            <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                <span><i class="fas fa-shirt me-2 text-danger"></i><strong>Dotación</strong></span>
+                                <small class="text-muted ms-2 contador-modulo" id="contadorDotacion">0 seleccionados</small>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="modDotacion" class="accordion-collapse collapse" data-bs-parent="#acordeonPermisos">
+                        <div class="accordion-body py-2">
+                            <div class="d-flex justify-content-end mb-2">
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modDotacion', true)">Todo</button>
+                                <span class="text-muted mx-1">|</span>
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modDotacion', false)">Nada</button>
+                            </div>
+                            <div class="row g-2">
+                                {% for permiso in todos_permisos %}
+                                    {% if 'dotacion' in permiso.nombre_permiso or 'talla' in permiso.nombre_permiso %}
+                                    {% include 'permisos/_permiso_item.html' %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ELECTORAL -->
+                <div class="accordion-item border mb-2 modulo-permiso" data-modulo="electoral">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#modElectoral">
+                            <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                <span><i class="fas fa-check-to-slot me-2 text-purple"></i><strong>Electoral</strong></span>
+                                <small class="text-muted ms-2 contador-modulo" id="contadorElectoral">0 seleccionados</small>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="modElectoral" class="accordion-collapse collapse" data-bs-parent="#acordeonPermisos">
+                        <div class="accordion-body py-2">
+                            <div class="d-flex justify-content-end mb-2">
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modElectoral', true)">Todo</button>
+                                <span class="text-muted mx-1">|</span>
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modElectoral', false)">Nada</button>
+                            </div>
+                            <div class="row g-2">
+                                {% for permiso in todos_permisos %}
+                                    {% if 'electoral' in permiso.nombre_permiso or 'centro' in permiso.nombre_permiso %}
+                                    {% include 'permisos/_permiso_item.html' %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FORMACIÓN -->
+                <div class="accordion-item border mb-2 modulo-permiso" data-modulo="formacion">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#modFormacion">
+                            <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                <span><i class="fas fa-chalkboard-teacher me-2 text-success"></i><strong>Formación</strong></span>
+                                <small class="text-muted ms-2 contador-modulo" id="contadorFormacion">0 seleccionados</small>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="modFormacion" class="accordion-collapse collapse" data-bs-parent="#acordeonPermisos">
+                        <div class="accordion-body py-2">
+                            <div class="d-flex justify-content-end mb-2">
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modFormacion', true)">Todo</button>
+                                <span class="text-muted mx-1">|</span>
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modFormacion', false)">Nada</button>
+                            </div>
+                            <div class="row g-2">
+                                {% for permiso in todos_permisos %}
+                                    {% if 'oferta' in permiso.nombre_permiso or 'postulacion' in permiso.nombre_permiso or 'postular' in permiso.nombre_permiso or 'bandeja' in permiso.nombre_permiso or 'aprobar' in permiso.nombre_permiso or 'rechazar' in permiso.nombre_permiso %}
+                                    {% include 'permisos/_permiso_item.html' %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TRABAJADORES -->
+                <div class="accordion-item border mb-2 modulo-permiso" data-modulo="trabajadores">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#modTrabajadores">
+                            <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                <span><i class="fas fa-users-gear me-2 text-primary"></i><strong>Trabajadores</strong></span>
+                                <small class="text-muted ms-2 contador-modulo" id="contadorTrabajadores">0 seleccionados</small>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="modTrabajadores" class="accordion-collapse collapse" data-bs-parent="#acordeonPermisos">
+                        <div class="accordion-body py-2">
+                            <div class="d-flex justify-content-end mb-2">
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modTrabajadores', true)">Todo</button>
+                                <span class="text-muted mx-1">|</span>
+                                <button type="button" class="btn btn-link btn-sm text-decoration-none" onclick="toggleModulo('modTrabajadores', false)">Nada</button>
+                            </div>
+                            <div class="row g-2">
+                                {% for permiso in todos_permisos %}
+                                    {% if 'trabajador' in permiso.nombre_permiso or 'perfil' in permiso.nombre_permiso or 'ficha' in permiso.nombre_permiso or 'registrar_trab' in permiso.nombre_permiso or 'seniat' in permiso.nombre_permiso or 'autogestion' in permiso.nombre_permiso %}
+                                    {% include 'permisos/_permiso_item.html' %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- Fin acordeón -->
+        </div><!-- Fin contenedor acordeón -->
+
+        <!-- ================================================================ -->
+        <!-- VISTA LISTADO COMPLETO (oculta por defecto) -->
+        <!-- ================================================================ -->
+        <div id="contenedorListado" style="display: none;">
+            <div class="table-responsive" style="max-height: 50vh; overflow-y: auto;">
+                <table class="table table-hover table-sm">
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th style="width: 40px;">
+                                <input class="form-check-input" type="checkbox" id="checkTodosListado" onchange="toggleTodosListado(this)">
+                            </th>
+                            <th>Permiso</th>
+                            <th>Módulo</th>
+                            <th>Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaListadoPermisos">
+                        {% for permiso in todos_permisos %}
+                        <tr class="permiso-item" 
+                            data-modulo="{{ permiso.nombre_permiso }}"
+                            data-search="{{ permiso.nombre_permiso }} {{ permiso.descripcion|lower }}"
+                            {% if 'ver_usuarios' in permiso.nombre_permiso or 'crear_usuario' in permiso.nombre_permiso or 'editar_usuario' in permiso.nombre_permiso or 'inhabilitar_usuario' in permiso.nombre_permiso or 'resetear_clave' in permiso.nombre_permiso or 'ver_roles' in permiso.nombre_permiso or 'crear_rol' in permiso.nombre_permiso or 'editar_rol' in permiso.nombre_permiso or 'inhabilitar_rol' in permiso.nombre_permiso or 'ver_permisos' in permiso.nombre_permiso or 'crear_permiso' in permiso.nombre_permiso or 'editar_permiso' in permiso.nombre_permiso or 'inhabilitar_permiso' in permiso.nombre_permiso or 'asignar_permisos' in permiso.nombre_permiso %}
+                            data-modulo-nombre="Seguridad"
+                            {% elif 'ubicacion' in permiso.nombre_permiso or 'estado' in permiso.nombre_permiso or 'municipio' in permiso.nombre_permiso or 'parroquia' in permiso.nombre_permiso %}
+                            data-modulo-nombre="Ubicación Geográfica"
+                            {% elif 'identidad' in permiso.nombre_permiso or 'documento' in permiso.nombre_permiso or 'sexo' in permiso.nombre_permiso or 'civil' in permiso.nombre_permiso or 'contacto' in permiso.nombre_permiso %}
+                            data-modulo-nombre="Identidad"
+                            {% elif permiso.nombre_permiso in 'ver_institucion,ver_estructura,ver_laboral,ver_entorno' %}
+                            data-modulo-nombre="Institución y Estructura"
+                            {% elif 'dotacion' in permiso.nombre_permiso or 'talla' in permiso.nombre_permiso %}
+                            data-modulo-nombre="Dotación"
+                            {% elif 'electoral' in permiso.nombre_permiso or 'centro' in permiso.nombre_permiso %}
+                            data-modulo-nombre="Electoral"
+                            {% elif 'oferta' in permiso.nombre_permiso or 'postulacion' in permiso.nombre_permiso or 'postular' in permiso.nombre_permiso or 'bandeja' in permiso.nombre_permiso or 'aprobar' in permiso.nombre_permiso or 'rechazar' in permiso.nombre_permiso %}
+                            data-modulo-nombre="Formación"
+                            {% elif 'trabajador' in permiso.nombre_permiso or 'perfil' in permiso.nombre_permiso or 'ficha' in permiso.nombre_permiso or 'registrar_trab' in permiso.nombre_permiso or 'seniat' in permiso.nombre_permiso or 'autogestion' in permiso.nombre_permiso %}
+                            data-modulo-nombre="Trabajadores"
+                            {% endif %}>
+                            <td>
+                                <input class="form-check-input permiso-checkbox-listado" type="checkbox" name="permisos_ids" value="{{ permiso.id }}" 
+                                       id="list_{{ permiso.id }}" {% if permiso.id in permisos_rol %}checked{% endif %}
+                                       onchange="actualizarContadores()">
+                            </td>
+                            <td>
+                                <label for="list_{{ permiso.id }}" class="fw-bold small text-uppercase d-block mb-0" style="cursor: pointer;">{{ permiso.nombre_permiso }}</label>
+                            </td>
+                            <td><span class="badge bg-secondary bg-opacity-10 text-secondary small"></span></td>
+                            <td><small class="text-muted">{{ permiso.descripcion|default:"-" }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div><!-- Fin contenedor listado -->
+
+        <!-- Botón guardar sticky -->
+        <div class="d-grid mt-3 position-sticky bottom-0 bg-white py-2 border-top" style="z-index: 10;">
+            <button type="submit" class="btn btn-primary fw-bold py-2 shadow" id="btnGuardarPermisos">
+                <i class="fas fa-save me-2"></i>Guardar Permisos (<span id="totalFinal">0</span> seleccionados)
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// ============================================================
+// URL PARA GUARDAR PERMISOS (definida por Django)
+// ============================================================
+const URL_GUARDAR_PERMISOS = "{% url 'gestionar_permisos_rol' rol.id %}";
+
+// ============================================================
+// CAMBIO DE VISTA: ACORDEÓN <-> LISTADO
+// ============================================================
+document.querySelectorAll('input[name="vistaPermisos"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const vista = this.value;
+        document.getElementById('contenedorAcordeon').style.display = vista === 'acordeon' ? '' : 'none';
+        document.getElementById('contenedorListado').style.display = vista === 'listado' ? '' : 'none';
+        
+        // Sincronizar checks entre ambas vistas
+        if (vista === 'listado') {
+            sincronizarAcordeonAListado();
+        } else {
+            sincronizarListadoAAcordeon();
+        }
+    });
+});
+
+function sincronizarAcordeonAListado() {
+    document.querySelectorAll('.permiso-checkbox').forEach(cb => {
+        const listCb = document.getElementById('list_' + cb.value);
+        if (listCb) listCb.checked = cb.checked;
+    });
+}
+
+function sincronizarListadoAAcordeon() {
+    document.querySelectorAll('.permiso-checkbox-listado').forEach(cb => {
+        const acordCb = document.getElementById('perm_' + cb.value);
+        if (acordCb) acordCb.checked = cb.checked;
+    });
+}
+
+// ============================================================
+// BUSCADOR EN TIEMPO REAL
+// ============================================================
+document.getElementById('buscadorPermisos').addEventListener('input', function() {
+    const termino = this.value.toLowerCase().trim();
+    const vistaActiva = document.querySelector('input[name="vistaPermisos"]:checked').value;
+    
+    if (vistaActiva === 'acordeon') {
+        buscarEnAcordeon(termino);
+    } else {
+        buscarEnListado(termino);
+    }
+});
+
+document.getElementById('btnLimpiarBusqueda').addEventListener('click', function() {
+    document.getElementById('buscadorPermisos').value = '';
+    document.getElementById('buscadorPermisos').dispatchEvent(new Event('input'));
+});
+
+function buscarEnAcordeon(termino) {
+    const modulos = document.querySelectorAll('.modulo-permiso');
+    
+    if (termino === '') {
+        document.querySelectorAll('.permiso-item').forEach(item => item.style.display = '');
+        modulos.forEach(mod => mod.style.display = '');
+        return;
+    }
+    
+    modulos.forEach(modulo => {
+        const itemsModulo = modulo.querySelectorAll('.permiso-item');
+        let moduloTieneVisible = false;
+        
+        itemsModulo.forEach(item => {
+            const searchData = item.getAttribute('data-search');
+            if (searchData && searchData.includes(termino)) {
+                item.style.display = '';
+                moduloTieneVisible = true;
+                const collapse = modulo.querySelector('.accordion-collapse');
+                if (collapse) {
+                    new bootstrap.Collapse(collapse, { toggle: false }).show();
+                }
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        modulo.style.display = moduloTieneVisible ? '' : 'none';
+    });
+}
+
+function buscarEnListado(termino) {
+    const filas = document.querySelectorAll('#tablaListadoPermisos tr');
+    
+    filas.forEach(fila => {
+        const searchData = fila.getAttribute('data-search');
+        if (termino === '' || (searchData && searchData.includes(termino))) {
+            fila.style.display = '';
+        } else {
+            fila.style.display = 'none';
+        }
+    });
+}
+
+// ============================================================
+// TOGGLE TODOS EN LISTADO
+// ============================================================
+function toggleTodosListado(masterCb) {
+    document.querySelectorAll('.permiso-checkbox-listado').forEach(cb => {
+        cb.checked = masterCb.checked;
+    });
+    actualizarContadores();
+}
+
+// ============================================================
+// CONTADORES AUTOMÁTICOS (unificados)
+// ============================================================
+function actualizarContadores() {
+    const vistaActiva = document.querySelector('input[name="vistaPermisos"]:checked').value;
+    
+    // Contar desde la vista activa
+    let seleccionados;
+    if (vistaActiva === 'acordeon') {
+        seleccionados = document.querySelectorAll('.permiso-checkbox:checked');
+    } else {
+        seleccionados = document.querySelectorAll('.permiso-checkbox-listado:checked');
+    }
+    
+    document.getElementById('cantidadSeleccionados').textContent = seleccionados.length;
+    document.getElementById('totalFinal').textContent = seleccionados.length;
+    
+    // Actualizar contadores por módulo (acordeón)
+    const modulos = {
+        'modSeguridad': 'contadorSeguridad',
+        'modUbicacion': 'contadorUbicacion',
+        'modIdentidad': 'contadorIdentidad',
+        'modInstitucion': 'contadorInstitucion',
+        'modDotacion': 'contadorDotacion',
+        'modElectoral': 'contadorElectoral',
+        'modFormacion': 'contadorFormacion',
+        'modTrabajadores': 'contadorTrabajadores'
+    };
+    
+    for (const [modId, contId] of Object.entries(modulos)) {
+        const mod = document.getElementById(modId);
+        if (mod) {
+            const checks = mod.querySelectorAll('.permiso-checkbox:checked');
+            const contador = document.getElementById(contId);
+            if (contador) {
+                contador.textContent = checks.length + ' seleccionados';
+            }
+        }
+    }
+    
+    // Resaltar labels en acordeón
+    document.querySelectorAll('.permiso-checkbox').forEach(cb => {
+        const label = cb.closest('.permiso-label');
+        if (label) {
+            if (cb.checked) {
+                label.classList.add('bg-primary', 'bg-opacity-10', 'border-primary');
+            } else {
+                label.classList.remove('bg-primary', 'bg-opacity-10', 'border-primary');
+            }
+        }
+    });
+    
+    // Colorear badges en listado
+    document.querySelectorAll('#tablaListadoPermisos .badge').forEach(badge => {
+        const fila = badge.closest('tr');
+        if (fila) {
+            const nombreModulo = fila.getAttribute('data-modulo-nombre');
+            badge.textContent = nombreModulo || 'Sin módulo';
+        }
+    });
+}
+
+// ============================================================
+// TOGGLE POR MÓDULO (acordeón)
+// ============================================================
+function toggleModulo(moduloId, seleccionar) {
+    const modulo = document.getElementById(moduloId);
+    if (!modulo) return;
+    
+    const checks = modulo.querySelectorAll('.permiso-checkbox');
+    checks.forEach(cb => { cb.checked = seleccionar; });
+    actualizarContadores();
+}
+
+// ============================================================
+// SELECCIONAR / DESELECCIONAR TODOS
+// ============================================================
+function seleccionarTodos() {
+    document.querySelectorAll('.permiso-checkbox').forEach(cb => { cb.checked = true; });
+    document.querySelectorAll('.permiso-checkbox-listado').forEach(cb => { cb.checked = true; });
+    actualizarContadores();
+}
+
+function deseleccionarTodos() {
+    document.querySelectorAll('.permiso-checkbox').forEach(cb => { cb.checked = false; });
+    document.querySelectorAll('.permiso-checkbox-listado').forEach(cb => { cb.checked = false; });
+    actualizarContadores();
+}
+
+// ============================================================
+// GUARDAR PERMISOS (AJAX)
+// ============================================================
+document.getElementById('formPermisosRol').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Obtener IDs de la vista activa
+    const vistaActiva = document.querySelector('input[name="vistaPermisos"]:checked').value;
+    let checks;
+    if (vistaActiva === 'acordeon') {
+        checks = this.querySelectorAll('#contenedorAcordeon input[name="permisos_ids"]:checked');
+    } else {
+        checks = this.querySelectorAll('#contenedorListado input[name="permisos_ids"]:checked');
+    }
+    
+    const ids = Array.from(checks).map(c => parseInt(c.value));
+
+    const btn = document.getElementById('btnGuardarPermisos');
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+
+    fetch(URL_GUARDAR_PERMISOS, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 'permisos_ids': ids })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({ 
+                icon: 'success', 
+                title: '¡Permisos actualizados!', 
+                text: data.mensaje, 
+                confirmButtonColor: 'var(--brand-primary)' 
+            }).then(() => location.reload());
+        } else {
+            Swal.fire('Error', data.error || data.mensaje, 'error');
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    })
+    .catch(err => {
+        Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+    });
+});
+
+// Inicializar contadores al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    actualizarContadores();
+});
+</script>
+
+<style>
+    .permiso-label {
+        transition: all 0.2s ease;
+    }
+    .permiso-label:hover {
+        background-color: var(--brand-light) !important;
+        border-color: var(--brand-primary) !important;
+    }
+    .accordion-button:not(.collapsed) {
+        background-color: var(--brand-light);
+        color: var(--brand-primary);
+        font-weight: bold;
+    }
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: var(--brand-primary);
+    }
+    #buscadorPermisos:focus {
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 0.25rem rgba(30, 58, 138, 0.15);
+    }
+    .text-purple { color: #7C3AED; }
+    #tablaListadoPermisos tr:hover {
+        background-color: var(--brand-light);
+    }
+    .btn-check:checked + .btn-outline-primary {
+        background-color: var(--brand-primary);
+        color: white;
+    }
+</style>

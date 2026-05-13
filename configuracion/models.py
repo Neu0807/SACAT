@@ -548,3 +548,35 @@ class EstatusLaboral(models.Model):
         managed = False
     def __str__(self):
         return self.descripcion.upper()
+    
+class TipoDocumentoExpediente(models.Model):
+    descripcion = models.CharField(max_length=100)
+    categoria = models.CharField(max_length=50, default='RECAUDO')  # RECAUDO, CERTIFICADO, ASISTENCIA, OTRO
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tipos_documentos_expediente'
+        managed = False
+
+    def __str__(self):
+        return self.descripcion
+
+
+class EstadoOferta(models.Model):
+    descripcion = models.CharField(max_length=50)
+    esta_activo = models.BooleanField(default=True)
+    creado_por = models.IntegerField(null=True, blank=True)
+    actualizado_por = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'estados_oferta'
+        managed = False
+
+    def __str__(self):
+        return self.descripcion

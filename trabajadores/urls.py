@@ -58,8 +58,21 @@ urlpatterns = [
     # FASE 2: COMPLETACIÓN DE DATOS (AUTOGESTIÓN TRABAJADOR)
     # ==========================================================================
     path('autogestion/paso-1/', views.f2_paso1_identidad, name='f2_paso1_identidad'),
-    # Dejo la URL lista para el siguiente paso que vamos a crear
+    path('autogestion/paso-1/guardar/', views.guardar_f2_paso1, name='guardar_f2_paso1'),   # ← NUEVA
     path('autogestion/paso-2/', views.f2_paso2_contactos, name='f2_paso2_contactos'),
+    path('autogestion/paso-2/guardar/', views.guardar_f2_paso2, name='guardar_f2_paso2'),
+    path('autogestion/paso-3/', views.f2_paso3_formacion, name='f2_paso3_formacion'),
+    path('autogestion/paso-3/guardar/', views.guardar_f2_paso3, name='guardar_f2_paso3'),
+    path('autogestion/paso-4/', views.f2_paso4_adiestramiento, name='f2_paso4_adiestramiento'),
+    path('autogestion/paso-4/guardar/', views.guardar_f2_paso4, name='guardar_f2_paso4'),
+    path('autogestion/paso-5/', views.f2_paso5_salud, name='f2_paso5_salud'),
+    path('autogestion/paso-5/guardar/', views.guardar_f2_paso5, name='guardar_f2_paso5'),
+    path('autogestion/paso-6/', views.f2_paso6_familia, name='f2_paso6_familia'),
+    path('autogestion/paso-6/guardar/', views.guardar_f2_paso6, name='guardar_f2_paso6'),
+    path('autogestion/paso-7/', views.f2_paso7_laboral, name='f2_paso7_laboral'),
+    path('autogestion/comprobante/', views.f2_comprobante, name='f2_comprobante'),
+    path('autogestion/generar-pdf/<int:trabajador_id>/', views.generar_ficha_completa_v2, name='generar_ficha_completa_v2'),
+    
 
     # ==========================================================================
     # 4. (RESPALDO) FLUJO DE REGISTRO ANTERIOR - 9 PASOS

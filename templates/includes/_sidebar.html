@@ -1,3 +1,5 @@
+{% load permisos_tags %}
+
 <aside class="sacat-sidebar shadow-lg" id="sidebar">
     <style>
         .sacat-sidebar {
@@ -31,7 +33,6 @@
 
         .sacat-wrapper.collapsed .nav-link i { margin: 0; font-size: 1.3rem; }
 
-        /* --- ¡LA CORRECCIÓN AQUÍ! --- */
         /* Permitir que el submenú se vea si tiene la clase .show incluso estando colapsado */
         .sacat-wrapper.collapsed .collapse.show {
             display: block !important;
@@ -39,9 +40,9 @@
 
         /* Ajustar los enlaces del submenú cuando está colapsado */
         .sacat-wrapper.collapsed .submenu .nav-link {
-            padding-left: 0 !important; /* Quitar el margen izquierdo de sub-item */
+            padding-left: 0 !important;
             justify-content: center;
-            background-color: rgba(0,0,0,0.2); /* Oscurecer un pelo para diferenciar */
+            background-color: rgba(0,0,0,0.2);
         }
 
         .sidebar-header {
@@ -86,6 +87,8 @@
 
     <div class="flex-grow-1 overflow-auto">
         <ul class="nav flex-column">
+            
+            <!-- ========== INICIO (SIEMPRE VISIBLE) ========== -->
             <li class="nav-item">
                 <a href="{% url 'inicio' %}" class="nav-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">
                     <i class="fas fa-house"></i>
@@ -93,6 +96,14 @@
                 </a>
             </li>
 
+            <!-- ======================================================================== -->
+            <!-- SEGURIDAD - Solo visible si tiene al menos un permiso del módulo         -->
+            <!-- ======================================================================== -->
+            {% tiene_permiso 'ver_usuarios' as ver_usu %}
+            {% tiene_permiso 'ver_roles' as ver_rol %}
+            {% tiene_permiso 'ver_permisos' as ver_perm %}
+            
+            {% if ver_usu or ver_rol or ver_perm %}
             <div class="nav-section-title">Control de Acceso</div>
             <li class="nav-item">
                 <a href="#seguridadSub" data-bs-toggle="collapse" class="nav-link d-flex align-items-center" aria-expanded="false">
@@ -101,12 +112,32 @@
                     <i class="fas fa-chevron-down ms-auto submenu-arrow fs-xs opacity-50"></i>
                 </a>
                 <div class="collapse submenu" id="seguridadSub">
+                    {% if ver_usu %}
                     <a href="{% url 'listar_usuarios' %}" class="nav-link"><i class="fas fa-users me-2"></i><span class="sidebar-text">Usuarios</span></a>
+                    {% endif %}
+                    {% if ver_rol %}
                     <a href="{% url 'listar_roles' %}" class="nav-link"><i class="fas fa-id-badge me-2"></i><span class="sidebar-text">Roles</span></a>
+                    {% endif %}
+                    {% if ver_perm %}
                     <a href="{% url 'listar_permisos' %}" class="nav-link"><i class="fas fa-key me-2"></i><span class="sidebar-text">Permisos</span></a>
+                    {% endif %}
                 </div>
             </li>
+            {% endif %}
 
+            <!-- ======================================================================== -->
+            <!-- CONFIGURACIÓN - Módulos de administración                                -->
+            <!-- ======================================================================== -->
+            {% tiene_permiso 'ver_institucion' as ver_inst %}
+            {% tiene_permiso 'ver_estructura' as ver_estr %}
+            {% tiene_permiso 'ver_ubicacion' as ver_ubic %}
+            {% tiene_permiso 'ver_identidad' as ver_iden %}
+            {% tiene_permiso 'ver_laboral' as ver_lab %}
+            {% tiene_permiso 'ver_entorno' as ver_ent %}
+            {% tiene_permiso 'ver_dotacion' as ver_dot %}
+            {% tiene_permiso 'ver_electoral' as ver_elec %}
+            
+            {% if ver_inst or ver_estr or ver_ubic or ver_iden or ver_lab or ver_ent or ver_dot or ver_elec %}
             <div class="nav-section-title">Administración</div>
             <li class="nav-item">
                 <a href="#configSub" data-bs-toggle="collapse" class="nav-link d-flex align-items-center" aria-expanded="false">
@@ -115,17 +146,43 @@
                     <i class="fas fa-chevron-down ms-auto submenu-arrow fs-xs opacity-50"></i>
                 </a>
                 <div class="collapse submenu" id="configSub">
+                    {% if ver_inst %}
                     <a href="{% url 'configuracion_institucion' %}" class="nav-link"><i class="fas fa-building me-2"></i><span class="sidebar-text">Institución</span></a>
+                    {% endif %}
+                    {% if ver_estr %}
                     <a href="{% url 'configuracion_estructura' %}" class="nav-link"><i class="fas fa-sitemap me-2"></i><span class="sidebar-text">Estructura</span></a>
+                    {% endif %}
+                    {% if ver_ubic %}
                     <a href="{% url 'configuracion_ubicacion' %}" class="nav-link"><i class="fas fa-map-location-dot me-2"></i><span class="sidebar-text">Ubicación</span></a>
+                    {% endif %}
+                    {% if ver_iden %}
                     <a href="{% url 'configuracion_identidad' %}" class="nav-link"><i class="fas fa-id-card-clip me-2"></i><span class="sidebar-text">Identidad</span></a>
+                    {% endif %}
+                    {% if ver_lab %}
                     <a href="{% url 'configuracion_laboral' %}" class="nav-link"><i class="fas fa-briefcase me-2"></i><span class="sidebar-text">Laboral</span></a>
+                    {% endif %}
+                    {% if ver_ent %}
                     <a href="{% url 'configuracion_entorno' %}" class="nav-link"><i class="fas fa-house-chimney-user me-2"></i><span class="sidebar-text">Entorno</span></a>
+                    {% endif %}
+                    {% if ver_dot %}
                     <a href="{% url 'configuracion_dotacion' %}" class="nav-link"><i class="fas fa-shirt me-2"></i><span class="sidebar-text">Dotación</span></a>
+                    {% endif %}
+                    {% if ver_elec %}
                     <a href="{% url 'configuracion_electoral' %}" class="nav-link"><i class="fas fa-check-to-slot me-2"></i><span class="sidebar-text">Electoral</span></a>
+                    {% endif %}
                 </div>
             </li>
+            {% endif %}
 
+            <!-- ======================================================================== -->
+            <!-- TRABAJADORES - Separado F1 (GH) y F2 (Trabajador)                        -->
+            <!-- ======================================================================== -->
+            {% tiene_permiso 'ver_listado_trabajadores' as ver_list_trab %}
+            {% tiene_permiso 'registrar_trabajador_f1' as reg_trab_f1 %}
+            {% tiene_permiso 'registrar_trabajador_f2' as reg_trab_f2 %}
+            
+            {% if ver_list_trab or reg_trab_f1 or reg_trab_f2 %}
+            <div class="nav-section-title">Personal</div>
             <li class="nav-item">
                 <a href="#trabajadoresSub" data-bs-toggle="collapse" class="nav-link d-flex align-items-center" aria-expanded="false">
                     <i class="fas fa-users-gear"></i>
@@ -133,36 +190,101 @@
                     <i class="fas fa-chevron-down ms-auto submenu-arrow fs-xs opacity-50"></i>
                 </a>
                 <div class="collapse submenu" id="trabajadoresSub">
+                    
+                    {# LISTADO - Visible para GH, Jefes y Consultores #}
+                    {% if ver_list_trab %}
                     <a href="{% url 'listar_trabajadores' %}" class="nav-link {% if request.resolver_match.url_name == 'listar_trabajadores' %}active{% endif %}">
                         <i class="fas fa-list me-2"></i>
                         <span class="sidebar-text">Listado</span>
                     </a>
+                    {% endif %}
 
-                    <div class="mx-3 border-top border-white border-opacity-10 my-1"></div>
-                    
-                    <a href="{% url 'registro_paso1_v2' %}" class="nav-link">
+                    {# REGISTRO FASE 1 - Solo GH puede registrar nuevos trabajadores #}
+                    {% if reg_trab_f1 %}
+                    <a href="#registroSub" data-bs-toggle="collapse" class="nav-link d-flex align-items-center" aria-expanded="false">
                         <i class="fas fa-user-plus me-2"></i>
-                        <span class="sidebar-text">Inicial (F1)</span>
+                        <span class="sidebar-text">Registro (GH)</span>
+                        <i class="fas fa-chevron-down ms-auto submenu-arrow fs-xs opacity-50"></i>
                     </a>
-                    
-                    <a href="{% url 'f2_paso1_identidad' %}" class="nav-link">
+                    <div class="collapse submenu ps-3" id="registroSub">
+                        <a href="{% url 'registro_paso1_v2' %}" class="nav-link ps-5">
+                            <i class="fas fa-user-plus me-2"></i>
+                            <span class="sidebar-text">Inicial (F1)</span>
+                        </a>
+                        <a href="{% url 'registro_paso1' %}" class="nav-link ps-5">
+                            <i class="fas fa-history me-2"></i>
+                            <span class="sidebar-text">Registro Anterior</span>
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {# AUTOGESTIÓN FASE 2 - Solo el trabajador completa su expediente #}
+                    {% if reg_trab_f2 %}
+                    <a href="{% url 'f2_paso1_identidad' %}" class="nav-link {% if request.resolver_match.url_name == 'f2_paso1_identidad' %}active{% endif %}">
                         <i class="fas fa-user-check me-2"></i>
-                        <span class="sidebar-text">Completo (F2)</span>
+                        <span class="sidebar-text">Completar Expediente (F2)</span>
                     </a>
+                    {% endif %}
 
-                    <div class="mx-3 border-top border-white border-opacity-10 my-1"></div>
-
-                    <a href="{% url 'registro_paso1' %}" class="nav-link">
-                        <i class="fas fa-history me-2"></i>
-                        <span class="sidebar-text">Registro Anterior</span>
-                    </a>
-                    
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-user-pen me-2"></i>
-                        <span class="sidebar-text">Actualización</span>
-                    </a>
                 </div>
             </li>
+            {% endif %}
+
+            <!-- ======================================================================== -->
+            <!-- FORMACIÓN PROFESIONAL                                                     -->
+            <!-- ======================================================================== -->
+            {% tiene_permiso 'ver_ofertas_formacion' as ver_of %}
+            {% tiene_permiso 'ver_ofertas_activas' as ver_of_act %}
+            {% tiene_permiso 'ver_mis_postulaciones' as ver_mis_post %}
+            {% tiene_permiso 'ver_bandeja_aprobacion' as ver_band %}
+            
+            {% if ver_of or ver_of_act or ver_mis_post or ver_band %}
+            <div class="nav-section-title">Desarrollo</div>
+            <li class="nav-item">
+                <a href="#formacionSub" data-bs-toggle="collapse" class="nav-link d-flex align-items-center" aria-expanded="false">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span class="sidebar-text">Formación Profesional</span>
+                    <i class="fas fa-chevron-down ms-auto submenu-arrow fs-xs opacity-50"></i>
+                </a>
+                <div class="collapse submenu" id="formacionSub">
+                    
+                    {# OFERTAS - Solo GH gestiona ofertas #}
+                    {% if ver_of %}
+                    <a href="#ofertasSub" data-bs-toggle="collapse" class="nav-link d-flex align-items-center" aria-expanded="false">
+                        <i class="fas fa-bullhorn me-2"></i>
+                        <span class="sidebar-text">Ofertas</span>
+                        <i class="fas fa-chevron-down ms-auto submenu-arrow fs-xs opacity-50"></i>
+                    </a>
+                    <div class="collapse submenu ps-3" id="ofertasSub">
+                        <a href="{% url 'listar_ofertas' %}" class="nav-link ps-5"><i class="fas fa-list me-2"></i><span class="sidebar-text">Listado</span></a>
+                    </div>
+                    {% endif %}
+
+                    {# POSTULACIONES - Trabajador ve ofertas activas y sus postulaciones #}
+                    {% if ver_of_act or ver_mis_post %}
+                    <a href="{% url 'listar_ofertas_activas' %}" class="nav-link">
+                        <i class="fas fa-file-signature me-2"></i>
+                        <span class="sidebar-text">Postulaciones</span>
+                    </a>
+                    {% endif %}
+
+                    {# APROBACIÓN - Jefe y GH aprueban postulaciones #}
+                    {% if ver_band %}
+                    <a href="{% url 'bandeja_aprobacion' %}" class="nav-link">
+                        <i class="fas fa-check-double me-2"></i>
+                        <span class="sidebar-text">Aprobación</span>
+                    </a>
+                    {% endif %}
+
+                    <!-- Placeholders para futuros submódulos -->
+                    <a href="#" class="nav-link"><i class="fas fa-calendar-alt me-2"></i><span class="sidebar-text">Planificación</span></a>
+                    <a href="#" class="nav-link"><i class="fas fa-clipboard-check me-2"></i><span class="sidebar-text">Asistencia</span></a>
+                    <a href="#" class="nav-link"><i class="fas fa-certificate me-2"></i><span class="sidebar-text">Certificación</span></a>
+                    <a href="#" class="nav-link"><i class="fas fa-history me-2"></i><span class="sidebar-text">Historial</span></a>
+                </div>
+            </li>
+            {% endif %}
+
         </ul>
     </div>
 </aside>

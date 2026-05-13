@@ -1,0 +1,80 @@
+<div class="p-4">
+    <form id="formEditarOferta">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold small text-uppercase">Tipo de Formación</label>
+                <select name="tipo_formacion_id" class="form-select custom-input" required>
+                    {% for t in tipos %}
+                        <option value="{{ t.id }}" {% if oferta.tipo_formacion_id == t.id %}selected{% endif %}>{{ t.descripcion }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold small text-uppercase">Modalidad</label>
+                <select name="modalidad_id" class="form-select custom-input" required>
+                    {% for m in modalidades %}
+                        <option value="{{ m.id }}" {% if oferta.modalidad_id == m.id %}selected{% endif %}>{{ m.descripcion }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-8">
+                <label class="form-label fw-bold small text-uppercase">Nombre</label>
+                <input type="text" name="nombre" class="form-control custom-input text-uppercase" value="{{ oferta.nombre }}" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold small text-uppercase">Institución</label>
+                <input type="text" name="institucion" class="form-control custom-input text-uppercase" value="{{ oferta.institucion }}" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-uppercase">Horas</label>
+                <input type="number" name="horas_academicas" class="form-control custom-input" value="{{ oferta.horas_academicas }}" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-uppercase">F. Publicación</label>
+                <input type="date" name="fecha_publicacion" class="form-control custom-input" value="{{ oferta.fecha_publicacion|date:'Y-m-d' }}" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-uppercase">F. Cierre</label>
+                <input type="date" name="fecha_cierre_postulacion" class="form-control custom-input" value="{{ oferta.fecha_cierre_postulacion|date:'Y-m-d' }}" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-uppercase">Estado</label>
+                <input type="text" class="form-control custom-input bg-light" value="{{ oferta.estado_oferta }}" disabled>
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-bold small text-uppercase">Descripción</label>
+                <textarea name="descripcion" class="form-control custom-input" rows="2">{{ oferta.descripcion }}</textarea>
+            </div>
+        </div>
+        <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-primary fw-bold py-2 shadow">Actualizar Oferta</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('formEditarOferta').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+
+    fetch("{% url 'editar_oferta' oferta.id %}", {
+        method: 'POST',
+        body: new FormData(this),
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({ icon: 'success', title: '¡Actualizada!', text: data.mensaje, confirmButtonColor: 'var(--brand-primary)' })
+                .then(() => location.reload());
+        } else {
+            Swal.fire('Error', data.error, 'error');
+            btn.disabled = false;
+            btn.innerHTML = 'Actualizar Oferta';
+        }
+    });
+});
+</script>

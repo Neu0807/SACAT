@@ -1,0 +1,76 @@
+{% extends 'includes/base_standard.html' %}
+
+{% block title %}SACAT | Historial de Postulaciones{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-body: #F8FAFC; --bg-card: #ffffff;
+        --text-main: #0F172A; --text-muted: #64748B;
+        --border-color: #E2E8F0; --brand-primary: #1E3A8A;
+    }
+    .badge-estado {
+        font-size: 0.7rem; font-weight: 700; padding: 5px 12px; border-radius: 50px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <a href="{% url 'listar_ofertas_activas' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+            <i class="fas fa-arrow-left me-2"></i>Ver Ofertas Disponibles
+        </a>
+        <h2 class="fw-bold" style="color: var(--brand-primary);">
+            <i class="fas fa-history me-2"></i>Historial de Postulaciones
+        </h2>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Oferta</th>
+                    <th>Institución</th>
+                    <th class="text-center">Horas</th>
+                    <th class="text-center">Fecha Postulación</th>
+                    <th class="text-center">Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in postulaciones %}
+                <tr>
+                    <td class="fw-bold">{{ p.oferta.nombre }}</td>
+                    <td>{{ p.oferta.institucion }}</td>
+                    <td class="text-center">{{ p.oferta.horas_academicas }}</td>
+                    <td class="text-center small">{{ p.fecha_postulacion|date:"d/m/Y H:i" }}</td>
+                    <td class="text-center">
+                        {% if p.estado == 'PENDIENTE' %}
+                            <span class="badge bg-warning text-dark badge-estado">PENDIENTE</span>
+                        {% elif p.estado == 'APROBADO_JEFE' %}
+                            <span class="badge bg-info badge-estado">APROBADO JEFE</span>
+                        {% elif p.estado == 'APROBADO_GH' %}
+                            <span class="badge bg-success badge-estado">APROBADO GH</span>
+                        {% elif p.estado == 'RECHAZADO' %}
+                            <span class="badge bg-danger badge-estado">RECHAZADO</span>
+                        {% elif p.estado == 'CONFIRMADO' %}
+                            <span class="badge bg-primary badge-estado">CONFIRMADO</span>
+                        {% else %}
+                            <span class="badge bg-secondary badge-estado">{{ p.estado }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+                        <p class="fw-bold">No tienes postulaciones aún</p>
+                        <a href="{% url 'listar_ofertas_activas' %}" class="btn btn-primary btn-sm rounded-pill">Ver Ofertas Disponibles</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'listado_generico.html' %}
+
+{% block title %}SACAT | Tallas de Dotación{% endblock %}
+
+{% block breadcrumb %}
+<a href="{% url 'configuracion_dotacion' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+    <i class="fas fa-arrow-left me-2"></i>Volver a Dotación
+</a>
+{% endblock %}
+
+{% block icono_titulo %}<i class="fas fa-ruler me-2"></i>{% endblock %}
+{% block nombre_listado %}Tallas de Dotación{% endblock %}
+
+{% block table_columns %}
+<th>Ítem</th>
+<th>Talla</th>
+<th class="text-center">Estatus</th>
+<th class="text-center">Acciones</th>
+{% endblock %}
+
+{% block table_body %}
+{% for t in tallas %}
+<tr>
+    <td>{{ t.item_dotacion.nombre_item }}</td>
+    <td class="fw-bold">{{ t.valor_talla }}</td>
+    <td class="text-center">
+        {% if t.esta_activo %}
+            <span class="text-status-active">ACTIVO</span>
+        {% else %}
+            <span class="text-status-inactive">INACTIVO</span>
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <button type="button" class="btn-action-sacat btn-power btn-toggle-estatus"
+                data-id="{{ t.id }}"
+                data-nombre="{{ t.valor_talla }}"
+                data-activo="{{ t.esta_activo|yesno:'true,false' }}"
+                data-url="{% url 'toggle_talla_dotacion' talla_id=t.id %}"
+                data-bs-toggle="tooltip"
+                title="{% if t.esta_activo %}Inhabilitar{% else %}Habilitar{% endif %}">
+            <i class="fas fa-power-off"></i>
+        </button>
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}

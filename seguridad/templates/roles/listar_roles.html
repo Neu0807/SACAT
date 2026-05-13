@@ -1,4 +1,5 @@
 {% extends 'listado_generico.html' %}
+{% load permisos_tags %}
 
 {% block title %}SACAT | Gestión de Roles{% endblock %}
 
@@ -12,9 +13,12 @@
 {% block nombre_listado %}Gestión de Roles{% endblock %}
 
 {% block boton_crear %}
+{% tiene_permiso 'crear_rol' as puede_crear_rol %}
+{% if puede_crear_rol %}
 <button onclick="abrirModalGestion('{% url 'crear_rol' %}', 'Crear Nuevo Rol')" class="btn btn-primary rounded-pill px-4 shadow-sm">
     <i class="fas fa-plus-circle me-2"></i><span class="d-none d-sm-inline">Crear Rol</span>
 </button>
+{% endif %}
 {% endblock %}
 
 {% block table_columns %}
@@ -39,17 +43,25 @@
     <td class="text-center">
         <div class="d-flex justify-content-center gap-2">
             {# Editar #}
+            {% tiene_permiso 'editar_rol' as puede_editar_rol %}
+            {% if puede_editar_rol %}
             <button class="btn-action-sacat btn-edit" onclick="abrirModalGestion('/roles/editar/{{ r.id }}/', 'Editar Rol')" data-bs-toggle="tooltip" title="Editar Rol">
                 <i class="fas fa-edit"></i>
             </button>
+            {% endif %}
 
-            {# Permisos (futuro) #}
+            {# Permisos #}
+            {% tiene_permiso 'asignar_permisos_rol' as puede_asignar_permisos %}
+            {% if puede_asignar_permisos %}
             <button class="btn-action-sacat btn-key" onclick="abrirModalGestion('/roles/permisos/{{ r.id }}/', 'Asignar Permisos')" data-bs-toggle="tooltip" title="Permisos">
                 <i class="fas fa-key"></i>
             </button>
+            {% endif %}
 
             {# Toggle estado #}
             {% if r.nombre_rol != "Superusuario" %}
+                {% tiene_permiso 'inhabilitar_rol' as puede_inhabilitar_rol %}
+                {% if puede_inhabilitar_rol %}
                 <button type="button" class="btn-action-sacat btn-power btn-toggle-estatus"
                         data-id="{{ r.id }}"
                         data-nombre="{{ r.nombre_rol }}"
@@ -59,6 +71,7 @@
                         title="{% if r.esta_activo %}Inhabilitar{% else %}Habilitar{% endif %}">
                     <i class="fas fa-power-off"></i>
                 </button>
+                {% endif %}
             {% else %}
                 <button class="btn-action-sacat disabled opacity-25" data-bs-toggle="tooltip" title="Rol Protegido" style="pointer-events: none;">
                     <i class="fas fa-shield-halved"></i>
@@ -73,7 +86,7 @@
 {% block modales %}
 <!-- Modal para formularios (crear/editar/permisos) -->
 <div class="modal fade" id="modalGestionRoles" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden;">
             <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%); color: white;">
                 <h5 class="modal-title fw-bold" id="tituloModal">Gestión</h5>
@@ -91,7 +104,7 @@
 {% endblock %}
 
 {% block extra_js_local %}
-// Inicializar tooltips (necesario porque el listado genérico ya lo hace, pero lo reforzamos)
+// Inicializar tooltips
 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
 tooltipTriggerList.forEach(function (el) { new bootstrap.Tooltip(el); });
 
@@ -104,7 +117,6 @@ window.abrirModalGestion = function(url, titulo) {
     var contenido = document.getElementById('contenidoDinamico');
     var spinner = document.getElementById('contenedorCarga');
     
-    // Limpiar y mostrar spinner
     contenido.innerHTML = '';
     spinner.classList.remove('d-none');
     modalRoles.show();

@@ -1,0 +1,13 @@
+<div class="col-12 col-md-6 permiso-item" data-modulo="seguridad" data-search="{{ permiso.nombre_permiso }} {{ permiso.descripcion|lower }}">
+    <label class="d-flex align-items-start border rounded p-2 h-100 permiso-label {% if permiso.id in permisos_rol %}bg-primary bg-opacity-10 border-primary{% endif %}" style="cursor: pointer;">
+        <input class="form-check-input mt-1 me-2 permiso-checkbox" type="checkbox" name="permisos_ids" value="{{ permiso.id }}" 
+               id="perm_{{ permiso.id }}" {% if permiso.id in permisos_rol %}checked{% endif %}
+               onchange="actualizarContadores()">
+        <div class="flex-grow-1">
+            <strong class="small text-uppercase d-block">{{ permiso.nombre_permiso }}</strong>
+            {% if permiso.descripcion %}
+            <small class="text-muted d-block">{{ permiso.descripcion }}</small>
+            {% endif %}
+        </div>
+    </label>
+</div>

@@ -21,4 +21,6 @@ urlpatterns = [
     path('permisos/crear/', views.crear_permiso, name='crear_permiso'),
     path('permisos/guardar/', views.guardar_permiso, name='guardar_permiso'),
     path('permisos/cambiar-estado/<int:pk>/', views.cambiar_estado_permiso, name='cambiar_estado_permiso'),
+
+    path('roles/permisos/<int:rol_id>/', views.gestionar_permisos_rol, name='gestionar_permisos_rol'),
 ]

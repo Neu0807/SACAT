@@ -8,6 +8,7 @@ urlpatterns = [
     path('', include('seguridad.urls')),
     path('configuracion/', include('configuracion.urls')),
     path('trabajadores/', include('trabajadores.urls')),
+    path('formacion/', include('formacion.urls')),
 ]
 
 # --- ¡AGREGA ESTO AQUÍ ABAJO! ---

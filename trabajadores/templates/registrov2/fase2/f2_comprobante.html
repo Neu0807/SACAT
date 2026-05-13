@@ -1,0 +1,157 @@
+{% extends 'includes/base_standard.html' %}
+{% block title %} SACAT | Comprobante de Registro {% endblock %}
+
+{% block extra_css %}
+<style>
+    .section-title {
+        background-color: #1E3A8A;
+        color: white;
+        padding: 8px 15px;
+        font-weight: bold;
+        margin-bottom: 0;
+        border-radius: 5px 5px 0 0;
+    }
+    .card-resumen {
+        border: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+    }
+    .card-resumen .card-body {
+        padding: 15px;
+    }
+    .valor { font-weight: 500; }
+    .etiqueta { font-weight: 700; color: #64748B; font-size: 0.8rem; }
+    .btn-pdf {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: white;
+        font-weight: bold;
+        padding: 12px 25px;
+    }
+    .btn-pdf:hover { background-color: #bb2d3b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Resumen de su Expediente</h2>
+    <p class="text-muted">A continuación se muestra toda la información registrada. Verifique que sea correcta.</p>
+
+    <!-- Datos Personales -->
+    <div class="card-resumen">
+        <div class="section-title"><i class="fas fa-user me-2"></i> Datos Personales</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6"><span class="etiqueta">Nombre completo:</span><br><span class="valor">{{ persona.primer_nombre }} {{ persona.segundo_nombre }} {{ persona.primer_apellido }} {{ persona.segundo_apellido }}</span></div>
+                <div class="col-md-3"><span class="etiqueta">Cédula:</span><br><span class="valor">{{ persona.tipo_doc_identificacion.sigla }}-{{ persona.cedula }}</span></div>
+                <div class="col-md-3"><span class="etiqueta">Fecha Nac.:</span><br><span class="valor">{{ persona.fecha_nacimiento|date:"d/m/Y" }}</span></div>
+            </div>
+            <!-- Más datos... -->
+        </div>
+    </div>
+
+    <!-- Contactos -->
+    <div class="card-resumen">
+        <div class="section-title"><i class="fas fa-address-book me-2"></i> Contactos</div>
+        <div class="card-body">
+            {% for c in contactos %}
+            <div class="mb-2"><span class="etiqueta">{{ c.contacto_personal.tipo_contacto.descripcion }}:</span> <span class="valor">{{ c.contacto_personal.valor_contacto }}</span></div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Datos Laborales -->
+    <div class="card-resumen">
+        <div class="section-title"><i class="fas fa-briefcase me-2"></i> Datos Laborales</div>
+        <div class="card-body">
+            <!-- Similar al paso 7, pero con más detalle si quieres -->
+            <div class="row">
+                <div class="col-md-4"><span class="etiqueta">Cargo:</span><br><span class="valor">{{ laboral.cargo_estructural.nombre_cargo_estruct }}</span></div>
+                <div class="col-md-4"><span class="etiqueta">Unidad:</span><br><span class="valor">{{ ruta_unidades|join:" / " }}</span></div>
+                <div class="col-md-4"><span class="etiqueta">Sede:</span><br><span class="valor">{{ laboral.sede.nombre_sede }}</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vivienda -->
+    <div class="card-resumen">
+        <div class="section-title"><i class="fas fa-home me-2"></i> Vivienda</div>
+        <div class="card-body">
+            {% if vivienda %}
+            <span class="valor">{{ vivienda.direccion.direccion_exacta }}</span> – <span class="valor">{{ vivienda.tipo_vivienda.descripcion }}</span> ({{ vivienda.condicion_vivienda.descripcion }})
+            {% else %}
+            <span class="text-muted">No registrada</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Salud -->
+    <div class="card-resumen">
+        <div class="section-title"><i class="fas fa-heartbeat me-2"></i> Salud</div>
+        <div class="card-body">
+            {% if salud %}
+            <div><span class="etiqueta">Tipo Sangre:</span> <span class="valor">{{ salud.tipo_sangre|default:"-" }}</span></div>
+            <div><span class="etiqueta">Alergias:</span> <span class="valor">{{ salud.alergias|default:"Ninguna" }}</span></div>
+            <div><span class="etiqueta">Discapacidad:</span> <span class="valor">{% if salud.tipo_discapacidad %}{{ salud.tipo_discapacidad.descripcion }}{% else %}Ninguna{% endif %}</span></div>
+            {% else %}
+            <span class="text-muted">No registrada</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Formación Académica -->
+    <div class="card-resumen">
+        <div class="section-title"><i class="fas fa-graduation-cap me-2"></i> Formación Académica</div>
+        <div class="card-body">
+            {% for fa in formaciones_academicas %}
+            <div><span class="valor">{{ fa.institucion }}</span> – <span class="etiqueta">{{ fa.nivel_formacion.descripcion }}</span> ({{ fa.estatus_formacion.descripcion }})</div>
+            {% empty %}
+            <span class="text-muted">No registrada</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Formación Adicional -->
+    <div class="card-resumen">
+        <div class="section-title"><i class="fas fa-certificate me-2"></i> Formación Adicional</div>
+        <div class="card-body">
+            {% for fad in formaciones_adicionales %}
+            <div><span class="valor">{{ fad.nombre_formacion_ad }}</span> – <span class="etiqueta">{{ fad.institucion }}</span></div>
+            {% empty %}
+            <span class="text-muted">No registrada</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Cargas Familiares -->
+    <div class="card-resumen">
+        <div class="section-title"><i class="fas fa-users me-2"></i> Cargas Familiares</div>
+        <div class="card-body">
+            {% for carga in cargas_familiares %}
+            <div><span class="valor">{{ carga.carga_familiar.primer_nombre }} {{ carga.carga_familiar.primer_apellido }}</span> ({{ carga.parentesco.descripcion }})</div>
+            {% empty %}
+            <span class="text-muted">No registradas</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Contactos de Emergencia -->
+    <div class="card-resumen">
+        <div class="section-title"><i class="fas fa-phone-alt me-2"></i> Contactos de Emergencia</div>
+        <div class="card-body">
+            {% for ce in contactos_emergencia %}
+            <div><span class="valor">{{ ce.contacto_emergencia.primer_nombre }} {{ ce.contacto_emergencia.primer_apellido }}</span> – Tel: {{ ce.contacto_emergencia.telefono }}</div>
+            {% empty %}
+            <span class="text-muted">No registrados</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Botón para PDF -->
+    <div class="text-center mt-5">
+        <a href="{% url 'generar_ficha_completa_v2' trabajador_id=laboral.id %}" class="btn btn-pdf" target="_blank">
+            <i class="fas fa-file-pdf me-2"></i> Descargar Ficha Completa (PDF)
+        </a>
+    </div>
+</div>
+{% endblock %}

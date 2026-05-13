@@ -1,0 +1,129 @@
+{% extends 'includes/base_standard.html' %}
+
+{% block title %}SACAT | Aprobación de Postulaciones{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-body: #F8FAFC; --bg-card: #ffffff;
+        --text-main: #0F172A; --text-muted: #64748B;
+        --border-color: #E2E8F0; --brand-primary: #1E3A8A;
+    }
+    .nav-tabs .nav-link {
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px 8px 0 0;
+    }
+    .nav-tabs .nav-link.active {
+        color: var(--brand-primary);
+        background: var(--bg-card);
+        border-bottom: 3px solid var(--brand-primary);
+    }
+    .badge-estado {
+        font-size: 0.7rem; font-weight: 700; padding: 5px 12px; border-radius: 50px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h2 class="fw-bold mb-3" style="color: var(--brand-primary);">
+        <i class="fas fa-check-double me-2"></i>Aprobación de Postulaciones
+    </h2>
+
+    <ul class="nav nav-tabs mb-4" id="aprobacionTabs">
+        {% if es_jefe %}<li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabJefe">👔 Jefe de Área</button></li>{% endif %}
+        {% if es_gh %}<li class="nav-item"><button class="nav-link {% if not es_jefe %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#tabGH">🏢 Gestión Humana</button></li>{% endif %}
+    </ul>
+
+    <div class="tab-content">
+        <!-- Tab Jefe -->
+        {% if es_jefe %}
+        <div class="tab-pane fade show active" id="tabJefe">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr><th>Trabajador</th><th>Oferta</th><th class="text-center">Fecha</th><th class="text-center">Acciones</th></tr></thead>
+                    <tbody>
+                        {% for p in postulaciones_jefe %}
+                        <tr>
+                            <td>{{ p.trabajador.persona.primer_nombre }} {{ p.trabajador.persona.primer_apellido }}</td>
+                            <td>{{ p.oferta.nombre }}</td>
+                            <td class="text-center small">{{ p.fecha_postulacion|date:"d/m/Y H:i" }}</td>
+                            <td class="text-center">
+                                <button class="btn btn-success btn-sm rounded-pill btn-accion" data-id="{{ p.id }}" data-accion="aprobar">✅ Aprobar</button>
+                                <button class="btn btn-outline-danger btn-sm rounded-pill btn-accion" data-id="{{ p.id }}" data-accion="rechazar">❌ Rechazar</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center py-4 text-muted">No hay postulaciones pendientes.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Tab GH -->
+        {% if es_gh %}
+        <div class="tab-pane fade {% if not es_jefe %}show active{% endif %}" id="tabGH">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr><th>Trabajador</th><th>Oferta</th><th class="text-center">Fecha</th><th class="text-center">Acciones</th></tr></thead>
+                    <tbody>
+                        {% for p in postulaciones_gh %}
+                        <tr>
+                            <td>{{ p.trabajador.persona.primer_nombre }} {{ p.trabajador.persona.primer_apellido }}</td>
+                            <td>{{ p.oferta.nombre }}</td>
+                            <td class="text-center small">{{ p.fecha_postulacion|date:"d/m/Y H:i" }}</td>
+                            <td class="text-center">
+                                <button class="btn btn-success btn-sm rounded-pill btn-accion-gh" data-id="{{ p.id }}" data-accion="aprobar_gh">✅ Aprobar</button>
+                                <button class="btn btn-outline-danger btn-sm rounded-pill btn-accion-gh" data-id="{{ p.id }}" data-accion="rechazar_gh">❌ Rechazar</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center py-4 text-muted">No hay postulaciones por aprobar.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Aprobación Jefe
+    document.querySelectorAll('.btn-accion').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const accion = this.dataset.accion;
+            fetch(`/formacion/aprobacion/${accion}/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            }).then(r => r.json()).then(d => {
+                if (d.success) location.reload();
+                else Swal.fire('Error', d.error, 'error');
+            });
+        });
+    });
+    // Aprobación GH (mismo mecanismo, otras URLs)
+    document.querySelectorAll('.btn-accion-gh').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const accion = this.dataset.accion;
+            fetch(`/formacion/aprobacion/${accion}/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            }).then(r => r.json()).then(d => {
+                if (d.success) location.reload();
+                else Swal.fire('Error', d.error, 'error');
+            });
+        });
+    });
+</script>
+{% endblock %}

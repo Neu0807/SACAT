@@ -1,0 +1,154 @@
+{% extends 'listado_generico.html' %}
+
+{% block title %}SACAT | Centros de Votación{% endblock %}
+
+{% block breadcrumb %}
+<a href="{% url 'configuracion_electoral' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+    <i class="fas fa-arrow-left me-2"></i>Volver a Electoral
+</a>
+{% endblock %}
+
+{% block icono_titulo %}<i class="fas fa-vote-yea me-2"></i>{% endblock %}
+{% block nombre_listado %}Gestión de Centros de Votación{% endblock %}
+
+{% block botones_extra %}
+{% if request.user.is_superuser %}
+    <button class="btn btn-outline-success rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalImportarCentros">
+        <i class="fas fa-file-csv me-2"></i>Importar
+    </button>
+{% endif %}
+{% endblock %}
+
+{% block table_columns %}
+<th>Código CNE</th>
+<th>Centro de Votación</th>
+<th>Parroquia</th>
+<th>Municipio</th>
+<th>Estado</th>
+<th class="text-center">Estatus</th>
+<th class="text-center">Acciones</th>
+{% endblock %}
+
+{% block table_body %}
+{% for c in centros %}
+<tr>
+    <td class="fw-bold text-primary">{{ c.codigo_cne }}</td>
+    <td class="fw-bold" style="max-width: 300px;">{{ c.nombre_centro }}</td>
+    <td>{{ c.parroquia.nombre_parroquia }}</td>
+    <td>{{ c.parroquia.municipio.nombre_municipio }}</td>
+    <td>{{ c.parroquia.municipio.estado.nombre_estado }}</td>
+    <td class="text-center">
+        {% if c.esta_activo %}
+            <span class="text-status-active">ACTIVO</span>
+        {% else %}
+            <span class="text-status-inactive">INACTIVO</span>
+        {% endif %}
+    </td>
+    <td class="text-center">
+        <button type="button" class="btn-action-sacat btn-power btn-toggle-estatus"
+                data-id="{{ c.id }}"
+                data-nombre="{{ c.nombre_centro }}"
+                data-activo="{{ c.esta_activo|yesno:'true,false' }}"
+                data-url="{% url 'toggle_centro_votacion' centro_id=c.id %}"
+                data-bs-toggle="tooltip"
+                title="{% if c.esta_activo %}Inhabilitar{% else %}Habilitar{% endif %}">
+            <i class="fas fa-power-off"></i>
+        </button>
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
+
+{% block modales %}
+<!-- Modal de importación de centros -->
+<div class="modal fade" id="modalImportarCentros" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden;">
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%); color: white;">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white bg-opacity-25 rounded-circle p-2 me-3" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-upload fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0">Importar Centros</h5>
+                        <small class="opacity-75">Carga Masiva Electoral</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="p-3 rounded-3 mb-4" style="background-color: rgba(245, 158, 11, 0.1); border-left: 4px solid #F59E0B;">
+                    <div class="d-flex small" style="color: var(--text-main);">
+                        <i class="fas fa-info-circle mt-1 me-2 text-warning"></i>
+                        <div>
+                            <strong>Orden de Columnas:</strong><br>
+                            A: <b>Estado</b> | B: <b>Municipio</b> | C: <b>Parroquia</b><br>
+                            D: <b>Nombre del Centro</b> | E: <b>Código CNE</b>
+                        </div>
+                    </div>
+                </div>
+                <form id="formImportarCentros" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-4 text-center">
+                        <div class="upload-area p-4 border border-2 border-dashed rounded-3" id="dropZoneCentros" style="border-color: var(--border-color); cursor: pointer; transition: all 0.3s; background-color: var(--bg-body);">
+                            <i class="fas fa-file-csv fa-3x mb-2" style="color: var(--brand-primary); opacity: 0.5;"></i>
+                            <p class="small mb-0" style="color: var(--text-muted);">Seleccione el archivo CSV o Excel</p>
+                            <input type="file" name="archivo" id="archivoCentros" class="form-control d-none" accept=".xlsx, .xls, .csv" required>
+                            <div id="file-name-centros" class="mt-2 fw-bold small" style="color: var(--brand-primary);"></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-3 shadow-sm fw-bold">PROCESAR ARCHIVO</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js_local %}
+// Tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+tooltipTriggerList.forEach(function (el) { new bootstrap.Tooltip(el); });
+
+// DropZone para importación
+const dropZone = document.getElementById('dropZoneCentros');
+const fileInput = document.getElementById('archivoCentros');
+const fileName = document.getElementById('file-name-centros');
+if(dropZone){
+    dropZone.onclick = () => fileInput.click();
+    fileInput.onchange = () => {
+        if(fileInput.files.length > 0) {
+            fileName.innerHTML = `<i class="fas fa-check-circle me-1"></i> ${fileInput.files[0].name}`;
+            dropZone.style.backgroundColor = 'var(--brand-light)';
+        }
+    };
+    dropZone.addEventListener('mouseover', () => dropZone.style.borderColor = 'var(--brand-primary)');
+    dropZone.addEventListener('mouseout', () => dropZone.style.borderColor = 'var(--border-color)');
+}
+
+// Envío del formulario de importación
+document.getElementById('formImportarCentros').addEventListener('submit', function(e) {
+    e.preventDefault();
+    let formData = new FormData(this);
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    Swal.fire({
+        title: 'Importando Centros...',
+        text: 'Procesando la data electoral, por favor espere.',
+        allowOutsideClick: false, showConfirmButton: false,
+        background: isDark ? '#1E293B' : '#ffffff', color: isDark ? '#F8FAFC' : '#0F172A',
+        didOpen: () => { Swal.showLoading(); }
+    });
+    fetch("{% url 'importar_centros_votaciones' %}", {
+        method: 'POST', body: formData, headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({ icon: 'success', title: '¡Fino!', text: data.mensaje, confirmButtonColor: 'var(--brand-primary)' })
+                .then(() => location.reload());
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje });
+        }
+    });
+});
+{% endblock %}

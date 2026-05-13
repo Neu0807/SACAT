@@ -1,0 +1,298 @@
+{% extends 'includes/base_standard.html' %}
+
+{% block title %} SACAT | Fase 2 - Mi Identidad {% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-body: #F8FAFC; --bg-card: #ffffff;
+        --text-main: #0F172A; --text-muted: #64748B;
+        --border-color: #E2E8F0; --brand-primary: #1E3A8A;
+        --brand-dark: #172554; --brand-light: #EEF2FF;
+        --color-success: #0E9F6E; --color-error: #C81E1E;
+    }
+
+    .stepper-box { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 15px; padding: 20px 10px 15px 10px; }
+    .sacat-stepper { display: flex; justify-content: space-between; align-items: flex-end; position: relative; max-width: 1000px; margin: 0 auto; }
+    .sacat-stepper::before { content: ''; position: absolute; bottom: 7px; left: 8%; right: 8%; height: 2px; background-color: var(--border-color); z-index: 1; }
+    .sacat-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+    .step-circle { width: 14px; height: 14px; border-radius: 50%; background-color: var(--border-color); border: 2px solid var(--bg-card); transition: all 0.3s ease; }
+    .step-title { font-weight: 800; color: var(--text-muted); margin-bottom: 8px; font-size: 0.6rem; text-transform: uppercase; text-align: center; line-height: 1.2; }
+    @media (max-width: 576px) { .step-title { display: none; } }
+    .sacat-step.current .step-circle { background-color: var(--bg-card); border: 3px solid var(--brand-primary); transform: scale(1.6); box-shadow: 0 4px 10px rgba(30,58,138,0.15); }
+    .sacat-step.current .step-title { color: var(--brand-primary); }
+
+    .custom-input { background-color: var(--bg-body) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; border-radius: 8px !important; padding: 8px 12px !important; font-size: 0.85rem; transition: all 0.2s; }
+    .custom-input:focus { background-color: #ffffff !important; border-color: var(--brand-primary) !important; outline: none !important; }
+    .form-label { font-size: 0.75rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.3rem; text-transform: uppercase; }
+    .btn-primary { background-color: var(--brand-primary) !important; border-color: var(--brand-primary) !important; font-weight: 600 !important; border-radius: 8px !important; padding: 12px 30px !important; transition: all 0.3s ease; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30,58,138,0.2); }
+
+    .readonly-field { background-color: #F1F5F9 !important; border: 1px solid #E2E8F0 !important; color: #334155 !important; font-weight: 600; cursor: not-allowed; }
+    .section-divider { width: 100%; border-bottom: 1px solid var(--border-color); margin: 1.5rem 0 1rem 0; display: flex; align-items: center; }
+    .section-tag { font-size: 0.7rem; font-weight: 800; color: var(--brand-primary); text-transform: uppercase; letter-spacing: 0.8px; background: var(--bg-card); padding-right: 12px; }
+
+    .form-switch .form-check-input:checked { background-color: var(--brand-primary); border-color: var(--brand-primary); }
+    .doc-alert { background-color: #e0f2fe; border-left: 4px solid var(--brand-primary); color: #0369a1; border-radius: 8px; }
+
+    .update-section { transition: all 0.3s ease; }
+    .update-section.collapsed { max-height: 0; overflow: hidden; opacity: 0; margin: 0; padding: 0; }
+    .update-section.expanded { max-height: 300px; opacity: 1; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-xl-11">
+            <div class="stepper-box shadow-sm">
+                <div class="sacat-stepper">
+                    <div class="sacat-step current"><div class="step-title">1. Identidad</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">2. Contactos</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">3. Formación</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">4. Cursos</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">5. Salud</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">6. Familia</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">7. Recaudos</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">8. Experiencia</div><div class="step-circle"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-11">
+            <form id="formIdentidadF2" novalidate enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- DATOS PERSONALES (SOLO LECTURA) -->
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                        <div class="d-flex align-items-center">
+                            <div class="p-3 rounded-3 me-3" style="background-color: var(--brand-light);">
+                                <i class="fas fa-id-card fa-lg" style="color: var(--brand-primary);"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-main text-uppercase">Mis Datos Personales</h6>
+                                <small class="text-muted italic">Información registrada por el departamento de Gestión Humana</small>
+                            </div>
+                        </div>
+                        <hr class="mt-3 mb-0 opacity-10">
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-2">
+                                <label class="form-label">Tipo Doc.</label>
+                                <input type="text" class="form-control custom-input readonly-field" value="{{ persona.tipo_doc_identificacion.sigla }}" disabled>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Nro. Documento</label>
+                                <input type="text" class="form-control custom-input readonly-field" value="{{ persona.cedula }}" disabled>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Fecha Nacimiento</label>
+                                <input type="text" class="form-control custom-input readonly-field" value="{{ persona.fecha_nacimiento|date:'d/m/Y' }}" disabled>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Lugar Nacimiento</label>
+                                <input type="text" class="form-control custom-input readonly-field" value="{{ persona.lugar_nacimiento|default:'—' }}" disabled>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Primer Nombre</label>
+                                <input type="text" class="form-control custom-input readonly-field" value="{{ persona.primer_nombre }}" disabled>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Segundo Nombre</label>
+                                <input type="text" class="form-control custom-input readonly-field" value="{{ persona.segundo_nombre|default:'—' }}" disabled>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Primer Apellido</label>
+                                <input type="text" class="form-control custom-input readonly-field" value="{{ persona.primer_apellido }}" disabled>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Segundo Apellido</label>
+                                <input type="text" class="form-control custom-input readonly-field" value="{{ persona.segundo_apellido|default:'—' }}" disabled>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Sexo</label>
+                                <input type="text" class="form-control custom-input readonly-field" value="{{ persona.sexo.descripcion|upper }}" disabled>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Estado Civil</label>
+                                <input type="text" class="form-control custom-input readonly-field" value="{{ persona.estado_civil.descripcion|upper }}" disabled>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Naturalizado</label>
+                                <input type="text" class="form-control custom-input readonly-field" value="{% if persona.es_naturalizado %}SÍ{% else %}NO{% endif %}" disabled>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Nro. Gaceta</label>
+                                <input type="text" class="form-control custom-input readonly-field" value="{{ persona.nro_gaceta|default:'—' }}" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTUALIZACIÓN DE DOCUMENTO (CON SWITCH) -->
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="p-3 rounded-3 me-3" style="background-color: var(--brand-light);">
+                                    <i class="fas fa-file-upload fa-lg" style="color: var(--brand-primary);"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-main text-uppercase">Actualizar Documento de Identidad</h6>
+                                    <small class="text-muted italic">Active esta opción si su documento está vencido o por vencer</small>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch ms-3">
+                                <input class="form-check-input" type="checkbox" id="switchActualizar" style="transform: scale(1.4);">
+                                <label class="form-check-label fw-bold small" for="switchActualizar" id="lblSwitch">NO</label>
+                            </div>
+                        </div>
+                        <hr class="mt-3 mb-0 opacity-10">
+                    </div>
+                    <div id="updateSection" class="card-body p-4 update-section collapsed" style="max-height: 0; overflow: hidden; padding-top: 0; padding-bottom: 0;">
+                        {% if url_cedula %}
+                        <div class="doc-alert p-3 mb-4 d-flex align-items-center">
+                            <i class="fas fa-file-check me-2 fs-5"></i>
+                            <div>
+                                <strong>Documento actual registrado</strong><br>
+                                <a href="{{ url_cedula }}" target="_blank" class="fw-bold text-decoration-underline">Ver documento vigente</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-6">
+                                <label class="form-label">Nuevo Documento Digital (PDF/JPG/PNG)</label>
+                                <input type="file" name="archivo_cedula" id="archivo_cedula" class="form-control custom-input" accept=".pdf,image/*">
+                                <div id="feedback_archivo" class="text-danger small fw-bold mt-1"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Fecha de Vencimiento (MM/AAAA)</label>
+                                <input type="text" name="fecha_vencimiento_id" id="fecha_vencimiento_id" class="form-control custom-input" placeholder="MM/AAAA" maxlength="7">
+                                <div id="feedback_vencimiento" class="text-danger small fw-bold mt-1"></div>
+                                <small class="text-muted">Actual: {% if persona.fecha_vencimiento_cedula %}{{ persona.fecha_vencimiento_cedula|date:"m/Y" }}{% else %}No registrada{% endif %}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de navegación -->
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'inicio' %}" class="btn px-4 fw-bold border text-muted bg-light">
+                        <i class="fas fa-home me-2"></i> IR AL INICIO
+                    </a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm" id="btnGuardar">
+                        <i class="fas fa-arrow-right me-2"></i> CONTINUAR AL PASO 2
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('formIdentidadF2');
+        const switchActualizar = document.getElementById('switchActualizar');
+        const lblSwitch = document.getElementById('lblSwitch');
+        const updateSection = document.getElementById('updateSection');
+        const inpArchivo = document.getElementById('archivo_cedula');
+        const inpVencimiento = document.getElementById('fecha_vencimiento_id');
+        const btnGuardar = document.getElementById('btnGuardar');
+
+        // Mostrar/ocultar sección de actualización
+        switchActualizar.addEventListener('change', function() {
+            if (this.checked) {
+                updateSection.style.maxHeight = updateSection.scrollHeight + "px";
+                updateSection.style.opacity = "1";
+                updateSection.style.padding = "";  // restaura padding original
+                lblSwitch.innerText = 'SÍ';
+                lblSwitch.style.color = 'var(--brand-primary)';
+            } else {
+                updateSection.style.maxHeight = "0";
+                updateSection.style.opacity = "0";
+                updateSection.style.paddingTop = "0";
+                updateSection.style.paddingBottom = "0";
+                lblSwitch.innerText = 'NO';
+                lblSwitch.style.color = '';
+                // Limpiar campos si se desactiva
+                inpArchivo.value = '';
+                inpVencimiento.value = '';
+            }
+        });
+
+        // Máscara MM/AAAA
+        inpVencimiento.addEventListener('input', function() {
+            let val = this.value.replace(/\D/g, '');
+            if (val.length > 2) this.value = val.substring(0, 2) + '/' + val.substring(2, 6);
+            else this.value = val;
+        });
+
+        // Validación de tamaño de archivo
+        inpArchivo.addEventListener('change', function() {
+            const fb = document.getElementById('feedback_archivo');
+            if (this.files.length > 0) {
+                if (this.files[0].size > 5 * 1024 * 1024) {
+                    fb.innerText = 'El archivo supera los 5MB.';
+                    this.value = '';
+                } else {
+                    fb.innerText = '';
+                }
+            }
+        });
+
+        // Envío del formulario
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (!switchActualizar.checked) {
+                // No se desea actualizar, redirigir directamente al paso 2
+                window.location.href = "{% url 'f2_paso2_contactos' %}";
+                return;
+            }
+
+            // Validar formato de vencimiento si se ingresó
+            const venc = inpVencimiento.value.trim();
+            if (venc && !/^\d{2}\/\d{4}$/.test(venc)) {
+                document.getElementById('feedback_vencimiento').innerText = 'Formato inválido (MM/AAAA).';
+                return;
+            }
+
+            btnGuardar.disabled = true;
+            btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> GUARDANDO...';
+
+            fetch("{% url 'guardar_f2_paso1' %}", {
+                method: "POST",
+                body: new FormData(form),
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: data.mensaje || 'Documento de identidad actualizado.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = "{% url 'f2_paso2_contactos' %}";
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.error });
+                    btnGuardar.disabled = false;
+                    btnGuardar.innerHTML = '<i class="fas fa-arrow-right me-2"></i> CONTINUAR AL PASO 2';
+                }
+            })
+            .catch(() => {
+                Swal.fire({ icon: 'error', title: 'Error de red', text: 'No se pudo contactar al servidor.' });
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = '<i class="fas fa-arrow-right me-2"></i> CONTINUAR AL PASO 2';
+            });
+        });
+    });
+</script>
+{% endblock %}

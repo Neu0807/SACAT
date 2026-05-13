@@ -1,219 +1,300 @@
 {% extends 'includes/base_standard.html' %}
+{% load static %}
 
-{% block title %} SACAT | Perfil: {{ p.cedula }} {% endblock %}
+{% block title %}SACAT | Perfil: {{ p.cedula }}{% endblock %}
 
 {% block extra_css %}
 <style>
-    :root {
-        --brand-primary: #1E3A8A; /* Azul Almacenadora */
-        --brand-light: #F8FAFC;
-        --text-muted: #64748B;
-        --border-color: #E2E8F0;
-    }
+    .ficha-wrapper { background: var(--bg-body); min-height: 100vh; padding: 2rem 0; }
 
-    .perfil-container { background-color: #F1F5F9; min-height: 100vh; padding: 2rem 0; }
-    
-    /* Header Institucional con Foto Carnet */
-    .header-expediente {
+    /* Header del perfil */
+    .perfil-header {
         background: white;
-        border-radius: 12px;
-        border-top: 5px solid var(--brand-primary);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        padding: 1.5rem 2rem;
+        border-radius: 16px;
+        padding: 2rem;
         margin-bottom: 1.5rem;
-    }
-
-    .foto-marco {
-        width: 100px;
-        height: 125px;
-        border-radius: 8px;
-        background-color: #F1F5F9;
-        border: 2px solid white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        justify-content: center;
-        overflow: hidden;
+        gap: 1.5rem;
     }
-    .foto-marco img { width: 100%; height: 100%; object-fit: cover; }
-
-    /* ⬅️ Navegación Izquierda */
-    .nav-expediente { border: none; }
-    .nav-expediente .nav-link {
-        color: var(--text-muted);
-        font-weight: 700;
-        font-size: 0.78rem;
-        border-radius: 10px;
-        padding: 12px 18px;
-        margin-bottom: 5px;
-        text-align: left;
-        transition: all 0.3s ease;
-        border: none;
-        background: white;
-    }
-    .nav-expediente .nav-link:hover { background-color: #E2E8F0; color: var(--brand-primary); }
-    .nav-expediente .nav-link.active {
-        background-color: var(--brand-primary);
+    .avatar-placeholder {
+        width: 90px; height: 110px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark));
         color: white;
-        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2.5rem; font-weight: 700;
     }
+    .info-principal h3 { color: var(--brand-primary); font-weight: 800; }
+    .badge-ci { background: var(--brand-primary); color: white; font-weight: 700; }
 
-    /* ➡️ Contenido Derecha */
+    /* Navegación lateral */
+    .nav-perfil .nav-link {
+        color: var(--text-muted); font-weight: 600; font-size: 0.8rem;
+        border-radius: 10px; padding: 12px 18px; margin-bottom: 4px;
+        border: none; background: white; text-align: left;
+        transition: all 0.25s;
+    }
+    .nav-perfil .nav-link:hover { background: var(--brand-light); color: var(--brand-primary); }
+    .nav-perfil .nav-link.active {
+        background: var(--brand-primary); color: white;
+        box-shadow: 0 4px 10px rgba(30,58,138,0.2);
+    }
+    .nav-perfil .nav-link i { width: 22px; margin-right: 8px; text-align: center; }
+
+    /* Panel de contenido */
     .tab-content-perfil {
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        min-height: 650px;
+        background: white; border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04); min-height: 600px;
         overflow: hidden;
     }
-
-    .seccion-header {
-        background-color: var(--brand-light);
-        padding: 15px 25px;
-        font-weight: 800;
-        color: var(--brand-primary);
-        text-transform: uppercase;
-        font-size: 0.82rem;
+    .seccion-titulo {
+        background: var(--brand-light);
+        padding: 14px 24px; font-weight: 800; color: var(--brand-primary);
+        text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px;
         border-bottom: 1px solid var(--border-color);
     }
-
-    /* Filas de Datos */
-    .fila-info {
-        display: flex;
-        padding: 14px 25px;
-        border-bottom: 1px solid #F1F5F9;
+    .fila-dato {
+        display: flex; padding: 14px 24px; border-bottom: 1px solid #f1f5f9;
         align-items: center;
     }
-    .fila-info:last-child { border-bottom: none; }
-    .fila-info:nth-child(even) { background-color: #FCFDFF; }
+    .fila-dato:nth-child(even) { background: #fcfdff; }
+    .fila-dato .label { width: 35%; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+    .fila-dato .valor { width: 65%; font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+    .estado-vacio { padding: 2rem; text-align: center; color: var(--text-muted); font-style: italic; }
 
-    .dato-label {
-        width: 35%;
-        font-size: 0.65rem;
-        font-weight: 800;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .dato-valor {
-        width: 65%;
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: #1E293B;
+    /* Badges */
+    .badge-estado { font-size: 0.7rem; padding: 5px 12px; border-radius: 50px; font-weight: 700; }
+    .badge-activo { background: #dcfce7; color: #166534; }
+    .badge-inactivo { background: #fee2e2; color: #991b1b; }
+
+    @media (max-width: 768px) {
+        .fila-dato { flex-direction: column; align-items: flex-start; }
+        .fila-dato .label { width: 100%; margin-bottom: 4px; }
+        .fila-dato .valor { width: 100%; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="perfil-container">
+<div class="ficha-wrapper">
     <div class="container-xl">
-        
-        <div class="header-expediente d-flex flex-column flex-md-row justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-                <div class="foto-marco me-4">
-                    {% if p.foto_carnet %}
-                        <img src="{{ p.foto_carnet.url }}" alt="Foto Carnet">
-                    {% else %}
-                        <i class="fas fa-user fa-3x" style="color: #CBD5E1;"></i>
-                    {% endif %}
-                </div>
-                <div>
-                    <h3 class="fw-bold mb-0 text-uppercase">{{ p.primer_nombre }} {{ p.primer_apellido }}</h3>
-                    <div class="d-flex flex-wrap gap-2 mt-1">
-                        <span class="badge bg-primary px-3 rounded-pill fw-bold">CI: {{ p.cedula }}</span>
-                        <span class="text-muted fw-bold small">| NÓMINA: {{ t.codigo_nomina|default:"-" }}</span>
-                    </div>
+        <!-- Breadcrumb -->
+        <a href="{% url 'listar_trabajadores' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-3">
+            <i class="fas fa-arrow-left me-2"></i>Volver al listado
+        </a>
+
+        <!-- Header -->
+        <div class="perfil-header">
+            <div class="avatar-placeholder">
+                {{ p.primer_nombre|slice:":1" }}{{ p.primer_apellido|slice:":1" }}
+            </div>
+            <div class="info-principal">
+                <h3 class="mb-0">{{ p.primer_nombre }} {{ p.segundo_nombre|default:"" }} {{ p.primer_apellido }} {{ p.segundo_apellido|default:"" }}</h3>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    <span class="badge-ci px-3 py-2 rounded-pill">CI: {{ p.cedula }}</span>
+                    <span class="text-muted small fw-bold">| NÓMINA: {{ t.codigo_nomina|default:"Sin asignar" }}</span>
+                    <span class="text-muted small">| EDAD: {{ edad|default:"N/A" }} años</span>
                 </div>
             </div>
-            <div class="d-flex gap-2 mt-3 mt-md-0">
-                <a href="{% url 'imprimir_ficha_inicial' p.id %}" target="_blank" class="btn btn-outline-danger btn-sm fw-bold rounded-pill px-4">
-                    <i class="fas fa-file-pdf me-2"></i> EXPORTAR
+            <div class="ms-auto">
+                <a href="{% url 'generar_ficha_completa_v2' t.id %}" target="_blank" class="btn btn-outline-danger btn-sm rounded-pill px-4 fw-bold">
+                    <i class="fas fa-file-pdf me-2"></i>Ficha PDF
                 </a>
             </div>
         </div>
 
         <div class="row">
-            <div class="col-md-3">
-                <div class="nav flex-column nav-pills nav-expediente bg-white p-3 rounded-4 shadow-sm" id="v-pills-tab" role="tablist">
-                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#sec-identidad" type="button"><i class="fas fa-id-card-clip me-2"></i> 1. Identidad</button>
-                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-ubicacion" type="button"><i class="fas fa-map-location-dot me-2"></i> 2. Ubicación</button>
-                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-voto" type="button"><i class="fas fa-check-to-slot me-2"></i> 3. Votación</button>
-                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-academica" type="button"><i class="fas fa-user-graduate me-2"></i> 4. Formación Acad.</button>
-                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-adicional" type="button"><i class="fas fa-certificate me-2"></i> 5. Formación Adic.</button>
-                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-salud" type="button"><i class="fas fa-heart-pulse me-2"></i> 6. Salud</button>
-                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-contacto" type="button"><i class="fas fa-address-book me-2"></i> 7. Contactos</button>
-                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-familia" type="button"><i class="fas fa-users-between-lines me-2"></i> 8. Carga Familiar</button>
-                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-laboral" type="button"><i class="fas fa-briefcase me-2"></i> 9. Laboral</button>
-                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#sec-recaudos" type="button"><i class="fas fa-folder-open me-2"></i> 10. Recaudos</button>
+            <!-- Navegación lateral -->
+            <div class="col-md-3 mb-4">
+                <div class="nav flex-column nav-pills nav-perfil bg-white p-3 rounded-4 shadow-sm" role="tablist">
+                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-identidad" type="button"><i class="fas fa-id-card"></i>Identidad</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-ubicacion" type="button"><i class="fas fa-map-location-dot"></i>Ubicación</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-contactos" type="button"><i class="fas fa-address-book"></i>Contactos</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-laboral" type="button"><i class="fas fa-briefcase"></i>Laboral</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-formacion" type="button"><i class="fas fa-graduation-cap"></i>Formación</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-salud" type="button"><i class="fas fa-heart-pulse"></i>Salud</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-familia" type="button"><i class="fas fa-users"></i>Carga Familiar</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-recaudos" type="button"><i class="fas fa-folder-open"></i>Recaudos</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-dotacion" type="button"><i class="fas fa-shirt"></i>Dotación</button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-experiencia" type="button"><i class="fas fa-building"></i>Experiencia</button>
                 </div>
             </div>
 
+            <!-- Contenido de pestañas -->
             <div class="col-md-9">
-                <div class="tab-content tab-content-perfil" id="v-pills-tabContent">
-                    
-                    <div class="tab-pane fade show active" id="sec-identidad" role="tabpanel">
-                        <div class="seccion-header">Identidad y Documentación</div>
-                        <div class="fila-info"><div class="dato-label">Primer Nombre</div><div class="dato-valor">{{ p.primer_nombre|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">Segundo Nombre</div><div class="dato-valor">{{ p.segundo_nombre|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">Primer Apellido</div><div class="dato-valor">{{ p.primer_apellido|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">Segundo Apellido</div><div class="dato-valor">{{ p.segundo_apellido|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">Cédula de Identidad</div><div class="dato-valor">{{ p.cedula|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">R.I.F.</div><div class="dato-valor">{{ p.rif|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">Fecha Nacimiento</div><div class="dato-valor">{{ p.fecha_nacimiento|date:"d/m/Y"|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">Edad Actual</div><div class="dato-valor">{{ edad|default:"-" }} Años</div></div>
-                        <div class="fila-info"><div class="dato-label">Estado Civil</div><div class="dato-valor">{{ p.estado_civil.descripcion|upper|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">Sexo</div><div class="dato-valor">{{ p.sexo.descripcion|upper|default:"-" }}</div></div>
+                <div class="tab-content tab-content-perfil">
+
+                    <!-- Identidad -->
+                    <div class="tab-pane fade show active" id="tab-identidad">
+                        <div class="seccion-titulo">Datos Personales</div>
+                        <div class="fila-dato"><div class="label">Primer Nombre</div><div class="valor">{{ p.primer_nombre }}</div></div>
+                        <div class="fila-dato"><div class="label">Segundo Nombre</div><div class="valor">{{ p.segundo_nombre|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Primer Apellido</div><div class="valor">{{ p.primer_apellido }}</div></div>
+                        <div class="fila-dato"><div class="label">Segundo Apellido</div><div class="valor">{{ p.segundo_apellido|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Cédula</div><div class="valor">{{ p.cedula }}</div></div>
+                        <div class="fila-dato"><div class="label">RIF</div><div class="valor">{{ p.rif|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Fecha Nacimiento</div><div class="valor">{{ p.fecha_nacimiento|date:"d/m/Y" }}</div></div>
+                        <div class="fila-dato"><div class="label">Lugar de Nacimiento</div><div class="valor">{{ p.lugar_nacimiento|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Sexo</div><div class="valor">{{ p.sexo.descripcion|upper }}</div></div>
+                        <div class="fila-dato"><div class="label">Estado Civil</div><div class="valor">{{ p.estado_civil.descripcion|upper }}</div></div>
+                        <div class="fila-dato"><div class="label">Naturalizado</div><div class="valor">{% if p.es_naturalizado %}Sí (Gaceta {{ p.nro_gaceta|default:"" }}){% else %}No{% endif %}</div></div>
                     </div>
 
-                    <div class="tab-pane fade" id="sec-ubicacion" role="tabpanel">
-                        <div class="seccion-header">Domicilio y Vivienda</div>
-                        <div class="fila-info"><div class="dato-label">Dirección Exacta</div><div class="dato-valor">{{ p.direccion_exacta|upper|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">Parroquia</div><div class="dato-valor">{{ p.parroquia.nombre_parroquia|upper|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">Municipio / Estado</div><div class="dato-valor">{{ p.parroquia.municipio.nombre_municipio|upper|default:"-" }} / {{ p.parroquia.municipio.estado.nombre_estado|upper|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">Tipo de Vivienda</div><div class="dato-valor">{{ p.tipo_vivienda|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">GMVV</div><div class="dato-valor">{% if p.gmvv %} SÍ {% else %} NO {% endif %}</div></div>
+                    <!-- Ubicación -->
+                    <div class="tab-pane fade" id="tab-ubicacion">
+                        <div class="seccion-titulo">Dirección y Vivienda</div>
+                        {% if direccion %}
+                        <div class="fila-dato"><div class="label">Dirección</div><div class="valor">{{ direccion.direccion.direccion_exacta|upper }}</div></div>
+                        <div class="fila-dato"><div class="label">Parroquia</div><div class="valor">{{ direccion.direccion.parroquia.nombre_parroquia|upper }}</div></div>
+                        <div class="fila-dato"><div class="label">Municipio</div><div class="valor">{{ direccion.direccion.parroquia.municipio.nombre_municipio|upper }}</div></div>
+                        <div class="fila-dato"><div class="label">Estado</div><div class="valor">{{ direccion.direccion.parroquia.municipio.estado.nombre_estado|upper }}</div></div>
+                        {% else %}<div class="estado-vacio">Sin dirección registrada.</div>{% endif %}
+                        {% if vivienda %}
+                        <div class="fila-dato"><div class="label">Tipo Vivienda</div><div class="valor">{{ vivienda.vivienda.tipo_vivienda.descripcion|upper }}</div></div>
+                        <div class="fila-dato"><div class="label">Condición</div><div class="valor">{{ vivienda.vivienda.condicion_vivienda.descripcion|upper }}</div></div>
+                        {% endif %}
+                        {% if electoral %}
+                        <div class="fila-dato"><div class="label">Centro de Votación</div><div class="valor">{{ electoral.centro_votacion.nombre_centro|upper }} ({{ electoral.centro_votacion.codigo_cne }})</div></div>
+                        {% endif %}
                     </div>
 
-                    <div class="tab-pane fade" id="sec-laboral" role="tabpanel">
-                        <div class="seccion-header">Asignación Laboral Institucional</div>
-                        <div class="fila-info"><div class="dato-label">Unidad Administrativa</div><div class="dato-valor text-primary">{{ t.unidad_org.nombre_unidad|upper|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">Cargo Estructural</div><div class="dato-valor">{{ t.cargo_estructural.nombre_cargo_estruct|upper|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">Sede / Ubicación</div><div class="dato-valor">{{ t.sede.nombre_sede|upper|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">Código Nómina</div><div class="dato-valor fw-bold">{{ t.codigo_nomina|default:"-" }}</div></div>
-                        <div class="fila-info"><div class="dato-label">Fecha Ingreso</div><div class="dato-valor">{{ t.fecha_ingreso_inst|date:"d/m/Y"|default:"-" }}</div></div>
+                    <!-- Contactos -->
+                    <div class="tab-pane fade" id="tab-contactos">
+                        <div class="seccion-titulo">Contactos Personales</div>
+                        {% for c in contactos %}
+                        <div class="fila-dato">
+                            <div class="label">{{ c.contacto_personal.tipo_contacto.descripcion }}</div>
+                            <div class="valor">{{ c.contacto_personal.valor_contacto }}{% if c.es_principal %} <span class="badge bg-primary ms-2">Principal</span>{% endif %}</div>
+                        </div>
+                        {% empty %}<div class="estado-vacio">Sin contactos registrados.</div>{% endfor %}
+                        {% if emergencia %}
+                        <div class="seccion-titulo mt-3">Contacto de Emergencia</div>
+                        <div class="fila-dato"><div class="label">Nombre</div><div class="valor">{{ emergencia.contacto_emergencia.primer_nombre }} {{ emergencia.contacto_emergencia.primer_apellido }}</div></div>
+                        <div class="fila-dato"><div class="label">Teléfono</div><div class="valor">{{ emergencia.contacto_emergencia.telefono }}</div></div>
+                        {% endif %}
                     </div>
 
-                    <div class="tab-pane fade" id="sec-recaudos" role="tabpanel">
-                        <div class="seccion-header">Documentos Digitales (Paso 1)</div>
-                        <div class="fila-info">
-                            <div class="dato-label">Cédula de Identidad</div>
-                            <div class="dato-valor">
-                                {% if p.documento_cedula %}
-                                    <a href="{{ p.documento_cedula.url }}" target="_blank" class="btn btn-sm btn-light border fw-bold text-primary">
-                                        <i class="fas fa-file-pdf me-1"></i> VER DOCUMENTO
-                                    </a>
-                                {% else %}
-                                    <span class="text-muted">-</span>
-                                {% endif %}
+                    <!-- Laboral -->
+                    <div class="tab-pane fade" id="tab-laboral">
+                        <div class="seccion-titulo">Datos Contractuales</div>
+                        <div class="fila-dato"><div class="label">Sede</div><div class="valor">{{ t.sede.nombre_sede|upper|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Nivel Jerárquico</div><div class="valor">{{ t.nivel_jerarquico.descripcion|upper|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Unidad</div><div class="valor">{{ t.unidad_org.nombre_unidad|upper|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Cargo Genérico</div><div class="valor">{{ t.cargo_generico.nombre_cargo|upper|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Cargo Estructural</div><div class="valor">{{ t.cargo_estructural.nombre_cargo_estruct|upper|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Tipo Trabajador</div><div class="valor">{{ t.tipo_trabajador.descripcion|upper|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Categoría</div><div class="valor">{{ t.categoria.descripcion|upper|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Código Nómina</div><div class="valor fw-bold text-primary">{{ t.codigo_nomina }}</div></div>
+                        <div class="fila-dato"><div class="label">Fecha Ingreso</div><div class="valor">{{ t.fecha_ingreso_inst|date:"d/m/Y" }}</div></div>
+                        {% if contacto_inst %}
+                        <div class="fila-dato"><div class="label">Correo Corp.</div><div class="valor">{{ contacto_inst.correo_corp|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Extensión</div><div class="valor">{{ contacto_inst.ext_oficina|default:"—" }}</div></div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Formación -->
+                    <div class="tab-pane fade" id="tab-formacion">
+                        <div class="seccion-titulo">Formación Académica</div>
+                        {% for a in academicos %}
+                        <div class="fila-dato"><div class="label">Nivel</div><div class="valor">{{ a.nivel_formacion.descripcion|upper }}</div></div>
+                        <div class="fila-dato"><div class="label">Institución</div><div class="valor">{{ a.institucion }}</div></div>
+                        <div class="fila-dato"><div class="label">Especialidad</div><div class="valor">{{ a.especialidad|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Estatus</div><div class="valor">{{ a.estatus_formacion.descripcion|upper }}</div></div>
+                        <hr>
+                        {% empty %}<div class="estado-vacio">Sin formación académica registrada.</div>{% endfor %}
+                        <div class="seccion-titulo mt-3">Cursos y Adiestramiento</div>
+                        {% for c in cursos %}
+                        <div class="fila-dato"><div class="label">Curso</div><div class="valor">{{ c.nombre_formacion_ad }}</div></div>
+                        <div class="fila-dato"><div class="label">Institución</div><div class="valor">{{ c.institucion }}</div></div>
+                        <div class="fila-dato"><div class="label">Horas</div><div class="valor">{{ c.duracion_horas|default:"—" }}</div></div>
+                        <hr>
+                        {% empty %}<div class="estado-vacio">Sin formación adicional registrada.</div>{% endfor %}
+                    </div>
+
+                    <!-- Salud -->
+                    <div class="tab-pane fade" id="tab-salud">
+                        <div class="seccion-titulo">Información de Salud</div>
+                        {% if salud %}
+                        <div class="fila-dato"><div class="label">Tipo Sangre</div><div class="valor">{{ salud.tipo_sangre|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Discapacidad</div><div class="valor">{{ salud.tipo_discapacidad.descripcion|default:"Ninguna" }}</div></div>
+                        <div class="fila-dato"><div class="label">CONAPDIS</div><div class="valor">{{ salud.nro_conapdis|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Alergias</div><div class="valor">{{ salud.alergias|default:"—" }}</div></div>
+                        {% else %}<div class="estado-vacio">Sin datos de salud.</div>{% endif %}
+                        <div class="seccion-titulo mt-3">Patologías</div>
+                        {% for pat in patologias %}
+                        <div class="fila-dato"><div class="label">{{ pat.tipo_patologia.descripcion }}</div><div class="valor">{{ pat.descripcion_adicional|default:"—" }}</div></div>
+                        {% empty %}<div class="estado-vacio">Sin patologías registradas.</div>{% endfor %}
+                    </div>
+
+                    <!-- Familia -->
+                    <div class="tab-pane fade" id="tab-familia">
+                        <div class="seccion-titulo">Carga Familiar</div>
+                        {% for f in familia %}
+                        <div class="fila-dato"><div class="label">Parentesco</div><div class="valor">{{ f.parentesco.descripcion|upper }}</div></div>
+                        <div class="fila-dato"><div class="label">Nombre</div><div class="valor">{{ f.carga_familiar.primer_nombre }} {{ f.carga_familiar.primer_apellido }}</div></div>
+                        <div class="fila-dato"><div class="label">Cédula</div><div class="valor">{{ f.carga_familiar.cedula|default:"—" }}</div></div>
+                        <div class="fila-dato"><div class="label">Fecha Nac.</div><div class="valor">{{ f.carga_familiar.fecha_nacimiento|date:"d/m/Y" }}</div></div>
+                        <hr>
+                        {% empty %}<div class="estado-vacio">Sin cargas familiares registradas.</div>{% endfor %}
+                    </div>
+
+                    <!-- Recaudos -->
+                    <div class="tab-pane fade" id="tab-recaudos">
+                        <div class="seccion-titulo">Documentos Digitales</div>
+                        {% for r in recaudos %}
+                        <div class="fila-dato">
+                            <div class="label">{{ r.tipo_recaudo.descripcion }}</div>
+                            <div class="valor">
+                                <a href="{{ r.ruta_archivo.url }}" target="_blank" class="btn btn-sm btn-outline-primary fw-bold">
+                                    <i class="fas fa-file-pdf me-1"></i> Ver
+                                </a>
+                                {% if r.fecha_vencimiento %}<small class="text-muted ms-2">Vence: {{ r.fecha_vencimiento|date:"d/m/Y" }}</small>{% endif %}
                             </div>
                         </div>
-                        <div class="fila-info">
-                            <div class="dato-label">RIF Digital</div>
-                            <div class="dato-valor">
-                                {% if p.documento_rif %}
-                                    <a href="{{ p.documento_rif.url }}" target="_blank" class="btn btn-sm btn-light border fw-bold text-primary">
-                                        <i class="fas fa-image me-1"></i> VER RIF
-                                    </a>
-                                {% else %}
-                                    <span class="text-muted">-</span>
-                                {% endif %}
-                            </div>
-                        </div>
+                        {% empty %}<div class="estado-vacio">Sin recaudos cargados.</div>{% endfor %}
                     </div>
 
+                    <!-- Dotación -->
+                    <div class="tab-pane fade" id="tab-dotacion">
+                        <div class="seccion-titulo">Uniformes Recibidos</div>
+                        {% for d in dotaciones %}
+                        <div class="fila-dato"><div class="label">{{ d.talla_dotacion.item_dotacion.nombre_item }}</div><div class="valor">Talla {{ d.talla_dotacion.valor_talla }} — Entregado {{ d.fecha_entrega|date:"d/m/Y" }}</div></div>
+                        {% empty %}<div class="estado-vacio">Sin dotaciones registradas.</div>{% endfor %}
                     </div>
+
+                    <!-- Experiencia -->
+                    <div class="tab-pane fade" id="tab-experiencia">
+                        <div class="seccion-titulo">Experiencia Previa</div>
+                        {% for e in experiencias %}
+                        <div class="fila-dato"><div class="label">Empresa</div><div class="valor">{{ e.empresa }}</div></div>
+                        <div class="fila-dato"><div class="label">Cargo</div><div class="valor">{{ e.cargo }}</div></div>
+                        <div class="fila-dato"><div class="label">Período</div><div class="valor">{{ e.fecha_inicio|date:"d/m/Y" }} — {{ e.fecha_fin|date:"d/m/Y"|default:"Actualidad" }}</div></div>
+                        <hr>
+                        {% empty %}<div class="estado-vacio">Sin experiencia previa registrada.</div>{% endfor %}
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Pequeño script para mantener la pestaña activa al recargar (opcional)
+    document.addEventListener('DOMContentLoaded', function() {
+        const triggerTabList = [].slice.call(document.querySelectorAll('.nav-perfil button'));
+        triggerTabList.forEach(function(triggerEl) {
+            const tabTrigger = new bootstrap.Tab(triggerEl);
+            triggerEl.addEventListener('click', function(event) {
+                event.preventDefault();
+                tabTrigger.show();
+            });
+        });
+    });
+</script>
 {% endblock %}

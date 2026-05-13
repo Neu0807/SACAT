@@ -1,134 +1,56 @@
-{% extends 'includes/base_standard.html' %}
+{% extends 'listado_generico.html' %}
 
-{% block title %} SACAT | Gestión de Personal {% endblock %}
+{% block title %}SACAT | Gestión de Personal{% endblock %}
 
-{% block extra_css %}
-<style>
-    :root {
-        --brand-primary: #1E3A8A;
-        --brand-secondary: #64748B;
-        --bg-light: #F8FAFC;
-    }
-    .card-listado { border-radius: 15px; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-    .table thead th {
-        background-color: var(--bg-light);
-        color: var(--brand-secondary);
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        font-weight: 800;
-        border: none;
-        padding: 15px;
-        position: relative;
-    }
-    .sortable { cursor: pointer; transition: color 0.3s; }
-    .sortable:hover { color: var(--brand-primary); }
-    .sortable::after {
-        content: '\f0dc'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
-        position: absolute; right: 8px; opacity: 0.2; font-size: 0.6rem;
-    }
-    .table tbody td { padding: 15px; vertical-align: middle; color: #1e293b; border-bottom: 1px solid #f1f5f9; }
-    .tr-hover:hover { background-color: #f8fafc !important; transition: 0.3s; }
-    .search-box { border-radius: 10px; border: 1px solid #e2e8f0; padding-left: 40px; height: 45px; }
-    .search-icon { position: absolute; left: 15px; top: 14px; color: #94a3b8; }
-    .btn-sacat-filter {
-        background-color: var(--brand-primary) !important;
-        color: white !important;
-        border: none;
-    }
-</style>
+{% block breadcrumb %}
+{# Puedes poner un breadcrumb si quieres, por ahora lo dejamos vacío o con un enlace al inicio #}
+<a href="{% url 'inicio' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+    <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
+</a>
 {% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
-    <div class="card card-listado">
-        <div class="card-header bg-white border-0 pt-4 px-4">
-            <h5 class="fw-bold mb-0 text-uppercase" style="color: var(--brand-primary); letter-spacing: 0.5px;">
-                <i class="fas fa-users-viewfinder me-2"></i> Listado de Trabajadores
-            </h5>
+{% block icono_titulo %}<i class="fas fa-users-viewfinder me-2"></i>{% endblock %}
+{% block nombre_listado %}Listado de Trabajadores{% endblock %}
+
+{% block boton_crear %}{% endblock %}  {# No hay botón de crear en este listado #}
+
+{% block table_columns %}
+<th>Nro. Identidad</th>
+<th>Nombres y Apellidos</th>
+<th class="text-center">Edad</th>
+<th class="text-center">Sexo</th>
+<th>Unidad Administrativa</th>
+<th>Cargo Estructural</th>
+<th>Estatus</th>
+<th class="text-center">Acciones</th>
+{% endblock %}
+
+{% block table_body %}
+{% for t in trabajadores %}
+<tr>
+    <td class="fw-bold" style="color: var(--brand-primary);">{{ t.persona.cedula }}</td>
+    <td>{{ t.persona.primer_nombre }} {{ t.persona.segundo_nombre|default:"" }} {{ t.persona.primer_apellido }} {{ t.persona.segundo_apellido|default:"" }}</td>
+    <td class="text-center fw-bold">{{ t.edad }}</td>
+    <td class="text-center">{{ t.persona.sexo.sigla|upper }}</td>
+    <td>{% if t.unidad_org %}{{ t.unidad_org.nombre_unidad|upper }}{% else %}No asignado{% endif %}</td>
+    <td>{% if t.cargo_estructural %}{{ t.cargo_estructural.nombre_cargo_estruct|upper }}{% else %}No asignado{% endif %}</td>
+    <td>No asignado</td>
+    <td class="text-center">
+        <div class="d-flex justify-content-center gap-2">
+            <a href="{% url 'perfil_trabajador' t.id %}" class="btn-action-sacat btn-edit" data-bs-toggle="tooltip" title="Ver Perfil Completo">
+                <i class="fas fa-user-tie"></i>
+            </a>
+            <a href="{% url 'generar_ficha_completa_v2' t.id %}" target="_blank" class="btn-action-sacat btn-key" data-bs-toggle="tooltip" title="Ficha Completa PDF">
+                <i class="fas fa-file-pdf"></i>
+            </a>
         </div>
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
 
-        <div class="card-body p-4">
-            <form method="GET" class="row g-3 mb-4">
-                <div class="col-12 col-md-6 position-relative">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" name="search" class="form-control search-box shadow-none" 
-                           placeholder="Buscar por cédula o nombres..." value="{{ busqueda }}">
-                </div>
-                <div class="col-12 col-md-2">
-                    <button type="submit" class="btn btn-sacat-filter w-100 h-100 fw-bold rounded-3">FILTRAR</button>
-                </div>
-            </form>
-
-            <div class="table-responsive">
-                <table class="table align-middle" id="tablaTrabajadores">
-                    <thead>
-                        <tr>
-                            <th class="sortable" onclick="sortTable(0)">Nro. Identidad</th>
-                            <th class="sortable" onclick="sortTable(1)">Nombres y Apellidos</th>
-                            <th class="sortable text-center" onclick="sortTable(2)">Edad</th>
-                            <th class="sortable text-center" onclick="sortTable(3)">Sexo</th>
-                            <th class="sortable" onclick="sortTable(4)">Unidad Administrativa</th>
-                            <th class="sortable" onclick="sortTable(5)">Cargo Estructural</th>
-                            <th class="sortable" onclick="sortTable(6)">Estatus</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for t in trabajadores %}
-                        <tr class="tr-hover">
-                            <td class="fw-bold" style="color: var(--brand-primary);">{{ t.persona.cedula }}</td>
-                            <td>{{ t.persona.primer_nombre }} {{ t.persona.segundo_nombre|default:"" }} {{ t.persona.primer_apellido }} {{ t.persona.segundo_apellido|default:"" }}</td>
-                            <td class="text-center fw-bold">{{ t.edad }}</td>
-                            <td class="text-center">{{ t.persona.sexo.sigla|upper }}</td>
-                            <td>{% if t.unidad_org %}{{ t.unidad_org.nombre_unidad|upper }}{% else %}No asignado{% endif %}</td>
-                            <td>{% if t.cargo_estructural %}{{ t.cargo_estructural.nombre_cargo_estruct|upper }}{% else %}No asignado{% endif %}</td>
-                            <td>No asignado</td>
-                            <td class="text-center">
-                                <div class="btn-group shadow-sm">
-                                    <a href="{% url 'perfil_trabajador' t.id %}" class="btn btn-sm btn-white border" title="Ver Perfil Completo">
-                                        <i class="fas fa-user-tie text-primary"></i>
-                                    </a>
-                                    <a href="{% url 'imprimir_ficha_inicial' t.persona.id %}" target="_blank" class="btn btn-sm btn-white border" title="Ficha PDF">
-                                        <i class="fas fa-file-pdf text-danger"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    function sortTable(n) {
-        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-        table = document.getElementById("tablaTrabajadores");
-        switching = true; dir = "asc"; 
-        while (switching) {
-            switching = false; rows = table.rows;
-            for (i = 1; i < (rows.length - 1); i++) {
-                shouldSwitch = false;
-                x = rows[i].getElementsByTagName("TD")[n];
-                y = rows[i + 1].getElementsByTagName("TD")[n];
-                var valX = x.innerText.toLowerCase().trim();
-                var valY = y.innerText.toLowerCase().trim();
-                var numX = parseFloat(valX.replace(/\./g, ''));
-                var numY = parseFloat(valY.replace(/\./g, ''));
-                if (!isNaN(numX) && !isNaN(numY)) {
-                    if (dir == "asc") { if (numX > numY) { shouldSwitch = true; break; } }
-                    else { if (numX < numY) { shouldSwitch = true; break; } }
-                } else {
-                    if (dir == "asc") { if (valX > valY) { shouldSwitch = true; break; } }
-                    else { if (valX < valY) { shouldSwitch = true; break; } }
-                }
-            }
-            if (shouldSwitch) { rows[i].parentNode.insertBefore(rows[i + 1], rows[i]); switching = true; switchcount ++; }
-            else { if (switchcount == 0 && dir == "asc") { dir = "desc"; switching = true; } }
-        }
-    }
-</script>
+{% block extra_js_local %}
+// Inicializar tooltips de Bootstrap
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+tooltipTriggerList.forEach(function (el) { new bootstrap.Tooltip(el); });
 {% endblock %}

@@ -1,0 +1,342 @@
+{% extends 'includes/base_standard.html' %}
+
+{% block title %} SACAT | Fase 2 - Formación Académica {% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-body: #F8FAFC; --bg-card: #ffffff;
+        --text-main: #0F172A; --text-muted: #64748B;
+        --border-color: #E2E8F0; --brand-primary: #1E3A8A;
+        --brand-dark: #172554; --brand-light: #EEF2FF;
+        --color-success: #0E9F6E; --color-error: #C81E1E;
+    }
+
+    .stepper-box { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 15px; padding: 20px 10px 15px 10px; }
+    .sacat-stepper { display: flex; justify-content: space-between; align-items: flex-end; position: relative; max-width: 1000px; margin: 0 auto; }
+    .sacat-stepper::before { content: ''; position: absolute; bottom: 7px; left: 8%; right: 8%; height: 2px; background-color: var(--border-color); z-index: 1; }
+    .sacat-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+    .step-circle { width: 14px; height: 14px; border-radius: 50%; background-color: var(--border-color); border: 2px solid var(--bg-card); transition: all 0.3s ease; }
+    .step-title { font-weight: 800; color: var(--text-muted); margin-bottom: 8px; font-size: 0.6rem; text-transform: uppercase; text-align: center; line-height: 1.2; }
+    .sacat-step.completed .step-circle { background-color: var(--brand-primary); border-color: var(--brand-primary); }
+    .sacat-step.completed .step-title { color: var(--brand-primary); }
+    .sacat-step.current .step-circle { background-color: var(--bg-card); border: 3px solid var(--brand-primary); transform: scale(1.6); box-shadow: 0 4px 10px rgba(30,58,138,0.15); }
+    .sacat-step.current .step-title { color: var(--brand-primary); }
+
+    .custom-input { background-color: var(--bg-body) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; border-radius: 8px !important; padding: 8px 12px !important; font-size: 0.85rem; transition: all 0.2s; }
+    .custom-input:focus { background-color: #ffffff !important; border-color: var(--brand-primary) !important; outline: none !important; }
+    .form-label { font-size: 0.75rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.3rem; text-transform: uppercase; }
+    .btn-primary { background-color: var(--brand-primary) !important; border-color: var(--brand-primary) !important; font-weight: 600 !important; border-radius: 8px !important; padding: 12px 30px !important; transition: all 0.3s ease; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30,58,138,0.2); }
+
+    .badge-activo { background-color: #dcfce7; color: #166534; font-size: 0.7rem; padding: 3px 10px; border-radius: 50px; }
+    .badge-inactivo { background-color: #fee2e2; color: #991b1b; font-size: 0.7rem; padding: 3px 10px; border-radius: 50px; }
+    .btn-icon { background: transparent; border: none; padding: 4px 8px; cursor: pointer; transition: all 0.2s; }
+    .btn-icon:hover { transform: scale(1.15); }
+
+    .table-formacion th { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 800; }
+    .table-formacion td { vertical-align: middle; font-size: 0.85rem; padding: 10px 12px; }
+
+    /* Tarjeta de decisión oculta por defecto */
+    .decision-card {
+        background-color: var(--bg-body);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        display: none; /* se muestra dinámicamente */
+    }
+    .decision-card.visible { display: flex; }
+    .form-check-input:checked { background-color: var(--brand-primary); border-color: var(--brand-primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <!-- Stepper -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-xl-11">
+            <div class="stepper-box shadow-sm">
+                <div class="sacat-stepper">
+                    <div class="sacat-step completed"><div class="step-title">1. Identidad</div><div class="step-circle"></div></div>
+                    <div class="sacat-step completed"><div class="step-title">2. Laboral</div><div class="step-circle"></div></div>
+                    <div class="sacat-step completed"><div class="step-title">3. Contactos</div><div class="step-circle"></div></div>
+                    <div class="sacat-step current"><div class="step-title">4. Formación</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">5. Cursos</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">6. Salud</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">7. Familia</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">8. Recaudos</div><div class="step-circle"></div></div>
+                    <div class="sacat-step future"><div class="step-title">9. Experiencia</div><div class="step-circle"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-11">
+            <form id="formFormacion" novalidate>
+                {% csrf_token %}
+
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                        <div class="d-flex align-items-center">
+                            <div class="p-3 rounded-3 me-3" style="background-color: var(--brand-light);">
+                                <i class="fas fa-graduation-cap fa-lg" style="color: var(--brand-primary);"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-main text-uppercase">Formación Académica</h6>
+                                <small class="text-muted italic">Registre sus estudios formales (agregar, editar, inhabilitar).</small>
+                            </div>
+                        </div>
+                        <hr class="mt-3 mb-0 opacity-10">
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Fila de edición/agregado responsiva -->
+                        <div class="row g-2 bg-light p-3 rounded-3 border mb-3">
+                            <div class="col-12 col-md-4 col-lg-2">
+                                <select id="temp_nivel" class="form-select custom-input">
+                                    <option value="" selected disabled>Nivel...</option>
+                                    {% for n in niveles %}<option value="{{ n.id }}">{{ n.descripcion }}</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-8 col-lg-3">
+                                <input type="text" id="temp_institucion" class="form-control custom-input text-uppercase" placeholder="Institución">
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <input type="text" id="temp_especialidad" class="form-control custom-input text-uppercase" placeholder="Especialidad">
+                            </div>
+                            <div class="col-6 col-md-3 col-lg-1">
+                                <input type="date" id="temp_inicio" class="form-control custom-input" title="Fecha inicio">
+                            </div>
+                            <div class="col-6 col-md-3 col-lg-1">
+                                <input type="date" id="temp_fin" class="form-control custom-input" title="Fecha fin">
+                            </div>
+                            <div class="col-8 col-md-4 col-lg-1">
+                                <select id="temp_estatus" class="form-select custom-input">
+                                    <option value="" selected disabled>Estado...</option>
+                                    {% for e in estatus %}<option value="{{ e.id }}">{{ e.descripcion }}</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-4 col-md-2 col-lg-1 text-center">
+                                <button type="button" id="btnAddEstudio" 
+                                        class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" 
+                                        style="width: 38px; height: 38px; border-radius: 8px;" title="Agregar">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tabla de formación (con scroll horizontal en pantallas pequeñas) -->
+                        <div class="table-responsive">
+                            <table class="table table-formacion table-borderless align-middle">
+                                <thead><tr><th>Nivel</th><th>Institución</th><th>Especialidad</th><th>Período</th><th class="text-center">Estado</th><th class="text-center">Acciones</th></tr></thead>
+                                <tbody id="listaEstudios">
+                                    {% for est in academicos %}
+                                    <tr class="item-estudio" data-id="{{ est.id }}">
+                                        <td><span class="fw-bold small">{{ est.nivel_formacion.descripcion }}</span></td>
+                                        <td>{{ est.institucion }}</td>
+                                        <td>{{ est.especialidad|default:"—" }}</td>
+                                        <td class="small">
+                                            {{ est.fecha_inicio|date:"d/m/Y" }} → 
+                                            {% if est.fecha_fin %}{{ est.fecha_fin|date:"d/m/Y" }}{% else %}En curso{% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge {% if est.esta_activo %}badge-activo{% else %}badge-inactivo{% endif %}">
+                                                {% if est.esta_activo %}ACTIVO{% else %}INACTIVO{% endif %}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn-icon text-primary btn-edit-estudio" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+                                            <button type="button" class="btn-icon {% if est.esta_activo %}text-danger{% else %}text-success{% endif %} btn-toggle-estudio" title="{% if est.esta_activo %}Inhabilitar{% else %}Habilitar{% endif %}"><i class="fas fa-power-off"></i></button>
+                                        </td>
+                                        <input type="hidden" name="estudio_id[]" value="{{ est.id }}">
+                                        <input type="hidden" name="nivel_id[]" value="{{ est.nivel_formacion.id }}">
+                                        <input type="hidden" name="institucion[]" value="{{ est.institucion }}">
+                                        <input type="hidden" name="especialidad[]" value="{{ est.especialidad|default:'' }}">
+                                        <input type="hidden" name="fecha_inicio[]" value="{{ est.fecha_inicio|date:'Y-m-d' }}">
+                                        <input type="hidden" name="fecha_fin[]" value="{{ est.fecha_fin|date:'Y-m-d' }}">
+                                        <input type="hidden" name="estatus_id[]" value="{{ est.estatus_formacion.id }}">
+                                        <input type="hidden" name="estudio_activo[]" value="{{ est.esta_activo|lower }}">
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- PREGUNTA CONDICIONAL: se muestra solo si hay al menos un estudio -->
+                        <div id="decisionCard" class="decision-card mt-4 d-flex align-items-center justify-content-between {% if academicos %}visible{% endif %}">
+                            <div>
+                                <h6 class="fw-bold mb-0 text-main">¿Posee cursos, talleres o diplomados adicionales?</h6>
+                                <small class="text-muted">Si responde "Sí", podrá registrarlos en el siguiente paso.</small>
+                            </div>
+                            <div class="form-check form-switch ms-3">
+                                <input class="form-check-input" type="checkbox" id="switchCursos" style="transform: scale(1.4);">
+                                <label class="form-check-label fw-bold small" for="switchCursos" id="lblCursos">NO</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'f2_paso2_contactos' %}" class="btn px-4 fw-bold border text-muted bg-light"><i class="fas fa-arrow-left me-2"></i> VOLVER</a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm" id="btnGuardar">GUARDAR Y CONTINUAR <i class="fas fa-arrow-right ms-2"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+(function() {
+    const form = document.getElementById('formFormacion');
+    const listaEstudios = document.getElementById('listaEstudios');
+    const decisionCard = document.getElementById('decisionCard');
+    const btnGuardar = document.getElementById('btnGuardar');
+    const switchCursos = document.getElementById('switchCursos');
+    const lblCursos = document.getElementById('lblCursos');
+
+    let idEnEdicion = null;
+
+    // Cambiar texto del switch
+    switchCursos.addEventListener('change', function() {
+        lblCursos.textContent = this.checked ? 'SÍ' : 'NO';
+        lblCursos.style.color = this.checked ? 'var(--brand-primary)' : '';
+    });
+
+    // Función para mostrar/ocultar la tarjeta de decisión
+    const actualizarDecisionCard = () => {
+        if (listaEstudios.children.length > 0) {
+            decisionCard.classList.add('visible');
+        } else {
+            decisionCard.classList.remove('visible');
+        }
+    };
+
+    // --- Agregar estudio ---
+    document.getElementById('btnAddEstudio').onclick = function() {
+        const nivel = document.getElementById('temp_nivel');
+        const institucion = document.getElementById('temp_institucion');
+        const especialidad = document.getElementById('temp_especialidad');
+        const inicio = document.getElementById('temp_inicio');
+        const fin = document.getElementById('temp_fin');
+        const estatus = document.getElementById('temp_estatus');
+
+        if (!nivel.value || !institucion.value.trim() || !especialidad.value.trim() || !inicio.value || !estatus.value) {
+            return Swal.fire('Atención', 'Complete todos los campos.', 'warning');
+        }
+
+        const row = document.createElement('tr');
+        row.className = 'item-estudio';
+        row.innerHTML = `
+            <td><span class="fw-bold small">${nivel.options[nivel.selectedIndex].text}</span></td>
+            <td>${institucion.value.toUpperCase()}</td>
+            <td>${especialidad.value.toUpperCase()}</td>
+            <td class="small">${inicio.value} → ${fin.value || 'En curso'}</td>
+            <td class="text-center"><span class="badge badge-activo">ACTIVO</span></td>
+            <td class="text-center">
+                <button type="button" class="btn-icon text-primary btn-edit-estudio" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+                <button type="button" class="btn-icon text-danger btn-toggle-estudio" title="Inhabilitar"><i class="fas fa-power-off"></i></button>
+            </td>
+            <input type="hidden" name="estudio_id[]" value="${idEnEdicion || ''}">
+            <input type="hidden" name="nivel_id[]" value="${nivel.value}">
+            <input type="hidden" name="institucion[]" value="${institucion.value.toUpperCase()}">
+            <input type="hidden" name="especialidad[]" value="${especialidad.value.toUpperCase()}">
+            <input type="hidden" name="fecha_inicio[]" value="${inicio.value}">
+            <input type="hidden" name="fecha_fin[]" value="${fin.value}">
+            <input type="hidden" name="estatus_id[]" value="${estatus.value}">
+            <input type="hidden" name="estudio_activo[]" value="true">
+        `;
+        listaEstudios.appendChild(row);
+        actualizarDecisionCard();   // mostrar pregunta
+
+        // Limpiar campos
+        document.getElementById('temp_institucion').value = '';
+        document.getElementById('temp_especialidad').value = '';
+        document.getElementById('temp_inicio').value = '';
+        document.getElementById('temp_fin').value = '';
+        nivel.selectedIndex = 0;
+        estatus.selectedIndex = 0;
+        idEnEdicion = null;
+    };
+
+    // --- Editar / Inhabilitar ---
+    listaEstudios.addEventListener('click', function(e) {
+        const row = e.target.closest('tr');
+        if (!row) return;
+
+        if (e.target.closest('.btn-edit-estudio')) {
+            idEnEdicion = row.querySelector('[name="estudio_id[]"]').value;
+            document.getElementById('temp_nivel').value = row.querySelector('[name="nivel_id[]"]').value;
+            document.getElementById('temp_institucion').value = row.querySelector('[name="institucion[]"]').value;
+            document.getElementById('temp_especialidad').value = row.querySelector('[name="especialidad[]"]').value;
+            document.getElementById('temp_inicio').value = row.querySelector('[name="fecha_inicio[]"]').value;
+            document.getElementById('temp_fin').value = row.querySelector('[name="fecha_fin[]"]').value;
+            document.getElementById('temp_estatus').value = row.querySelector('[name="estatus_id[]"]').value;
+            row.remove();
+            actualizarDecisionCard();   // puede ocultar si era el último
+        }
+
+        if (e.target.closest('.btn-toggle-estudio')) {
+            const activoInput = row.querySelector('[name="estudio_activo[]"]');
+            const badge = row.querySelector('.badge');
+            const btnIcon = row.querySelector('.btn-toggle-estudio i');
+            if (activoInput.value === 'true') {
+                activoInput.value = 'false';
+                badge.className = 'badge badge-inactivo';
+                badge.innerText = 'INACTIVO';
+                btnIcon.parentElement.classList.replace('text-danger', 'text-success');
+            } else {
+                activoInput.value = 'true';
+                badge.className = 'badge badge-activo';
+                badge.innerText = 'ACTIVO';
+                btnIcon.parentElement.classList.replace('text-success', 'text-danger');
+            }
+            // no se modifica la cantidad de filas, no necesita actualizar tarjeta
+        }
+    });
+
+    // --- Envío del formulario ---
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (listaEstudios.children.length === 0) {
+            return Swal.fire('Error', 'Debe registrar al menos un estudio.', 'error');
+        }
+
+        btnGuardar.disabled = true;
+        btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> GUARDANDO...';
+
+        fetch("{% url 'guardar_f2_paso3' %}", {
+            method: "POST",
+            body: new FormData(form),
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: '¡Formación guardada!', timer: 1500, showConfirmButton: false })
+                .then(() => {
+                    const destino = switchCursos.checked 
+                        ? "{% url 'f2_paso4_adiestramiento' %}" 
+                        : "{% url 'f2_paso5_salud' %}";
+                    window.location.href = destino;
+                });
+            } else {
+                Swal.fire('Error', data.error, 'error');
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = 'GUARDAR Y CONTINUAR <i class="fas fa-arrow-right ms-2"></i>';
+            }
+        });
+    });
+
+    // Mayúsculas automáticas
+    form.querySelectorAll('.text-uppercase').forEach(input => {
+        input.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+    });
+
+    // Ajuste inicial si ya hay datos cargados
+    actualizarDecisionCard();
+})();
+</script>
+{% endblock %}

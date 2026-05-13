@@ -1,0 +1,100 @@
+{% extends 'includes/base_standard.html' %}
+{% block title %} SACAT | Paso 7 - Resumen Laboral {% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Mismo CSS que tenías, solo se usa para el stepper y estética general */
+    :root {
+        --bg-body: #F8FAFC;
+        --bg-card: #ffffff;
+        --text-main: #0F172A;
+        --text-muted: #64748B;
+        --border-color: #E2E8F0;
+        --brand-primary: #1E3A8A;
+        --brand-dark: #172554;
+        --brand-light: #EEF2FF;
+    }
+    .stepper-box {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 20px 10px 15px 10px;
+    }
+    .sacat-stepper { display: flex; justify-content: space-between; align-items: flex-end; position: relative; max-width: 800px; margin: 0 auto; }
+    .sacat-stepper::before { content: ''; position: absolute; bottom: 7px; left: 12.5%; right: 12.5%; height: 2px; background-color: var(--border-color); z-index: 1; }
+    .sacat-step { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2; }
+    .step-circle { width: 14px; height: 14px; border-radius: 50%; background-color: var(--border-color); border: 2px solid var(--bg-card); transition: all 0.3s ease; }
+    .step-title { font-weight: 800; color: var(--text-muted); margin-bottom: 8px; font-size: 0.65rem; text-transform: uppercase; }
+    .sacat-step.completed .step-circle { background-color: var(--brand-primary); border-color: var(--brand-primary); }
+    .sacat-step.completed .step-title { color: var(--brand-primary); }
+    .sacat-step.current .step-circle { background-color: var(--bg-card); border: 3px solid var(--brand-primary); transform: scale(1.6); box-shadow: 0 4px 10px rgba(30,58,138,0.15); }
+    .sacat-step.current .step-title { color: var(--brand-primary); }
+    .table td, .table th { vertical-align: middle; }
+    .valor { font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
+    .label { font-weight: 700; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <!-- Stepper -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-xl-11">
+            <div class="stepper-box shadow-sm">
+                <div class="sacat-stepper">
+                    <div class="sacat-step completed"><div class="step-title">1. Identidad</div><div class="step-circle"></div></div>
+                    <div class="sacat-step completed"><div class="step-title">2. Contacto</div><div class="step-circle"></div></div>
+                    <div class="sacat-step current"><div class="step-title">3. Laboral</div><div class="step-circle"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen Laboral -->
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-11">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex align-items-center">
+                        <div class="p-3 rounded-3 me-3" style="background-color: var(--brand-light);">
+                            <i class="fas fa-briefcase fa-lg" style="color: var(--brand-primary);"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-main text-uppercase">Información Laboral Registrada</h6>
+                            <small class="text-muted">Revise sus datos antes de continuar</small>
+                        </div>
+                    </div>
+                    <hr class="mt-3 mb-0">
+                </div>
+                <div class="card-body p-4">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td width="30%"><span class="label">Categoría</span><div class="valor">{{ laboral.categoria.descripcion }}</div></td>
+                            <td width="35%"><span class="label">Condición Laboral</span><div class="valor">{{ laboral.tipo_trabajador.descripcion }}</div></td>
+                            <td width="35%"><span class="label">Cargo Genérico</span><div class="valor">{{ laboral.cargo_generico.nombre_cargo }}</div></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><span class="label">Cargo Estructural</span><div class="valor">{{ laboral.cargo_estructural.nombre_cargo_estruct }}</div></td>
+                            <td><span class="label">Código Nómina</span><div class="valor">{{ laboral.codigo_nomina }}</div></td>
+                        </tr>
+                        <tr>
+                            <td><span class="label">Sede</span><div class="valor">{{ laboral.sede.nombre_sede }}</div></td>
+                            <td><span class="label">Nivel Jerárquico</span><div class="valor">{{ nivel_nombre }}</div></td>
+                            <td><span class="label">Fecha Ingreso</span><div class="valor">{{ laboral.fecha_ingreso_inst|date:"d/m/Y" }}</div></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3"><span class="label">Unidad Organizativa</span><div class="valor">{{ ruta_unidades|join:" / " }}</div></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="mt-4 d-flex justify-content-between">
+                <a href="{% url 'f2_paso6_familia' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+                <a href="{% url 'f2_comprobante' %}" class="btn btn-primary px-5">Siguiente <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

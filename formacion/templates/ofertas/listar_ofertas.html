@@ -1,0 +1,250 @@
+{% extends 'includes/base_standard.html' %}
+
+{% block title %}SACAT | Ofertas de Formación{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-body: #F8FAFC; --bg-card: #ffffff;
+        --text-main: #0F172A; --text-muted: #64748B;
+        --border-color: #E2E8F0; --brand-primary: #1E3A8A;
+        --brand-dark: #172554; --brand-light: #EEF2FF;
+        --color-success: #0E9F6E; --color-error: #C81E1E;
+    }
+
+    .filter-pills .nav-link {
+        border-radius: 50px;
+        padding: 8px 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        margin-right: 8px;
+        transition: all 0.2s;
+    }
+    .filter-pills .nav-link:hover {
+        border-color: var(--brand-primary);
+        color: var(--brand-primary);
+    }
+    .filter-pills .nav-link.active {
+        background: var(--brand-primary);
+        color: white;
+        border-color: var(--brand-primary);
+    }
+
+    .oferta-card {
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-card);
+        transition: all 0.25s;
+        height: 100%;
+    }
+    .oferta-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+        border-color: var(--brand-primary);
+    }
+    .card-badge {
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .btn-action-floating {
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-body);
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        transition: all 0.2s;
+    }
+    .btn-action-floating:hover {
+        background: var(--brand-light);
+        color: var(--brand-primary);
+        border-color: var(--brand-primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Breadcrumb + Título -->
+    <div class="mb-4">
+        <a href="{% url 'inicio' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+            <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
+        </a>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <h2 class="fw-bold mb-0" style="color: var(--brand-primary);">
+                <i class="fas fa-chalkboard-teacher me-2"></i>Ofertas de Formación
+            </h2>
+            <button onclick="abrirModalGestion('{% url 'crear_oferta' %}', 'Nueva Oferta')" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                <i class="fas fa-plus-circle me-2"></i><span class="d-none d-sm-inline">Nueva Oferta</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <ul class="nav filter-pills mb-4" id="filtroEstados">
+        <li class="nav-item"><button class="nav-link active" data-filter="TODAS">Todas</button></li>
+        <li class="nav-item"><button class="nav-link" data-filter="ABIERTA">Abiertas</button></li>
+        <li class="nav-item"><button class="nav-link" data-filter="CERRADA">Cerradas</button></li>
+        <li class="nav-item"><button class="nav-link" data-filter="CANCELADA">Canceladas</button></li>
+    </ul>
+
+    <!-- Grid de ofertas -->
+    <div class="row g-4" id="gridOfertas">
+        {% for o in ofertas %}
+        <div class="col-12 col-md-6 col-xl-4 oferta-item" data-estado="{{ o.estado_oferta }}">
+            <div class="oferta-card p-4 d-flex flex-column">
+                <!-- Acciones flotantes -->
+                <div class="d-flex justify-content-end gap-2 mb-2">
+                    <button class="btn-action-floating" onclick="abrirModalGestion('/formacion/ofertas/editar/{{ o.id }}/', 'Editar Oferta')" title="Editar"><i class="fas fa-pencil-alt fa-sm"></i></button>
+                    <button class="btn-action-floating btn-toggle-estatus"
+                            data-id="{{ o.id }}"
+                            data-nombre="{{ o.nombre }}"
+                            data-activo="{{ o.esta_activo|yesno:'true,false' }}"
+                            data-url="{% url 'toggle_oferta' oferta_id=o.id %}"
+                            title="{% if o.esta_activo %}Inhabilitar{% else %}Habilitar{% endif %}">
+                        <i class="fas fa-power-off fa-sm"></i>
+                    </button>
+                </div>
+
+                <!-- Tipo y Modalidad -->
+                <div class="d-flex gap-2 mb-2">
+                    <span class="badge bg-secondary card-badge">{{ o.tipo_formacion.descripcion }}</span>
+                    <span class="badge bg-light text-dark border card-badge">{{ o.modalidad.descripcion }}</span>
+                </div>
+
+                <!-- Nombre -->
+                <h6 class="fw-bold mb-1">{{ o.nombre }}</h6>
+                <p class="text-muted small mb-2">{{ o.institucion }}</p>
+
+                <!-- Estado -->
+                <div class="mb-2">
+                    {% if o.estado_oferta == 'ABIERTA' %}
+                        <span class="badge bg-success card-badge">ABIERTA</span>
+                    {% elif o.estado_oferta == 'CERRADA' %}
+                        <span class="badge bg-secondary card-badge">CERRADA</span>
+                    {% else %}
+                        <span class="badge bg-danger card-badge">CANCELADA</span>
+                    {% endif %}
+                </div>
+
+                <!-- Horas y Cierre -->
+                <div class="mt-auto d-flex justify-content-between small text-muted">
+                    <span><i class="far fa-clock me-1"></i>{{ o.horas_academicas }} hrs</span>
+                    <span><i class="far fa-calendar-alt me-1"></i>Cierre: {{ o.fecha_cierre_postulacion|date:"d/m/Y" }}</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 text-muted">
+            <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+            <p class="fw-bold">No hay ofertas registradas</p>
+            <small>Utilice el botón "Nueva Oferta" para crear la primera.</small>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalGestionOfertas" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden;">
+            <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-dark) 100%); color: white;">
+                <h5 class="modal-title fw-bold" id="tituloModal">Gestión</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="location.reload()"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="contenedorCargaOfertas" class="p-4 text-center d-none">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+                <div id="contenidoDinamicoOfertas"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // --- Toggle de estado (genérico) ---
+    document.querySelectorAll('.btn-toggle-estatus').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const nombre = this.dataset.nombre;
+            const activo = this.dataset.activo === 'true';
+            const url = this.dataset.url;
+            const csrf = '{{ csrf_token }}';
+            const color = activo ? '#dc2626' : '#059669';
+
+            Swal.fire({
+                title: activo ? '¿Inhabilitar oferta?' : '¿Habilitar oferta?',
+                text: nombre,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: color,
+                cancelButtonColor: 'var(--text-muted)',
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'Cancelar'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({})
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) location.reload();
+                        else Swal.fire('Error', data.mensaje, 'error');
+                    });
+                }
+            });
+        });
+    });
+
+    // --- Filtros ---
+    document.querySelectorAll('#filtroEstados .nav-link').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('#filtroEstados .nav-link').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const filter = this.dataset.filter;
+            document.querySelectorAll('.oferta-item').forEach(item => {
+                if (filter === 'TODAS' || item.dataset.estado === filter) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // --- Modal genérico ---
+    var modalOfertas = new bootstrap.Modal(document.getElementById('modalGestionOfertas'));
+    window.abrirModalGestion = function(url, titulo) {
+        document.getElementById('tituloModal').innerText = titulo;
+        var cont = document.getElementById('contenidoDinamicoOfertas');
+        var spin = document.getElementById('contenedorCargaOfertas');
+        cont.innerHTML = '';
+        spin.classList.remove('d-none');
+        modalOfertas.show();
+        fetch(url)
+            .then(r => r.text())
+            .then(html => {
+                spin.classList.add('d-none');
+                cont.innerHTML = html;
+                cont.querySelectorAll('script').forEach(old => {
+                    var s = document.createElement('script');
+                    s.text = old.text;
+                    document.body.appendChild(s).parentNode.removeChild(s);
+                });
+            });
+    };
+</script>
+{% endblock %}

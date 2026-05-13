@@ -1,0 +1,78 @@
+<div class="p-4">
+    <form id="formCrearOferta">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold small text-uppercase">Tipo de Formación <span class="text-danger">*</span></label>
+                <select name="tipo_formacion_id" class="form-select custom-input" required>
+                    <option value="" selected disabled>Seleccione...</option>
+                    {% for t in tipos %}<option value="{{ t.id }}">{{ t.descripcion }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold small text-uppercase">Modalidad <span class="text-danger">*</span></label>
+                <select name="modalidad_id" class="form-select custom-input" required>
+                    <option value="" selected disabled>Seleccione...</option>
+                    {% for m in modalidades %}<option value="{{ m.id }}">{{ m.descripcion }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-8">
+                <label class="form-label fw-bold small text-uppercase">Nombre de la Formación <span class="text-danger">*</span></label>
+                <input type="text" name="nombre" class="form-control custom-input text-uppercase" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold small text-uppercase">Institución <span class="text-danger">*</span></label>
+                <input type="text" name="institucion" class="form-control custom-input text-uppercase" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-uppercase">Horas Académicas <span class="text-danger">*</span></label>
+                <input type="number" name="horas_academicas" class="form-control custom-input" min="1" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-uppercase">Fecha Publicación <span class="text-danger">*</span></label>
+                <input type="date" name="fecha_publicacion" class="form-control custom-input" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-uppercase">Fecha Cierre <span class="text-danger">*</span></label>
+                <input type="date" name="fecha_cierre_postulacion" class="form-control custom-input" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-uppercase">Estado</label>
+                <input type="text" class="form-control custom-input bg-light" value="ABIERTA" disabled>
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-bold small text-uppercase">Descripción</label>
+                <textarea name="descripcion" class="form-control custom-input" rows="2"></textarea>
+            </div>
+        </div>
+        <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-primary fw-bold py-2 shadow">Guardar Oferta</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('formCrearOferta').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+
+    fetch("{% url 'crear_oferta' %}", {
+        method: 'POST',
+        body: new FormData(this),
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({ icon: 'success', title: '¡Creada!', text: data.mensaje, confirmButtonColor: 'var(--brand-primary)' })
+                .then(() => location.reload());
+        } else {
+            Swal.fire('Error', data.error, 'error');
+            btn.disabled = false;
+            btn.innerHTML = 'Guardar Oferta';
+        }
+    });
+});
+</script>

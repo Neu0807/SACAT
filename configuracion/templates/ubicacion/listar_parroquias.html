@@ -62,7 +62,6 @@
 {% endblock %}
 
 {% block modales %}
-<!-- Modal de importación de Parroquias (se mantiene tu diseño existente) -->
 <div class="modal fade" id="modalImportarParroquias" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="background-color: var(--bg-card); border-radius: 15px; overflow: hidden; transition: background-color 0.3s;">
@@ -110,11 +109,9 @@
 {% endblock %}
 
 {% block extra_js_local %}
-// Tooltips
 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
 tooltipTriggerList.forEach(function (el) { new bootstrap.Tooltip(el); });
 
-// DropZone Parroquias
 const dropZonePar = document.getElementById('dropZonePar');
 const fileInputPar = document.getElementById('archivoPar');
 const fileNamePar = document.getElementById('file-name-par');
@@ -130,26 +127,16 @@ if(dropZonePar){
     dropZonePar.addEventListener('mouseout', () => dropZonePar.style.borderColor = 'var(--border-color)');
 }
 
-// Importación Parroquias
 document.getElementById('formImportarParroquias').addEventListener('submit', function(e) {
     e.preventDefault();
     let formData = new FormData(this);
     const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-    Swal.fire({
-        title: 'Importando Parroquias...',
-        text: 'Este proceso puede tardar un poco más, por favor espere.',
-        allowOutsideClick: false, showConfirmButton: false,
-        background: isDark ? '#1E293B' : '#ffffff', color: isDark ? '#F8FAFC' : '#0F172A',
-        didOpen: () => { Swal.showLoading(); }
-    });
-    fetch("{% url 'importar_parroquias' %}", {
-        method: 'POST', body: formData, headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-    })
+    Swal.fire({ title: 'Importando Parroquias...', text: 'Este proceso puede tardar un poco más, por favor espere.', allowOutsideClick: false, showConfirmButton: false, background: isDark ? '#1E293B' : '#ffffff', color: isDark ? '#F8FAFC' : '#0F172A', didOpen: () => { Swal.showLoading(); } });
+    fetch("{% url 'importar_parroquias' %}", { method: 'POST', body: formData, headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            Swal.fire({ icon: 'success', title: '¡Completado!', text: data.mensaje, confirmButtonColor: 'var(--brand-primary)' })
-                .then(() => location.reload());
+            Swal.fire({ icon: 'success', title: '¡Completado!', text: data.mensaje, confirmButtonColor: 'var(--brand-primary)' }).then(() => location.reload());
         } else {
             Swal.fire({ icon: 'error', title: 'Error', text: data.mensaje });
         }
