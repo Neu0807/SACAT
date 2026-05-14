@@ -1,0 +1,43 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h5 class="fw-bold mb-0">{{ oferta.nombre }}</h5>
+        <small class="text-muted">{{ oferta.institucion }} | {{ oferta.horas_academicas }} hrs | 
+        Postulaciones aprobadas: {{ postulaciones_sin_grupo.count }}</small>
+    </div>
+    {% if postulaciones_sin_grupo %}
+    <button class="btn btn-primary btn-sm rounded-pill" onclick="abrirModalGestion('/formacion/planificacion/grupos/{{ oferta.id }}/crear/', 'Nuevo Grupo')">
+        <i class="fas fa-plus me-1"></i> Nuevo Grupo
+    </button>
+    {% endif %}
+</div>
+
+<div class="row g-3">
+    {% for grupo in grupos %}
+    <div class="col-12 col-md-6">
+        <div class="grupo-card p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="fw-bold mb-0">{{ grupo.nombre_grupo }}</h6>
+                <span class="badge bg-primary bg-opacity-10 text-primary">
+                    {{ grupo.postulacion_set.count }} participantes
+                </span>
+            </div>
+            <div class="small text-muted">
+                {% if grupo.fecha_inicio %}
+                <div><i class="far fa-calendar me-1"></i> {{ grupo.fecha_inicio|date:"d/m/Y" }} - {{ grupo.fecha_fin|date:"d/m/Y"|default:"—" }}</div>
+                {% endif %}
+                {% if grupo.horario %}<div><i class="far fa-clock me-1"></i> {{ grupo.horario }}</div>{% endif %}
+                {% if grupo.lugar %}<div><i class="fas fa-map-marker-alt me-1"></i> {{ grupo.lugar }}</div>{% endif %}
+                {% if grupo.instructor %}<div><i class="fas fa-chalkboard-teacher me-1"></i> {{ grupo.instructor }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-4 text-muted">
+        <i class="fas fa-users-slash fa-2x mb-2 opacity-25"></i>
+        <p class="mb-0">No hay grupos creados para esta oferta.</p>
+        {% if postulaciones_sin_grupo %}
+        <small>Hay {{ postulaciones_sin_grupo.count }} postulaciones aprobadas esperando ser asignadas.</small>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>

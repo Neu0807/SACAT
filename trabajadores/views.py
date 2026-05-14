@@ -2119,3 +2119,22 @@ def f2_comprobante(request):
         'trabajador_id': trabajador.id,
     }
     return render(request, 'registrov2/fase2/f2_comprobante.html', contexto)
+
+# =============================================================================
+# PERFIL PROPIO DEL TRABAJADOR (AUTOCONSULTA)
+# =============================================================================
+
+@login_required
+@permiso_requerido('ver_mi_perfil')
+def mi_perfil(request):
+    """
+    Muestra el perfil del trabajador logueado.
+    Reutiliza completamente la vista perfil_trabajador.
+    """
+    trabajador = get_object_or_404(
+        Trabajador.objects.select_related('persona'),
+        persona__cedula=request.user.nombre_usuario
+    )
+    
+    # Reutiliza la vista existente
+    return perfil_trabajador(request, trabajador.id)

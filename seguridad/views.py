@@ -187,21 +187,46 @@ def resetear_clave_usuario(request, username):
 
 
 @login_required
-@permiso_requerido('editar_usuario')  # 🆕
+@permiso_requerido('editar_usuario')
 def editar_usuario_view(request, username):
-    """Editar perfil de un usuario."""
+    """Editar perfil de un usuario: rol y acceso staff."""
     user_editar = get_object_or_404(Usuario, nombre_usuario=username)
+    
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            user_editar.is_superuser = True
-            user_editar.is_staff = data.get('is_staff', True)
+            
+            # 1. Actualizar rol
+            rol_id = data.get('rol_id')
+            if rol_id:
+                try:
+                    nuevo_rol = Rol.objects.get(id=int(rol_id), esta_activo=True)
+                    user_editar.rol = nuevo_rol
+                except (Rol.DoesNotExist, ValueError):
+                    return JsonResponse({'success': False, 'mensaje': 'El rol seleccionado no es válido.'})
+            else:
+                user_editar.rol = None
+            
+            # 2. Actualizar is_staff
+            user_editar.is_staff = data.get('is_staff', False)
+            
+            # 3. Mantener is_superuser como está (no se modifica por seguridad)
+            # user_editar.is_superuser no se toca
+            
+            user_editar.actualizado_por = request.user.id
             user_editar.save()
-            return JsonResponse({'success': True, 'mensaje': 'Permisos actualizados correctamente.'})
+            
+            return JsonResponse({'success': True, 'mensaje': 'Usuario actualizado correctamente.'})
         except Exception as e:
             return JsonResponse({'success': False, 'mensaje': f'Error: {str(e)}'})
-    return render(request, 'usuarios/editar_usuario.html', {'user_editar': user_editar})
-
+    
+    # GET: Mostrar formulario con los roles disponibles
+    roles_disponibles = Rol.objects.filter(esta_activo=True).order_by('nombre_rol')
+    
+    return render(request, 'usuarios/editar_usuario.html', {
+        'user_editar': user_editar,
+        'roles_disponibles': roles_disponibles
+    })
 
 # =============================================================================
 # CAMBIO DE CLAVE OBLIGATORIO

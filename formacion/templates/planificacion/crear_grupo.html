@@ -1,0 +1,100 @@
+<div class="p-4">
+    <form id="formCrearGrupo">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold small">Nombre del Grupo <span class="text-danger">*</span></label>
+                <input type="text" name="nombre_grupo" class="form-control" placeholder="Ej: GRUPO 1 - TURNO MAÑANA" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small">Fecha Inicio</label>
+                <input type="date" name="fecha_inicio" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small">Fecha Fin</label>
+                <input type="date" name="fecha_fin" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold small">Horario</label>
+                <input type="text" name="horario" class="form-control" placeholder="Ej: 8:00 AM - 12:00 PM">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold small">Lugar</label>
+                <input type="text" name="lugar" class="form-control" placeholder="Ej: SALA DE CONFERENCIAS">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold small">Instructor</label>
+                <input type="text" name="instructor" class="form-control" placeholder="Nombre del facilitador">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small">Cupo Máximo</label>
+                <input type="number" name="cupo_maximo" class="form-control" value="20" min="1">
+            </div>
+        </div>
+
+        {% if postulaciones %}
+        <div class="mt-4">
+            <label class="form-label fw-bold small">Seleccionar Participantes</label>
+            <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                <table class="table table-sm">
+                    <thead><tr><th><input type="checkbox" id="selectTodos"></th><th>Trabajador</th><th>Cargo</th></tr></thead>
+                    <tbody>
+                        {% for p in postulaciones %}
+                        <tr>
+                            <td><input type="checkbox" name="trabajadores_ids" value="{{ p.trabajador.id }}" class="check-participante"></td>
+                            <td>{{ p.trabajador.persona.primer_nombre }} {{ p.trabajador.persona.primer_apellido }}</td>
+                            <td><small>{{ p.trabajador.cargo_estructural.nombre_cargo_estruct|default:"—" }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="mt-4 text-center py-3 text-muted">
+            <i class="fas fa-info-circle me-1"></i> No hay postulaciones aprobadas por GH para asignar.
+        </div>
+        {% endif %}
+
+        <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-primary fw-bold py-2 shadow">
+                <i class="fas fa-save me-2"></i> Crear Grupo
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('selectTodos')?.addEventListener('change', function() {
+    document.querySelectorAll('.check-participante').forEach(cb => cb.checked = this.checked);
+});
+
+document.getElementById('formCrearGrupo').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creando...';
+    
+    fetch("{% url 'crear_grupo' oferta.id %}", {
+        method: 'POST',
+        body: new FormData(this),
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({ icon: 'success', title: '¡Grupo creado!', text: data.mensaje, confirmButtonColor: 'var(--brand-primary)' })
+                .then(() => location.reload());
+        } else {
+            Swal.fire('Error', data.error, 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save me-2"></i> Crear Grupo';
+        }
+    })
+    .catch(() => {
+        Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save me-2"></i> Crear Grupo';
+    });
+});
+</script>

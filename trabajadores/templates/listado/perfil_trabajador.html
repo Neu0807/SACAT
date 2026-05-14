@@ -81,10 +81,17 @@
 {% block content %}
 <div class="ficha-wrapper">
     <div class="container-xl">
-        <!-- Breadcrumb -->
+        {% load permisos_tags %}
+        {% tiene_permiso 'ver_listado_trabajadores' as puede_ver_listado %}
+        {% if puede_ver_listado %}
         <a href="{% url 'listar_trabajadores' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-3">
             <i class="fas fa-arrow-left me-2"></i>Volver al listado
         </a>
+        {% else %}
+        <a href="{% url 'inicio' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-3">
+            <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
+        </a>
+        {% endif %}
 
         <!-- Header -->
         <div class="perfil-header">

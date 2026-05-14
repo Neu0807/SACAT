@@ -18,4 +18,12 @@ urlpatterns = [
     path('aprobacion/rechazar/<int:postulacion_id>/', views.rechazar_jefe, name='rechazar_jefe'),
     path('aprobacion/aprobar_gh/<int:postulacion_id>/', views.aprobar_gh, name='aprobar_gh'),
     path('aprobacion/rechazar_gh/<int:postulacion_id>/', views.rechazar_gh, name='rechazar_gh'),
+
+    # Planificación
+    path('planificacion/grupos/<int:oferta_id>/', views.listar_grupos, name='listar_grupos'),
+    path('planificacion/grupos/<int:oferta_id>/crear/', views.crear_grupo, name='crear_grupo'),
+    path('planificacion/grupos/editar/<int:grupo_id>/', views.editar_grupo, name='editar_grupo'),
+    # Detalle para modales (AJAX)
+path('aprobacion/detalle-jefe/<int:oferta_id>/', views.detalle_jefe, name='detalle_jefe'),
+path('aprobacion/detalle-gh/<int:oferta_id>/', views.detalle_gh, name='detalle_gh'),
 ]

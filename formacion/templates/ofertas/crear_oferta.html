@@ -29,6 +29,12 @@
                 <input type="number" name="horas_academicas" class="form-control custom-input" min="1" required>
             </div>
             <div class="col-md-3">
+                <label class="form-label fw-bold small text-uppercase">Cupo Máximo (15-50) <span class="text-danger">*</span></label>
+                <input type="number" name="cupo_maximo_oferta" class="form-control custom-input" 
+                    value="{{ oferta.cupo_maximo_oferta|default:'50' }}" min="15" max="50" required>
+                <small class="text-muted">Mínimo 15, máximo 50 postulaciones por oferta.</small>
+            </div>
+            <div class="col-md-3">
                 <label class="form-label fw-bold small text-uppercase">Fecha Publicación <span class="text-danger">*</span></label>
                 <input type="date" name="fecha_publicacion" class="form-control custom-input" required>
             </div>

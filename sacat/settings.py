@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'configuracion',
     'trabajadores',
     'formacion',
+    'auditoria',
+    'notificaciones',
 ]
 
 MIDDLEWARE = [
@@ -147,3 +149,19 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'info.sacat@gmail.com'
 EMAIL_HOST_PASSWORD = 'gpnwqlydabjpvlrw'  # Tu clave de aplicación sin espacios
 DEFAULT_FROM_EMAIL = 'SACAT - Almacenadora Caracas <info.sacat@gmail.com>'
+
+# =============================================================================
+# CONFIGURACIÓN DE CARGOS CON FUNCIÓN DE JEFE (APROBACIÓN DE POSTULACIONES)
+# =============================================================================
+# Estos cargos pueden aprobar postulaciones de trabajadores en su misma unidad.
+# Se compara con el nombre del cargo estructural (CONTENIDO, no exacto).
+CARGOS_JEFE = [
+    'PRESIDENTE',
+    'VICEPRESIDENTE',
+    'DIRECTOR DE DESPACHO',
+    'AUDITOR INTERNO',
+    'CONSULTOR JURIDICO',
+    'GERENTE',          # Incluye GERENTE y GERENTE (E)
+    'JEFE DE DIVISIÓN', # Incluye JEFE DE DIVISIÓN y JEFE DE DIVISIÓN (E)
+    'COORDINADOR DE ÁREA', # Incluye COORDINADOR DE ÁREA y COORDINADOR DE ÁREA (E)
+]

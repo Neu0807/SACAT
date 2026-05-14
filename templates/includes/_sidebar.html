@@ -78,6 +78,16 @@
         
         .submenu-arrow { transition: transform 0.3s ease; }
         .nav-link[aria-expanded="true"] .submenu-arrow { transform: rotate(180deg); }
+        
+        /* Badge "Próximamente" para enlaces sin funcionalidad */
+        .badge-proximamente {
+            font-size: 0.55rem;
+            background-color: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.6);
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: auto;
+        }
     </style>
 
     <div class="sidebar-header">
@@ -88,7 +98,9 @@
     <div class="flex-grow-1 overflow-auto">
         <ul class="nav flex-column">
             
-            <!-- ========== INICIO (SIEMPRE VISIBLE) ========== -->
+            <!-- ======================================================================== -->
+            <!-- INICIO (SIEMPRE VISIBLE)                                                -->
+            <!-- ======================================================================== -->
             <li class="nav-item">
                 <a href="{% url 'inicio' %}" class="nav-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">
                     <i class="fas fa-house"></i>
@@ -97,7 +109,7 @@
             </li>
 
             <!-- ======================================================================== -->
-            <!-- SEGURIDAD - Solo visible si tiene al menos un permiso del módulo         -->
+            <!-- SEGURIDAD                                                               -->
             <!-- ======================================================================== -->
             {% tiene_permiso 'ver_usuarios' as ver_usu %}
             {% tiene_permiso 'ver_roles' as ver_rol %}
@@ -113,20 +125,29 @@
                 </a>
                 <div class="collapse submenu" id="seguridadSub">
                     {% if ver_usu %}
-                    <a href="{% url 'listar_usuarios' %}" class="nav-link"><i class="fas fa-users me-2"></i><span class="sidebar-text">Usuarios</span></a>
+                    <a href="{% url 'listar_usuarios' %}" class="nav-link {% if request.resolver_match.url_name == 'listar_usuarios' %}active{% endif %}">
+                        <i class="fas fa-users me-2"></i>
+                        <span class="sidebar-text">Usuarios</span>
+                    </a>
                     {% endif %}
                     {% if ver_rol %}
-                    <a href="{% url 'listar_roles' %}" class="nav-link"><i class="fas fa-id-badge me-2"></i><span class="sidebar-text">Roles</span></a>
+                    <a href="{% url 'listar_roles' %}" class="nav-link {% if request.resolver_match.url_name == 'listar_roles' %}active{% endif %}">
+                        <i class="fas fa-id-badge me-2"></i>
+                        <span class="sidebar-text">Roles</span>
+                    </a>
                     {% endif %}
                     {% if ver_perm %}
-                    <a href="{% url 'listar_permisos' %}" class="nav-link"><i class="fas fa-key me-2"></i><span class="sidebar-text">Permisos</span></a>
+                    <a href="{% url 'listar_permisos' %}" class="nav-link {% if request.resolver_match.url_name == 'listar_permisos' %}active{% endif %}">
+                        <i class="fas fa-key me-2"></i>
+                        <span class="sidebar-text">Permisos</span>
+                    </a>
                     {% endif %}
                 </div>
             </li>
             {% endif %}
 
             <!-- ======================================================================== -->
-            <!-- CONFIGURACIÓN - Módulos de administración                                -->
+            <!-- CONFIGURACIÓN                                                           -->
             <!-- ======================================================================== -->
             {% tiene_permiso 'ver_institucion' as ver_inst %}
             {% tiene_permiso 'ver_estructura' as ver_estr %}
@@ -147,41 +168,66 @@
                 </a>
                 <div class="collapse submenu" id="configSub">
                     {% if ver_inst %}
-                    <a href="{% url 'configuracion_institucion' %}" class="nav-link"><i class="fas fa-building me-2"></i><span class="sidebar-text">Institución</span></a>
+                    <a href="{% url 'configuracion_institucion' %}" class="nav-link {% if request.resolver_match.url_name == 'configuracion_institucion' %}active{% endif %}">
+                        <i class="fas fa-building me-2"></i>
+                        <span class="sidebar-text">Institución</span>
+                    </a>
                     {% endif %}
                     {% if ver_estr %}
-                    <a href="{% url 'configuracion_estructura' %}" class="nav-link"><i class="fas fa-sitemap me-2"></i><span class="sidebar-text">Estructura</span></a>
+                    <a href="{% url 'configuracion_estructura' %}" class="nav-link {% if request.resolver_match.url_name == 'configuracion_estructura' %}active{% endif %}">
+                        <i class="fas fa-sitemap me-2"></i>
+                        <span class="sidebar-text">Estructura</span>
+                    </a>
                     {% endif %}
                     {% if ver_ubic %}
-                    <a href="{% url 'configuracion_ubicacion' %}" class="nav-link"><i class="fas fa-map-location-dot me-2"></i><span class="sidebar-text">Ubicación</span></a>
+                    <a href="{% url 'configuracion_ubicacion' %}" class="nav-link {% if request.resolver_match.url_name == 'configuracion_ubicacion' %}active{% endif %}">
+                        <i class="fas fa-map-location-dot me-2"></i>
+                        <span class="sidebar-text">Ubicación</span>
+                    </a>
                     {% endif %}
                     {% if ver_iden %}
-                    <a href="{% url 'configuracion_identidad' %}" class="nav-link"><i class="fas fa-id-card-clip me-2"></i><span class="sidebar-text">Identidad</span></a>
+                    <a href="{% url 'configuracion_identidad' %}" class="nav-link {% if request.resolver_match.url_name == 'configuracion_identidad' %}active{% endif %}">
+                        <i class="fas fa-id-card-clip me-2"></i>
+                        <span class="sidebar-text">Identidad</span>
+                    </a>
                     {% endif %}
                     {% if ver_lab %}
-                    <a href="{% url 'configuracion_laboral' %}" class="nav-link"><i class="fas fa-briefcase me-2"></i><span class="sidebar-text">Laboral</span></a>
+                    <a href="{% url 'configuracion_laboral' %}" class="nav-link {% if request.resolver_match.url_name == 'configuracion_laboral' %}active{% endif %}">
+                        <i class="fas fa-briefcase me-2"></i>
+                        <span class="sidebar-text">Laboral</span>
+                    </a>
                     {% endif %}
                     {% if ver_ent %}
-                    <a href="{% url 'configuracion_entorno' %}" class="nav-link"><i class="fas fa-house-chimney-user me-2"></i><span class="sidebar-text">Entorno</span></a>
+                    <a href="{% url 'configuracion_entorno' %}" class="nav-link {% if request.resolver_match.url_name == 'configuracion_entorno' %}active{% endif %}">
+                        <i class="fas fa-house-chimney-user me-2"></i>
+                        <span class="sidebar-text">Entorno</span>
+                    </a>
                     {% endif %}
                     {% if ver_dot %}
-                    <a href="{% url 'configuracion_dotacion' %}" class="nav-link"><i class="fas fa-shirt me-2"></i><span class="sidebar-text">Dotación</span></a>
+                    <a href="{% url 'configuracion_dotacion' %}" class="nav-link {% if request.resolver_match.url_name == 'configuracion_dotacion' %}active{% endif %}">
+                        <i class="fas fa-shirt me-2"></i>
+                        <span class="sidebar-text">Dotación</span>
+                    </a>
                     {% endif %}
                     {% if ver_elec %}
-                    <a href="{% url 'configuracion_electoral' %}" class="nav-link"><i class="fas fa-check-to-slot me-2"></i><span class="sidebar-text">Electoral</span></a>
+                    <a href="{% url 'configuracion_electoral' %}" class="nav-link {% if request.resolver_match.url_name == 'configuracion_electoral' %}active{% endif %}">
+                        <i class="fas fa-check-to-slot me-2"></i>
+                        <span class="sidebar-text">Electoral</span>
+                    </a>
                     {% endif %}
                 </div>
             </li>
             {% endif %}
 
             <!-- ======================================================================== -->
-            <!-- TRABAJADORES - Separado F1 (GH) y F2 (Trabajador)                        -->
+            <!-- TRABAJADORES                                                            -->
             <!-- ======================================================================== -->
             {% tiene_permiso 'ver_listado_trabajadores' as ver_list_trab %}
+            {% tiene_permiso 'ver_mi_perfil' as ver_mi_perfil %}
             {% tiene_permiso 'registrar_trabajador_f1' as reg_trab_f1 %}
             {% tiene_permiso 'registrar_trabajador_f2' as reg_trab_f2 %}
             
-            {% if ver_list_trab or reg_trab_f1 or reg_trab_f2 %}
+            {% if ver_list_trab or ver_mi_perfil or reg_trab_f1 or reg_trab_f2 %}
             <div class="nav-section-title">Personal</div>
             <li class="nav-item">
                 <a href="#trabajadoresSub" data-bs-toggle="collapse" class="nav-link d-flex align-items-center" aria-expanded="false">
@@ -191,7 +237,7 @@
                 </a>
                 <div class="collapse submenu" id="trabajadoresSub">
                     
-                    {# LISTADO - Visible para GH, Jefes y Consultores #}
+                    {# LISTADO - GH, Jefes y Consultores #}
                     {% if ver_list_trab %}
                     <a href="{% url 'listar_trabajadores' %}" class="nav-link {% if request.resolver_match.url_name == 'listar_trabajadores' %}active{% endif %}">
                         <i class="fas fa-list me-2"></i>
@@ -199,30 +245,35 @@
                     </a>
                     {% endif %}
 
-                    {# REGISTRO FASE 1 - Solo GH puede registrar nuevos trabajadores #}
+                    {# REGISTRO INICIAL (F1) - Solo GH #}
                     {% if reg_trab_f1 %}
-                    <a href="#registroSub" data-bs-toggle="collapse" class="nav-link d-flex align-items-center" aria-expanded="false">
+                    <a href="{% url 'registro_paso1_v2' %}" class="nav-link {% if request.resolver_match.url_name == 'registro_paso1_v2' %}active{% endif %}">
                         <i class="fas fa-user-plus me-2"></i>
-                        <span class="sidebar-text">Registro (GH)</span>
-                        <i class="fas fa-chevron-down ms-auto submenu-arrow fs-xs opacity-50"></i>
+                        <span class="sidebar-text">Registro Inicial (F1)</span>
                     </a>
-                    <div class="collapse submenu ps-3" id="registroSub">
-                        <a href="{% url 'registro_paso1_v2' %}" class="nav-link ps-5">
-                            <i class="fas fa-user-plus me-2"></i>
-                            <span class="sidebar-text">Inicial (F1)</span>
-                        </a>
-                        <a href="{% url 'registro_paso1' %}" class="nav-link ps-5">
-                            <i class="fas fa-history me-2"></i>
-                            <span class="sidebar-text">Registro Anterior</span>
-                        </a>
-                    </div>
                     {% endif %}
 
-                    {# AUTOGESTIÓN FASE 2 - Solo el trabajador completa su expediente #}
+                    {# COMPLETAR REGISTRO (F2) - Solo Trabajador #}
                     {% if reg_trab_f2 %}
                     <a href="{% url 'f2_paso1_identidad' %}" class="nav-link {% if request.resolver_match.url_name == 'f2_paso1_identidad' %}active{% endif %}">
                         <i class="fas fa-user-check me-2"></i>
-                        <span class="sidebar-text">Completar Expediente (F2)</span>
+                        <span class="sidebar-text">Completar Registro (F2)</span>
+                    </a>
+                    {% endif %}
+
+                    {# MI PERFIL - Trabajador y Jefe ven su propio perfil #}
+                    {% if ver_mi_perfil %}
+                    <a href="{% url 'mi_perfil' %}" class="nav-link {% if request.resolver_match.url_name == 'mi_perfil' %}active{% endif %}">
+                        <i class="fas fa-id-card me-2"></i>
+                        <span class="sidebar-text">Mi Perfil</span>
+                    </a>
+                    {% endif %}
+
+                    {# REGISTRO ANTERIOR - Solo GH (hereda de reg_trab_f1) #}
+                    {% if reg_trab_f1 %}
+                    <a href="{% url 'registro_paso1' %}" class="nav-link {% if request.resolver_match.url_name == 'registro_paso1' %}active{% endif %}">
+                        <i class="fas fa-history me-2"></i>
+                        <span class="sidebar-text">Registro Anterior</span>
                     </a>
                     {% endif %}
 
@@ -230,8 +281,8 @@
             </li>
             {% endif %}
 
-            <!-- ======================================================================== -->
-            <!-- FORMACIÓN PROFESIONAL                                                     -->
+                        <!-- ======================================================================== -->
+            <!-- FORMACIÓN PROFESIONAL                                                   -->
             <!-- ======================================================================== -->
             {% tiene_permiso 'ver_ofertas_formacion' as ver_of %}
             {% tiene_permiso 'ver_ofertas_activas' as ver_of_act %}
@@ -248,41 +299,51 @@
                 </a>
                 <div class="collapse submenu" id="formacionSub">
                     
-                    {# OFERTAS - Solo GH gestiona ofertas #}
+                    {# PLANIFICACIÓN (GH) - Ofertas + Grupos en pestañas #}
                     {% if ver_of %}
-                    <a href="#ofertasSub" data-bs-toggle="collapse" class="nav-link d-flex align-items-center" aria-expanded="false">
-                        <i class="fas fa-bullhorn me-2"></i>
-                        <span class="sidebar-text">Ofertas</span>
-                        <i class="fas fa-chevron-down ms-auto submenu-arrow fs-xs opacity-50"></i>
+                    <a href="{% url 'listar_ofertas' %}" class="nav-link {% if request.resolver_match.url_name == 'listar_ofertas' %}active{% endif %}">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        <span class="sidebar-text">Planificación</span>
                     </a>
-                    <div class="collapse submenu ps-3" id="ofertasSub">
-                        <a href="{% url 'listar_ofertas' %}" class="nav-link ps-5"><i class="fas fa-list me-2"></i><span class="sidebar-text">Listado</span></a>
-                    </div>
                     {% endif %}
 
-                    {# POSTULACIONES - Trabajador ve ofertas activas y sus postulaciones #}
+                    {# POSTULACIONES - Trabajador ve ofertas activas #}
                     {% if ver_of_act or ver_mis_post %}
-                    <a href="{% url 'listar_ofertas_activas' %}" class="nav-link">
+                    <a href="{% url 'listar_ofertas_activas' %}" class="nav-link {% if request.resolver_match.url_name == 'listar_ofertas_activas' %}active{% endif %}">
                         <i class="fas fa-file-signature me-2"></i>
                         <span class="sidebar-text">Postulaciones</span>
                     </a>
                     {% endif %}
 
-                    {# APROBACIÓN - Jefe y GH aprueban postulaciones #}
+                    {# APROBACIÓN - Jefe y GH #}
                     {% if ver_band %}
-                    <a href="{% url 'bandeja_aprobacion' %}" class="nav-link">
+                    <a href="{% url 'bandeja_aprobacion' %}" class="nav-link {% if request.resolver_match.url_name == 'bandeja_aprobacion' %}active{% endif %}">
                         <i class="fas fa-check-double me-2"></i>
                         <span class="sidebar-text">Aprobación</span>
                     </a>
                     {% endif %}
 
-                    <!-- Placeholders para futuros submódulos -->
-                    <a href="#" class="nav-link"><i class="fas fa-calendar-alt me-2"></i><span class="sidebar-text">Planificación</span></a>
-                    <a href="#" class="nav-link"><i class="fas fa-clipboard-check me-2"></i><span class="sidebar-text">Asistencia</span></a>
-                    <a href="#" class="nav-link"><i class="fas fa-certificate me-2"></i><span class="sidebar-text">Certificación</span></a>
-                    <a href="#" class="nav-link"><i class="fas fa-history me-2"></i><span class="sidebar-text">Historial</span></a>
+                    {# ASISTENCIA #}
+                    <a href="#" class="nav-link disabled opacity-50" style="pointer-events: none;">
+                        <i class="fas fa-clipboard-check me-2"></i>
+                        <span class="sidebar-text">Asistencia</span>
+                    </a>
+
+                    {# CERTIFICACIÓN #}
+                    <a href="#" class="nav-link disabled opacity-50" style="pointer-events: none;">
+                        <i class="fas fa-certificate me-2"></i>
+                        <span class="sidebar-text">Certificación</span>
+                    </a>
+
+                    {# HISTORIAL #}
+                    <a href="#" class="nav-link disabled opacity-50" style="pointer-events: none;">
+                        <i class="fas fa-history me-2"></i>
+                        <span class="sidebar-text">Historial</span>
+                    </a>
+
                 </div>
             </li>
+
             {% endif %}
 
         </ul>

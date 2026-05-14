@@ -35,6 +35,7 @@ class OfertaFormacion(models.Model):
     actualizado_por = models.IntegerField(null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+    cupo_maximo_oferta = models.IntegerField(default=50, db_column='cupo_maximo_oferta')
 
     class Meta:
         db_table = 'ofertas_formacion'
@@ -58,6 +59,7 @@ class GrupoOferta(models.Model):
     actualizado_por = models.IntegerField(null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+    cupo_maximo = models.IntegerField(default=15)
 
     class Meta:
         db_table = 'grupos_oferta'

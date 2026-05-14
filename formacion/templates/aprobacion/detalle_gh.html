@@ -1,0 +1,46 @@
+<div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Trabajador</th>
+                <th>Unidad</th>
+                <th class="text-center">Aprobado por Jefe</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in postulaciones %}
+            <tr>
+                <td>
+                    <strong>{{ p.trabajador.persona.primer_nombre }} {{ p.trabajador.persona.primer_apellido }}</strong>
+                    <br><small class="text-muted">CI: {{ p.trabajador.persona.cedula }}</small>
+                </td>
+                <td>
+                    {% if p.trabajador.unidad_org %}
+                    <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size:0.65rem;">
+                        {{ p.trabajador.unidad_org.nombre_unidad|upper }}
+                    </span>
+                    {% else %}<small>—</small>{% endif %}
+                </td>
+                <td class="text-center small">
+                    {% if p.fecha_aprobacion_jefe %}{{ p.fecha_aprobacion_jefe|date:"d/m/Y H:i" }}{% else %}—{% endif %}
+                </td>
+                <td class="text-center">
+                    <button class="btn btn-success btn-sm rounded-pill px-3 btn-accion-gh" 
+                            data-id="{{ p.id }}" data-accion="aprobar_gh" data-nombre="{{ p.trabajador.persona.primer_nombre }}">
+                        <i class="fas fa-check me-1"></i> Aprobar
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3 btn-accion-gh" 
+                            data-id="{{ p.id }}" data-accion="rechazar_gh" data-nombre="{{ p.trabajador.persona.primer_nombre }}">
+                        <i class="fas fa-times me-1"></i> Rechazar
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center py-4 text-muted">No hay postulaciones para aprobar.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

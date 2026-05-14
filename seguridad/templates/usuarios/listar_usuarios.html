@@ -31,9 +31,15 @@
 <tr>
     <td class="fw-bold">{{ user.nombre_usuario }}</td>
     <td class="text-uppercase">
-        {% if user.is_superuser %} SUPERUSUARIO
-        {% elif user.rol %} {{ user.rol.nombre_rol }}
-        {% else %} SIN ROL ASIGNADO {% endif %}
+        {% if user.rol %}
+            {% if user.rol.nombre_rol == 'Superusuario' %}
+                <span class="badge bg-danger">SUPERUSUARIO</span>
+            {% else %}
+                {{ user.rol.nombre_rol }}
+            {% endif %}
+        {% else %}
+            <span class="text-muted">SIN ROL ASIGNADO</span>
+        {% endif %}
     </td>
     <td>
         {% if user.last_login %}

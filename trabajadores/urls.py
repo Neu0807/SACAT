@@ -96,4 +96,5 @@ urlpatterns = [
     path('registro/paso-9/', views.registro_paso9, name='registro_paso9'),
     path('finalizar-registro/', views.finalizar_registro, name='finalizar_registro'),
     path('registro/imprimir-ficha/<int:persona_id>/', views.generar_pdf_ficha, name='imprimir_ficha_pdf'),
+    path('mi-perfil/', views.mi_perfil, name='mi_perfil'),
 ]

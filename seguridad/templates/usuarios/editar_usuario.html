@@ -19,6 +19,10 @@
         background-color: var(--brand-primary);
         border-color: var(--brand-primary);
     }
+    .form-select:focus {
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 0.25rem rgba(30, 58, 138, 0.15);
+    }
 </style>
 {% endblock %}
 
@@ -37,15 +41,32 @@
             <small class="opacity-75">Cédula: {{ user_editar.nombre_usuario }}</small>
         </div>
         <div class="card-body p-4">
-            <p class="text-muted small mb-4">El nivel de Superusuario no puede ser modificado por seguridad.</p>
-
+            
             <form id="formEditarUsuario">
                 {% csrf_token %}
+
+                <!-- Selector de Rol -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold" style="color: var(--brand-primary);">
+                        <i class="fas fa-id-badge me-2"></i>Rol Asignado
+                    </label>
+                    <select class="form-select" id="editRol" name="rol_id">
+                        <option value="">-- Sin rol asignado --</option>
+                        {% for rol in roles_disponibles %}
+                        <option value="{{ rol.id }}" {% if user_editar.rol and user_editar.rol.id == rol.id %}selected{% endif %}>
+                            {{ rol.nombre_rol }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">El rol determina los permisos y el acceso a los módulos del sistema.</small>
+                </div>
+
+                <!-- Switch Staff -->
                 <div class="form-check form-switch mb-4 p-3 border rounded-3" style="background-color: var(--bg-body);">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <label class="form-check-label fw-bold d-block">Acceso Staff</label>
-                            <small class="text-muted">Permite acceso al panel de administración.</small>
+                            <small class="text-muted">Permite acceso al panel de administración de Django.</small>
                         </div>
                         <input class="form-check-input" type="checkbox" id="editIsStaff" {% if user_editar.is_staff %}checked{% endif %} style="width: 3em; height: 1.5em;">
                     </div>
@@ -65,7 +86,13 @@
 <script>
     document.getElementById('formEditarUsuario').addEventListener('submit', function(e) {
         e.preventDefault();
-        const data = { is_staff: document.getElementById('editIsStaff').checked };
+        
+        // Recolectar datos del formulario
+        const data = {
+            rol_id: document.getElementById('editRol').value,
+            is_staff: document.getElementById('editIsStaff').checked
+        };
+        
         const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
         const swalBg = isDark ? '#1E293B' : '#ffffff';
         const swalColor = isDark ? '#F8FAFC' : '#0F172A';
@@ -99,7 +126,13 @@
                     window.location.href = "{% url 'listar_usuarios' %}";
                 });
             } else {
-                Swal.fire({ icon: 'error', title: 'Error', text: result.mensaje });
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Error', 
+                    text: result.mensaje || result.error,
+                    background: swalBg,
+                    color: swalColor
+                });
             }
         })
         .catch(err => Swal.fire('Error', 'No se pudo conectar con el servidor', 'error'));

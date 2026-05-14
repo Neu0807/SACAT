@@ -9,121 +9,338 @@
         --text-main: #0F172A; --text-muted: #64748B;
         --border-color: #E2E8F0; --brand-primary: #1E3A8A;
     }
+
     .nav-tabs .nav-link {
-        font-weight: 700;
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px 8px 0 0;
+        font-weight: 700; font-size: 0.85rem; color: var(--text-muted);
+        border: none; padding: 10px 20px; border-radius: 8px 8px 0 0;
     }
+    .nav-tabs .nav-link:hover { color: var(--brand-primary); }
     .nav-tabs .nav-link.active {
-        color: var(--brand-primary);
-        background: var(--bg-card);
+        color: var(--brand-primary); background: var(--bg-card);
         border-bottom: 3px solid var(--brand-primary);
     }
-    .badge-estado {
-        font-size: 0.7rem; font-weight: 700; padding: 5px 12px; border-radius: 50px;
+
+    #buscadorAprobacion:focus {
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 0.2rem rgba(30,58,138,0.1);
     }
+
+    /* Tarjeta de oferta */
+    .oferta-card {
+        background: var(--bg-card); border: 1px solid var(--border-color);
+        border-radius: 16px; padding: 20px 24px; cursor: pointer;
+        transition: all 0.2s; height: 100%;
+    }
+    .oferta-card:hover {
+        border-color: var(--brand-primary); box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        transform: translateY(-2px);
+    }
+
+    /* Indicadores en grid 2x2 */
+    .indicadores-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 14px;
+    }
+    .indicador {
+        text-align: center; padding: 10px 6px; border-radius: 10px;
+        background: var(--bg-body);
+    }
+    .indicador .numero {
+        font-size: 1.5rem; font-weight: 800; line-height: 1;
+    }
+    .indicador .label {
+        font-size: 0.6rem; text-transform: uppercase; font-weight: 700;
+        color: var(--text-muted); margin-top: 2px;
+    }
+    .indicador.aprobadas .numero { color: #059669; }
+    .indicador.por-aprobar .numero { color: #d97706; }
+    .indicador.disponibles .numero { color: #3b82f6; }
+    .indicador.total .numero { color: var(--brand-primary); }
+
+    /* Barra de ocupación */
+    .barra-ocupacion {
+        height: 8px; border-radius: 10px; background: var(--border-color);
+        margin-top: 12px; display: flex; overflow: hidden;
+    }
+    .barra-ocupacion .aprobadas-bar { background: #059669; transition: width 0.5s; }
+    .barra-ocupacion .pendientes-bar { background: #d97706; transition: width 0.5s; }
+
+    /* Modal */
+    .modal-detalle .modal-dialog { max-width: 800px; }
+    .badge-unidad {
+        font-size: 0.65rem; font-weight: 600; padding: 3px 10px;
+        border-radius: 50px; background: var(--brand-light); color: var(--brand-primary);
+    }
+    .empty-state { padding: 3rem; text-align: center; color: var(--text-muted); }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
-    <h2 class="fw-bold mb-3" style="color: var(--brand-primary);">
-        <i class="fas fa-check-double me-2"></i>Aprobación de Postulaciones
-    </h2>
 
-    <ul class="nav nav-tabs mb-4" id="aprobacionTabs">
-        {% if es_jefe %}<li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabJefe">👔 Jefe de Área</button></li>{% endif %}
-        {% if es_gh %}<li class="nav-item"><button class="nav-link {% if not es_jefe %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#tabGH">🏢 Gestión Humana</button></li>{% endif %}
+    <!-- Cabecera -->
+    <div class="mb-4">
+        <a href="{% url 'inicio' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+            <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
+        </a>
+        <h2 class="fw-bold mb-0" style="color: var(--brand-primary);">
+            <i class="fas fa-check-double me-2"></i>Aprobación de Postulaciones
+        </h2>
+        <small class="text-muted">Gestione las solicitudes de formación de los trabajadores.</small>
+    </div>
+
+    {% if not es_jefe and not es_gh %}
+    <div class="empty-state">
+        <i class="fas fa-lock fa-3x mb-3 opacity-25"></i>
+        <p class="fw-bold mb-1">Acceso restringido</p>
+        <small>No tienes permisos para aprobar postulaciones.</small>
+    </div>
+    {% endif %}
+
+    <!-- Pestañas -->
+    <ul class="nav nav-tabs border-0 mb-4" id="aprobacionTabs">
+        {% if es_jefe %}
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabJefe">
+                <i class="fas fa-user-tie me-1"></i> Jefe de Área
+                {% if postulaciones_jefe %}<span class="badge bg-danger ms-1" style="font-size:0.6rem;">{{ postulaciones_jefe|length }}</span>{% endif %}
+            </button>
+        </li>
+        {% endif %}
+        {% if es_gh %}
+        <li class="nav-item">
+            <button class="nav-link {% if not es_jefe %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#tabGH">
+                <i class="fas fa-building me-1"></i> Gestión Humana
+                {% if postulaciones_gh %}<span class="badge bg-danger ms-1" style="font-size:0.6rem;">{{ postulaciones_gh|length }}</span>{% endif %}
+            </button>
+        </li>
+        {% endif %}
     </ul>
 
+    <!-- Buscador global -->
+    <div class="input-group mb-4">
+        <span class="input-group-text bg-white border-end-0">
+            <i class="fas fa-search text-muted"></i>
+        </span>
+        <input type="text" id="buscadorAprobacion" class="form-control border-start-0" 
+               placeholder="Buscar por nombre de oferta, trabajador, institución...">
+    </div>
+
     <div class="tab-content">
-        <!-- Tab Jefe -->
+        
+        <!-- ================================================================ -->
+        <!-- TAB JEFE                                                          -->
+        <!-- ================================================================ -->
         {% if es_jefe %}
         <div class="tab-pane fade show active" id="tabJefe">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead><tr><th>Trabajador</th><th>Oferta</th><th class="text-center">Fecha</th><th class="text-center">Acciones</th></tr></thead>
-                    <tbody>
-                        {% for p in postulaciones_jefe %}
-                        <tr>
-                            <td>{{ p.trabajador.persona.primer_nombre }} {{ p.trabajador.persona.primer_apellido }}</td>
-                            <td>{{ p.oferta.nombre }}</td>
-                            <td class="text-center small">{{ p.fecha_postulacion|date:"d/m/Y H:i" }}</td>
-                            <td class="text-center">
-                                <button class="btn btn-success btn-sm rounded-pill btn-accion" data-id="{{ p.id }}" data-accion="aprobar">✅ Aprobar</button>
-                                <button class="btn btn-outline-danger btn-sm rounded-pill btn-accion" data-id="{{ p.id }}" data-accion="rechazar">❌ Rechazar</button>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="4" class="text-center py-4 text-muted">No hay postulaciones pendientes.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+            {% if postulaciones_jefe %}
+                {% regroup postulaciones_jefe by oferta as ofertas_jefe %}
+                <div class="row g-4" id="gridJefe">
+                    {% for grupo in ofertas_jefe %}
+                    <div class="col-12 col-md-6 col-xl-4 oferta-item" 
+                         data-search="{{ grupo.grouper.nombre|lower }} {{ grupo.grouper.institucion|lower }}">
+                        <div class="oferta-card" onclick="abrirModalJefe('{{ grupo.grouper.id }}', '{{ grupo.grouper.nombre|escapejs }}')">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="fw-bold mb-1">{{ grupo.grouper.nombre }}</h6>
+                                    <small class="text-muted">{{ grupo.grouper.institucion }} | {{ grupo.grouper.horas_academicas }} hrs</small>
+                                </div>
+                            </div>
+                            <div class="indicadores-grid">
+                                <div class="indicador por-aprobar">
+                                    <div class="numero">{{ grupo.list|length }}</div>
+                                    <div class="label">Pendientes</div>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-2" style="font-size:0.65rem;">
+                                <i class="fas fa-hand-pointer me-1"></i> Click para ver detalle
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+                    <p class="fw-bold mb-1">No hay postulaciones pendientes</p>
+                </div>
+            {% endif %}
         </div>
         {% endif %}
 
-        <!-- Tab GH -->
+        <!-- ================================================================ -->
+        <!-- TAB GH                                                            -->
+        <!-- ================================================================ -->
         {% if es_gh %}
         <div class="tab-pane fade {% if not es_jefe %}show active{% endif %}" id="tabGH">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead><tr><th>Trabajador</th><th>Oferta</th><th class="text-center">Fecha</th><th class="text-center">Acciones</th></tr></thead>
-                    <tbody>
-                        {% for p in postulaciones_gh %}
-                        <tr>
-                            <td>{{ p.trabajador.persona.primer_nombre }} {{ p.trabajador.persona.primer_apellido }}</td>
-                            <td>{{ p.oferta.nombre }}</td>
-                            <td class="text-center small">{{ p.fecha_postulacion|date:"d/m/Y H:i" }}</td>
-                            <td class="text-center">
-                                <button class="btn btn-success btn-sm rounded-pill btn-accion-gh" data-id="{{ p.id }}" data-accion="aprobar_gh">✅ Aprobar</button>
-                                <button class="btn btn-outline-danger btn-sm rounded-pill btn-accion-gh" data-id="{{ p.id }}" data-accion="rechazar_gh">❌ Rechazar</button>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="4" class="text-center py-4 text-muted">No hay postulaciones por aprobar.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+            {% if ofertas_con_cupos %}
+                <div class="row g-4" id="gridGH">
+                    {% for item in ofertas_con_cupos %}
+                    <div class="col-12 col-md-6 col-xl-4 oferta-item"
+                         data-search="{{ item.oferta.nombre|lower }} {{ item.oferta.institucion|lower }}">
+                        <div class="oferta-card" onclick="abrirModalGH('{{ item.oferta.id }}', '{{ item.oferta.nombre|escapejs }}')">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="fw-bold mb-1">{{ item.oferta.nombre }}</h6>
+                                    <small class="text-muted">{{ item.oferta.institucion }} | {{ item.oferta.horas_academicas }} hrs</small>
+                                </div>
+                            </div>
+                            <div class="indicadores-grid">
+                                <div class="indicador aprobadas">
+                                    <div class="numero">{{ item.aprobadas }}</div>
+                                    <div class="label">Aprobadas</div>
+                                </div>
+                                <div class="indicador por-aprobar">
+                                    <div class="numero">{{ item.por_aprobar }}</div>
+                                    <div class="label">Por aprobar</div>
+                                </div>
+                                <div class="indicador disponibles">
+                                    <div class="numero">{{ item.disponibles }}</div>
+                                    <div class="label">Disponibles</div>
+                                </div>
+                                <div class="indicador total">
+                                    <div class="numero">{{ item.cupo_total }}</div>
+                                    <div class="label">Cupo total</div>
+                                </div>
+                            </div>
+                            <!-- Barra de ocupación -->
+                            <div class="barra-ocupacion">
+                                <div class="aprobadas-bar" style="width: {% widthratio item.aprobadas item.cupo_total 100 %}%"></div>
+                                <div class="pendientes-bar" style="width: {% widthratio item.por_aprobar item.cupo_total 100 %}%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small style="font-size:0.6rem; color:#059669;">Aprobadas</small>
+                                <small style="font-size:0.6rem; color:#d97706;">Pendientes</small>
+                                <small style="font-size:0.6rem; color:#3b82f6;">Disponibles: {{ item.disponibles }}</small>
+                            </div>
+                            <small class="text-muted d-block mt-2" style="font-size:0.65rem;">
+                                <i class="fas fa-hand-pointer me-1"></i> Click para ver detalle
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+                    <p class="fw-bold mb-1">No hay postulaciones para aprobar</p>
+                </div>
+            {% endif %}
         </div>
         {% endif %}
+
+    </div>
+</div>
+
+<!-- Modal para detalle de postulaciones -->
+<div class="modal fade modal-detalle" id="modalDetalle" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:16px; overflow:hidden;">
+            <div class="modal-header border-0 text-white" style="background:linear-gradient(135deg, var(--brand-primary), var(--brand-dark));">
+                <h5 class="modal-title fw-bold" id="modalTitulo"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="modalContenido" class="p-3">
+                    <div class="text-center py-4"><div class="spinner-border text-primary"></div></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Aprobación Jefe
-    document.querySelectorAll('.btn-accion').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const accion = this.dataset.accion;
-            fetch(`/formacion/aprobacion/${accion}/${id}/`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-            }).then(r => r.json()).then(d => {
-                if (d.success) location.reload();
-                else Swal.fire('Error', d.error, 'error');
-            });
+    // ================================================================
+    // MODAL DETALLE
+    // ================================================================
+    var modalDetalle = new bootstrap.Modal(document.getElementById('modalDetalle'));
+
+    function abrirModalJefe(ofertaId, ofertaNombre) {
+        document.getElementById('modalTitulo').innerHTML = `<i class="fas fa-user-tie me-2"></i>${ofertaNombre}`;
+        document.getElementById('modalContenido').innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+        modalDetalle.show();
+        fetch(`/formacion/aprobacion/detalle-jefe/${ofertaId}/`)
+            .then(r => r.text())
+            .then(html => { document.getElementById('modalContenido').innerHTML = html; })
+            .catch(() => { document.getElementById('modalContenido').innerHTML = '<div class="text-center py-4 text-danger">Error al cargar.</div>'; });
+    }
+
+    function abrirModalGH(ofertaId, ofertaNombre) {
+        document.getElementById('modalTitulo').innerHTML = `<i class="fas fa-building me-2"></i>${ofertaNombre}`;
+        document.getElementById('modalContenido').innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+        modalDetalle.show();
+        fetch(`/formacion/aprobacion/detalle-gh/${ofertaId}/`)
+            .then(r => r.text())
+            .then(html => { document.getElementById('modalContenido').innerHTML = html; })
+            .catch(() => { document.getElementById('modalContenido').innerHTML = '<div class="text-center py-4 text-danger">Error al cargar.</div>'; });
+    }
+
+    // ================================================================
+    // BUSCADOR GLOBAL
+    // ================================================================
+    document.getElementById('buscadorAprobacion').addEventListener('input', function() {
+        const termino = this.value.toLowerCase().trim();
+        const tabActivo = document.querySelector('.tab-pane.active');
+        tabActivo.querySelectorAll('.oferta-item').forEach(item => {
+            const searchData = item.getAttribute('data-search') || '';
+            item.style.display = (termino === '' || searchData.includes(termino)) ? '' : 'none';
         });
     });
-    // Aprobación GH (mismo mecanismo, otras URLs)
-    document.querySelectorAll('.btn-accion-gh').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const accion = this.dataset.accion;
-            fetch(`/formacion/aprobacion/${accion}/${id}/`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-            }).then(r => r.json()).then(d => {
-                if (d.success) location.reload();
-                else Swal.fire('Error', d.error, 'error');
-            });
-        });
+
+    // ================================================================
+    // ACCIONES APROBAR/RECHAZAR (DELEGADAS AL MODAL)
+    // ================================================================
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-accion')) {
+            e.stopPropagation();
+            const btn = e.target.closest('.btn-accion');
+            ejecutarAccion(btn, btn.dataset.accion, btn.dataset.id, btn.dataset.nombre);
+        }
+        if (e.target.closest('.btn-accion-gh')) {
+            e.stopPropagation();
+            const btn = e.target.closest('.btn-accion-gh');
+            ejecutarAccion(btn, btn.dataset.accion, btn.dataset.id, btn.dataset.nombre);
+        }
     });
+
+    function ejecutarAccion(btn, accion, id, nombre) {
+        const esAprobacion = accion.includes('aprobar');
+        Swal.fire({
+            title: esAprobacion ? '¿Aprobar postulación?' : '¿Rechazar postulación?',
+            html: esAprobacion ? `Aprobar postulación de <strong>${nombre}</strong>.` : `Rechazar postulación de <strong>${nombre}</strong>.`,
+            icon: esAprobacion ? 'question' : 'warning',
+            showCancelButton: true,
+            confirmButtonColor: esAprobacion ? 'var(--brand-primary)' : '#dc2626',
+            cancelButtonColor: 'var(--text-muted)',
+            confirmButtonText: esAprobacion ? 'Sí, aprobar' : 'Sí, rechazar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                btn.disabled = true;
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                fetch(`/formacion/aprobacion/${accion}/${id}/`, {
+                    method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                })
+                .then(r => r.json()).then(d => {
+                    if (d.success) {
+                        Swal.fire({ icon: 'success', title: '¡Listo!', timer: 1500, showConfirmButton: false })
+                            .then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', d.error || 'No se pudo procesar.', 'error');
+                        btn.disabled = false; btn.innerHTML = orig;
+                    }
+                }).catch(() => {
+                    Swal.fire('Error', 'No se pudo conectar.', 'error');
+                    btn.disabled = false; btn.innerHTML = orig;
+                });
+            }
+        });
+    }
 </script>
 {% endblock %}
