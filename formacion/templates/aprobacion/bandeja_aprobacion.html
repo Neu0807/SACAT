@@ -28,7 +28,7 @@
     /* Tarjeta de oferta */
     .oferta-card {
         background: var(--bg-card); border: 1px solid var(--border-color);
-        border-radius: 16px; padding: 20px 24px; cursor: pointer;
+        border-radius: 16px; padding: 18px 20px; cursor: pointer;
         transition: all 0.2s; height: 100%;
     }
     .oferta-card:hover {
@@ -36,36 +36,30 @@
         transform: translateY(-2px);
     }
 
-    /* Indicadores en grid 2x2 */
-    .indicadores-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        margin-top: 14px;
-    }
-    .indicador {
-        text-align: center; padding: 10px 6px; border-radius: 10px;
-        background: var(--bg-body);
-    }
-    .indicador .numero {
-        font-size: 1.5rem; font-weight: 800; line-height: 1;
-    }
-    .indicador .label {
-        font-size: 0.6rem; text-transform: uppercase; font-weight: 700;
-        color: var(--text-muted); margin-top: 2px;
-    }
-    .indicador.aprobadas .numero { color: #059669; }
-    .indicador.por-aprobar .numero { color: #d97706; }
-    .indicador.disponibles .numero { color: #3b82f6; }
-    .indicador.total .numero { color: var(--brand-primary); }
-
     /* Barra de ocupación */
     .barra-ocupacion {
-        height: 8px; border-radius: 10px; background: var(--border-color);
-        margin-top: 12px; display: flex; overflow: hidden;
+        height: 10px; border-radius: 10px; background: var(--border-color);
+        margin: 14px 0 8px; display: flex; overflow: hidden;
     }
-    .barra-ocupacion .aprobadas-bar { background: #059669; transition: width 0.5s; }
-    .barra-ocupacion .pendientes-bar { background: #d97706; transition: width 0.5s; }
+    .barra-ocupacion .aprobadas-bar { background: #059669; }
+    .barra-ocupacion .pendientes-bar { background: #d97706; }
+
+    /* Leyenda debajo de la barra */
+    .leyenda-barra {
+        display: flex; justify-content: space-between; align-items: center;
+        font-size: 0.7rem; font-weight: 600;
+    }
+    .leyenda-barra span { display: flex; align-items: center; gap: 4px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .dot.green { background: #059669; }
+    .dot.orange { background: #d97706; }
+    .dot.blue { background: #3b82f6; }
+
+    /* Badge cupo total */
+    .badge-cupo {
+        font-size: 0.65rem; font-weight: 700; padding: 3px 10px;
+        border-radius: 50px; background: var(--brand-light); color: var(--brand-primary);
+    }
 
     /* Modal */
     .modal-detalle .modal-dialog { max-width: 800px; }
@@ -148,15 +142,9 @@
                                     <small class="text-muted">{{ grupo.grouper.institucion }} | {{ grupo.grouper.horas_academicas }} hrs</small>
                                 </div>
                             </div>
-                            <div class="indicadores-grid">
-                                <div class="indicador por-aprobar">
-                                    <div class="numero">{{ grupo.list|length }}</div>
-                                    <div class="label">Pendientes</div>
-                                </div>
+                            <div class="mt-3">
+                                <span class="badge bg-warning text-dark" style="font-size:0.75rem;">{{ grupo.list|length }} pendientes</span>
                             </div>
-                            <small class="text-muted d-block mt-2" style="font-size:0.65rem;">
-                                <i class="fas fa-hand-pointer me-1"></i> Click para ver detalle
-                            </small>
                         </div>
                     </div>
                     {% endfor %}
@@ -171,7 +159,7 @@
         {% endif %}
 
         <!-- ================================================================ -->
-        <!-- TAB GH                                                            -->
+        <!-- TAB GH (COMPACTA)                                                 -->
         <!-- ================================================================ -->
         {% if es_gh %}
         <div class="tab-pane fade {% if not es_jefe %}show active{% endif %}" id="tabGH">
@@ -182,42 +170,25 @@
                          data-search="{{ item.oferta.nombre|lower }} {{ item.oferta.institucion|lower }}">
                         <div class="oferta-card" onclick="abrirModalGH('{{ item.oferta.id }}', '{{ item.oferta.nombre|escapejs }}')">
                             <div class="d-flex justify-content-between align-items-start">
-                                <div>
+                                <div class="pe-2">
                                     <h6 class="fw-bold mb-1">{{ item.oferta.nombre }}</h6>
                                     <small class="text-muted">{{ item.oferta.institucion }} | {{ item.oferta.horas_academicas }} hrs</small>
                                 </div>
+                                <span class="badge-cupo">Cupo: {{ item.cupo_total }}</span>
                             </div>
-                            <div class="indicadores-grid">
-                                <div class="indicador aprobadas">
-                                    <div class="numero">{{ item.aprobadas }}</div>
-                                    <div class="label">Aprobadas</div>
-                                </div>
-                                <div class="indicador por-aprobar">
-                                    <div class="numero">{{ item.por_aprobar }}</div>
-                                    <div class="label">Por aprobar</div>
-                                </div>
-                                <div class="indicador disponibles">
-                                    <div class="numero">{{ item.disponibles }}</div>
-                                    <div class="label">Disponibles</div>
-                                </div>
-                                <div class="indicador total">
-                                    <div class="numero">{{ item.cupo_total }}</div>
-                                    <div class="label">Cupo total</div>
-                                </div>
-                            </div>
+
                             <!-- Barra de ocupación -->
                             <div class="barra-ocupacion">
                                 <div class="aprobadas-bar" style="width: {% widthratio item.aprobadas item.cupo_total 100 %}%"></div>
                                 <div class="pendientes-bar" style="width: {% widthratio item.por_aprobar item.cupo_total 100 %}%"></div>
                             </div>
-                            <div class="d-flex justify-content-between mt-1">
-                                <small style="font-size:0.6rem; color:#059669;">Aprobadas</small>
-                                <small style="font-size:0.6rem; color:#d97706;">Pendientes</small>
-                                <small style="font-size:0.6rem; color:#3b82f6;">Disponibles: {{ item.disponibles }}</small>
+
+                            <!-- Leyenda compacta -->
+                            <div class="leyenda-barra">
+                                <span><span class="dot green"></span> {{ item.aprobadas }} aprobadas</span>
+                                <span><span class="dot orange"></span> {{ item.por_aprobar }} pendientes</span>
+                                <span><span class="dot blue"></span> {{ item.disponibles }} disponibles</span>
                             </div>
-                            <small class="text-muted d-block mt-2" style="font-size:0.65rem;">
-                                <i class="fas fa-hand-pointer me-1"></i> Click para ver detalle
-                            </small>
                         </div>
                     </div>
                     {% endfor %}
