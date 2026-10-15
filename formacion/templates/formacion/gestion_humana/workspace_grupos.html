@@ -1,0 +1,107 @@
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <h4 class="fw-bold mb-1" style="color: var(--text-main);">Planificación de Grupos y Sesiones</h4>
+        <p class="text-muted mb-0" style="font-size: 0.85rem;">Organiza a los aprobados en horarios y genera las actas oficiales de asistencia en PDF.</p>
+    </div>
+    <button class="btn btn-primary btn-sm fw-bold px-3" style="border-radius: 8px;" data-bs-toggle="modal" data-bs-target="#modalCrearGrupo">
+        <i class="fas fa-plus-circle me-1"></i> Crear Nuevo Grupo
+    </button>
+</div>
+
+<div class="row g-3">
+    {% for grupo in grupos %}
+    <div class="col-md-6">
+        <div class="card border shadow-sm rounded-3 p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h5 class="fw-bold text-primary mb-0">{{ grupo.nombre_grupo }}</h5>
+                <span class="badge bg-secondary">{{ grupo.total_participantes }} / {{ grupo.cupo_maximo }} cupos</span>
+            </div>
+            <p class="text-muted small mb-2"><i class="fas fa-chalkboard-teacher me-1"></i> Facilitador: <b>{{ grupo.instructor|default:"Por definir" }}</b></p>
+            <p class="text-muted small mb-2"><i class="fas fa-calendar-alt me-1"></i> {{ grupo.fecha_inicio|date:"d/m/Y" }} al {{ grupo.fecha_fin|date:"d/m/Y" }} | {{ grupo.horario|default:"Horario libre" }}</p>
+            <p class="text-muted small mb-3"><i class="fas fa-map-marker-alt me-1"></i> {{ grupo.lugar|default:"Sede Corporativa" }}</p>
+            
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                <a href="{% url 'formacion:lista_asistencia_pdf' grupo.id %}" target="_blank" class="btn btn-outline-danger btn-sm fw-bold">
+                    <i class="fas fa-file-pdf me-1"></i> Descargar Acta PDF (+5 filas)
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5 text-muted">
+        <i class="fas fa-object-group fa-2x mb-2 opacity-50"></i>
+        <p class="mb-0">No hay grupos creados para esta oferta de formación.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal Crear Grupo -->
+<div class="modal fade" id="modalCrearGrupo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold fs-6"><i class="fas fa-plus-circle me-2"></i>Crear Grupo de Formación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{% url 'formacion:crear_grupo' oferta.id %}" method="POST" id="formCrearGrupo">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Nombre del Grupo <span class="text-danger">*</span></label>
+                            <input type="text" name="nombre_grupo" class="form-control" required placeholder="Ej: GRUPO 1 - MIÉRCOLES">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Cupo Máximo del Grupo <span class="text-danger">*</span></label>
+                            <input type="number" name="cupo_maximo" class="form-control" required value="20" min="1">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Fecha de Inicio</label>
+                            <input type="date" name="fecha_inicio" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Fecha de Culminación</label>
+                            <input type="date" name="fecha_fin" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Horario</label>
+                            <input type="text" name="horario" class="form-control" placeholder="Ej: 08:00 AM - 12:00 PM">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Lugar / Aula</label>
+                            <input type="text" name="lugar" class="form-control" placeholder="Ej: Auditorio Principal">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Facilitador / Asesor</label>
+                            <input type="text" name="instructor" class="form-control" placeholder="Ej: Lcdo. Pérez">
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-bold small">Asignar Participantes Aprobados (Sin grupo asignado)</label>
+                        <div class="border rounded p-2" style="max-height: 180px; overflow-y: auto;">
+                            {% for p in postulaciones_sin_grupo %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="trabajadores_ids[]" value="{{ p.trabajador.id }}" id="trab_{{ p.trabajador.id }}">
+                                <label class="form-check-label small" for="trab_{{ p.trabajador.id }}">
+                                    {{ p.trabajador.persona.primer_nombre }} {{ p.trabajador.persona.primer_apellido }} (V-{{ p.trabajador.persona.cedula }})
+                                </label>
+                            </div>
+                            {% empty %}
+                            <span class="text-muted small">No hay participantes aprobados pendientes de grupo.</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-light btn-sm fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold px-3">Guardar Grupo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

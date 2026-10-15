@@ -1,0 +1,138 @@
+<div class="row g-4">
+    <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm rounded-3 p-4 h-100">
+            <h5 class="fw-bold text-primary mb-3"><i class="fas fa-clipboard-check me-2"></i>Control de Asistencia por Grupo</h5>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold small text-uppercase">Seleccione el Grupo a Evaluar</label>
+                <select id="selectGrupoAsistencia" class="form-select" onchange="cambiarGrupoAsistencia(this.value)">
+                    {% for g in grupos %}
+                        <option value="{{ g.id }}" {% if grupo_actual and grupo_actual.id == g.id %}selected{% endif %}>{{ g.nombre_grupo }}</option>
+                    {% empty %}
+                        <option value="" disabled selected>No hay grupos creados</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% if grupo_actual %}
+            <form id="formGuardarAsistencia" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-uppercase">Adjuntar Acta de Asistencia Física Firmada (PDF / Escaneo)</label>
+                    <input type="file" name="archivo_acta_asistencia" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                    {% if grupo_actual.archivo_acta_asistencia %}
+                        <small class="text-success"><i class="fas fa-check-circle me-1"></i>Ya existe un acta escaneada cargada para este grupo.</small>
+                    {% endif %}
+                </div>
+
+                <div class="table-responsive mb-3" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-sm align-middle">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>Participante</th>
+                                <th class="text-center" style="width: 90px;">¿Asistió?</th>
+                                <th>Nota / Observación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in participantes %}
+                            <tr>
+                                <td>
+                                    <strong>{{ p.trabajador.persona.primer_nombre }} {{ p.trabajador.persona.primer_apellido }}</strong>
+                                    <br><small class="text-muted">CI: {{ p.trabajador.persona.cedula }}</small>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="asistio_ids" value="{{ p.id }}" class="form-check-input fs-5"
+                                           {% if p.asistencia_obj and p.asistencia_obj.asistio %}checked{% endif %}>
+                                </td>
+                                <td>
+                                    <input type="text" name="nota_{{ p.id }}" class="form-control form-control-sm" 
+                                           value="{{ p.asistencia_obj.observacion_asistencia|default:'' }}" 
+                                           placeholder="Motivo de inasistencia (opcional)...">
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center py-3 text-muted">No hay participantes en este grupo.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-success fw-bold shadow-sm">
+                        <i class="fas fa-save me-2"></i> Guardar Asistencia y Acta
+                    </button>
+                </div>
+            </form>
+            {% else %}
+                <div class="text-center py-5 text-muted"><p>Debe crear al menos un grupo en la pestaña anterior.</p></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-5">
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+            <h6 class="fw-bold text-dark mb-2"><i class="fas fa-user-plus text-primary me-2"></i>Asistente en Sitio (Fuerza Mayor)</h6>
+            <small class="text-muted mb-3 d-block">Si un trabajador asistió imprevisto (firmó en las 5 líneas en blanco de la hoja física), incorpórelo aquí:</small>
+            
+            {% if grupo_actual and trabajadores_no_inscritos %}
+            <form id="formAsistenteSitio">
+                {% csrf_token %}
+                <div class="mb-2">
+                    <select name="trabajador_id" class="form-select form-select-sm" required>
+                        <option value="" selected disabled>Seleccione trabajador...</option>
+                        {% for tw in trabajadores_no_inscritos %}
+                            <option value="{{ tw.id }}">{{ tw.persona.primer_apellido }} {{ tw.persona.primer_nombre }} (V-{{ tw.persona.cedula }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <input type="text" name="observacion" class="form-control form-control-sm" value="Asistió imprevisto en sitio (Firmó acta física).">
+                </div>
+                <button type="submit" class="btn btn-outline-primary btn-sm w-100 fw-bold">
+                    <i class="fas fa-plus me-1"></i> Registrar e Inscribir en este Grupo
+                </button>
+            </form>
+            {% else %}
+                <small class="text-muted fst-italic">No hay trabajadores disponibles para incorporar en sitio.</small>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function cambiarGrupoAsistencia(grupoId) {
+        const pane = document.getElementById('pane-asistencia');
+        pane.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        fetch(`/formacion/workspace/${cursoActualId}/asistencia/?grupo_id=${grupoId}`).then(r => r.text()).then(html => { pane.innerHTML = html; });
+    }
+
+    document.getElementById('formGuardarAsistencia')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const grupoId = document.getElementById('selectGrupoAsistencia').value;
+        const btn = this.querySelector('button[type="submit"]');
+        btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+
+        fetch(`/formacion/asistencia/guardar/${grupoId}/`, {
+            method: 'POST', body: new FormData(this), headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        }).then(r => r.json()).then(d => {
+            if (d.success) {
+                Swal.fire({ icon: 'success', title: '¡Guardado!', text: d.mensaje, timer: 1500, showConfirmButton: false });
+                cargarPestañaWorkspace('asistencia', cursoActualId);
+            } else { Swal.fire('Error', d.error, 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-save me-2"></i> Guardar Asistencia y Acta'; }
+        });
+    });
+
+    document.getElementById('formAsistenteSitio')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const grupoId = document.getElementById('selectGrupoAsistencia').value;
+        fetch(`/formacion/asistencia/agregar-en-sitio/${grupoId}/`, {
+            method: 'POST', body: new FormData(this), headers: { 'X-CSRFToken': '{{ csrf_token} }' }
+        }).then(r => r.json()).then(d => {
+            if (d.success) {
+                Swal.fire({ icon: 'success', title: '¡Incorporado!', text: d.mensaje, timer: 1500, showConfirmButton: false });
+                cargarPestañaWorkspace('asistencia', cursoActualId);
+            } else { Swal.fire('Error', d.error, 'error'); }
+        });
+    });
+</script>

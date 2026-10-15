@@ -29,26 +29,26 @@
                 <input type="number" name="horas_academicas" class="form-control custom-input" min="1" required>
             </div>
             <div class="col-md-3">
-                <label class="form-label fw-bold small text-uppercase">Cupo Máximo (15-50) <span class="text-danger">*</span></label>
-                <input type="number" name="cupo_maximo_oferta" class="form-control custom-input" 
-                    value="{{ oferta.cupo_maximo_oferta|default:'50' }}" min="15" max="50" required>
-                <small class="text-muted">Mínimo 15, máximo 50 postulaciones por oferta.</small>
+                <label class="form-label fw-bold small text-uppercase">Cupo Máximo <span class="text-danger">*</span></label>
+                <input type="number" name="cupo_maximo_oferta" class="form-control custom-input" value="50" min="1" max="500" required>
             </div>
             <div class="col-md-3">
-                <label class="form-label fw-bold small text-uppercase">Fecha Publicación <span class="text-danger">*</span></label>
-                <input type="date" name="fecha_publicacion" class="form-control custom-input" required>
+                <label class="form-label fw-bold small text-uppercase">
+                    Fecha Publicación
+                    {% if puede_editar_fecha_pub %}
+                        <span class="badge bg-warning text-dark ms-1" style="font-size: 0.6rem;">Modo Prueba Admin</span>
+                    {% endif %}
+                </label>
+                <input type="date" name="fecha_publicacion" class="form-control custom-input {% if not puede_editar_fecha_pub %}bg-light{% endif %}" 
+                       value="{{ hoy }}" {% if not puede_editar_fecha_pub %}readonly{% endif %} required>
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-bold small text-uppercase">Fecha Cierre <span class="text-danger">*</span></label>
                 <input type="date" name="fecha_cierre_postulacion" class="form-control custom-input" required>
             </div>
-            <div class="col-md-3">
-                <label class="form-label fw-bold small text-uppercase">Estado</label>
-                <input type="text" class="form-control custom-input bg-light" value="ABIERTA" disabled>
-            </div>
             <div class="col-12">
-                <label class="form-label fw-bold small text-uppercase">Descripción</label>
-                <textarea name="descripcion" class="form-control custom-input" rows="2"></textarea>
+                <label class="form-label fw-bold small text-uppercase">Descripción / Sinopsis del Contenido <span class="text-danger">*</span></label>
+                <textarea name="descripcion" class="form-control custom-input" rows="3" placeholder="Indique el contenido programático, requisitos, horario estimado y lugar..." required></textarea>
             </div>
         </div>
         <div class="d-grid mt-4">

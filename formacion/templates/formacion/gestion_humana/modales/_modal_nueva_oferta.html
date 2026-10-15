@@ -1,0 +1,136 @@
+<div class="modal fade" id="modalNuevaOferta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none; overflow: hidden;">
+
+            <!-- Header -->
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark)); color: white; border: none; padding: 1.25rem 1.5rem;">
+                <div>
+                    <h5 class="modal-title fw-bold mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Nueva Oferta de Formación
+                    </h5>
+                    <small style="opacity: 0.8; font-size: 0.8rem;">Registra un nuevo curso o capacitación</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <!-- Form -->
+            <form id="formNuevaOferta" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body" style="padding: 1.5rem;">
+
+                    <!-- Fila 1: Tipo + Modalidad -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 0.8rem;">
+                                Tipo de Formación <span class="text-danger">*</span>
+                            </label>
+                            <select name="tipo_formacion_id" class="form-select" required>
+                                <option value="">— Selecciona —</option>
+                                {% for tipo in tipos %}
+                                <option value="{{ tipo.id }}">{{ tipo.descripcion }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 0.8rem;">
+                                Modalidad <span class="text-danger">*</span>
+                            </label>
+                            <select name="modalidad_id" class="form-select" required>
+                                <option value="">— Selecciona —</option>
+                                {% for mod in modalidades %}
+                                <option value="{{ mod.id }}">{{ mod.descripcion }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Nombre -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 0.8rem;">
+                            Nombre del Curso / Formación <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="nombre" class="form-control" required
+                               placeholder="Ej: NORMA ISO 31000 PARA LA GESTIÓN DE RIESGO"
+                               maxlength="200">
+                    </div>
+
+                    <!-- Institución -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 0.8rem;">
+                            Institución / Facilitador <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="institucion" class="form-control" required
+                               placeholder="Ej: SENCAMER"
+                               maxlength="150">
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 0.8rem;">
+                            Descripción / Anticipo del Contenido
+                        </label>
+                        <textarea name="descripcion" class="form-control" rows="3"
+                                  placeholder="Describe brevemente el contenido del curso, horarios previstos, sede, etc."></textarea>
+                    </div>
+
+                    <!-- Fila: Horas + Cupo -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 0.8rem;">
+                                Horas Académicas <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" name="horas_academicas" class="form-control" required min="1" max="500" placeholder="16">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 0.8rem;">
+                                Cupo Máximo <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" name="cupo_maximo_oferta" class="form-control" required min="1" max="500" value="50">
+                        </div>
+                    </div>
+
+                    <!-- Fila: Fechas -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 0.8rem;">
+                                Fecha de Publicación
+                                {% if not puede_editar_fecha_pub %}
+                                <i class="fas fa-lock ms-1 text-muted" title="Se asigna automáticamente. Solo administradores pueden editarla."></i>
+                                {% endif %}
+                            </label>
+                            <input type="date" name="fecha_publicacion" class="form-control"
+                                   value="{% now 'Y-m-d' %}"
+                                   {% if not puede_editar_fecha_pub %}readonly{% endif %}>
+                            {% if not puede_editar_fecha_pub %}
+                            <small class="text-muted" style="font-size: 0.7rem;">
+                                <i class="fas fa-info-circle"></i> Se asigna automáticamente al crear
+                            </small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="font-size: 0.8rem;">
+                                Fecha de Cierre de Postulación <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" name="fecha_cierre_postulacion" class="form-control" required>
+                            <small class="text-muted" style="font-size: 0.7rem;">
+                                <i class="fas fa-info-circle"></i> La oferta se cierra automáticamente al llegar esta fecha
+                            </small>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer" style="padding: 1rem 1.5rem; background: #F8FAFC; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal" style="border-radius: 10px;">
+                        <i class="fas fa-times me-1"></i> Cancelar
+                    </button>
+                    <button type="submit" id="btnGuardarOferta" class="btn-primary-custom">
+                        <i class="fas fa-save"></i> Guardar Oferta
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>

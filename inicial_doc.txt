@@ -1,0 +1,24 @@
+pip install -r requirements.txt
+
+para iniciar server
+python manage.py runserver 0.0.0.0:8000
+
+
+S0p0r73ñ.GTI
+
+
+Como iniciar el servicio en maquina ubuntu con el docker instalado.
+sudo systemctl start docker
+cd Escritorio/SACAT/
+docker compose up -d
+#docker-compose up -d
+source venv/bin/activate
+python manage.py runserver 0.0.0.0:8000
+deactivate -> para desactivar el entorno virtual
+
+
+para limpiar el volumen persistente y forzar lectura del nuevo archivo ubicado en db
+docker-compose down -v
+docker-compose up -d
+
+

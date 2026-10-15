@@ -1,0 +1,51 @@
+<div class="modal fade" id="modalCrearGrupo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 14px;">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold fs-6"><i class="fas fa-plus-circle me-2"></i>Crear Grupo de Formación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'formacion:crear_grupo' oferta.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted" style="font-size: 0.8rem;">NOMBRE DEL GRUPO <span class="text-danger">*</span></label>
+                        <input type="text" name="nombre_grupo" class="form-control" required placeholder="Ej: Grupo Miércoles Mañana">
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted" style="font-size: 0.8rem;">FECHA INICIO <span class="text-danger">*</span></label>
+                            <input type="date" name="fecha_inicio" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted" style="font-size: 0.8rem;">FECHA FIN <span class="text-danger">*</span></label>
+                            <input type="date" name="fecha_fin" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted" style="font-size: 0.8rem;">HORARIO</label>
+                        <input type="text" name="horario" class="form-control" placeholder="Ej: 08:00 a.m. - 12:00 p.m.">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted" style="font-size: 0.8rem;">LUGAR / SEDE</label>
+                        <input type="text" name="lugar" class="form-control" placeholder="Ej: Auditorio Principal / Sala de IT">
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold text-muted" style="font-size: 0.8rem;">INSTRUCTOR / FACILITADOR</label>
+                            <input type="text" name="instructor" class="form-control" placeholder="Nombre del facilitador">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-muted" style="font-size: 0.8rem;">CUPO MÁXIMO <span class="text-danger">*</span></label>
+                            <input type="number" name="cupo_maximo" class="form-control" value="20" min="1" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-light btn-sm fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold">Guardar Grupo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

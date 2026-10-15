@@ -1,0 +1,51 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h5 class="fw-bold mb-0 text-primary">{{ oferta.nombre }}</h5>
+        <small class="text-muted">{{ oferta.institucion }} | Cupo Máximo: {{ oferta.cupo_maximo_oferta }} | Postulaciones listas para asignar: <strong>{{ postulaciones_sin_grupo.count }}</strong></small>
+    </div>
+    {% if postulaciones_sin_grupo %}
+    <button class="btn btn-primary btn-sm rounded-pill px-3 fw-bold" onclick="abrirModalGH('/formacion/planificacion/grupos/{{ oferta.id }}/crear/', 'Crear Nuevo Grupo')">
+        <i class="fas fa-plus me-1"></i> Crear Grupo
+    </button>
+    {% endif %}
+</div>
+
+<div class="row g-3">
+    {% for grupo in grupos %}
+    <div class="col-12 col-md-6">
+        <div class="grupo-card p-3 border rounded-3 bg-white shadow-sm">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h6 class="fw-bold mb-0">{{ grupo.nombre_grupo }}</h6>
+                    <small class="text-muted">Facilitador: {{ grupo.instructor|default:"Por definir" }}</small>
+                </div>
+                <span class="badge bg-primary bg-opacity-10 text-primary">
+                    {{ grupo.participantes.count }} participantes
+                </span>
+            </div>
+            <div class="small text-muted mb-3">
+                {% if grupo.fecha_inicio %}
+                <div><i class="far fa-calendar me-1"></i> {{ grupo.fecha_inicio|date:"d/m/Y" }} - {{ grupo.fecha_fin|date:"d/m/Y"|default:"—" }}</div>
+                {% endif %}
+                {% if grupo.horario %}<div><i class="far fa-clock me-1"></i> {{ grupo.horario }}</div>{% endif %}
+                {% if grupo.lugar %}<div><i class="fas fa-map-marker-alt me-1"></i> {{ grupo.lugar }}</div>{% endif %}
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                <a href="{% url 'descargar_lista_asistencia_pdf' grupo.id %}" target="_blank" class="btn btn-outline-danger btn-sm rounded-pill">
+                    <i class="fas fa-file-pdf me-1"></i> Lista de Asistencia (PDF)
+                </a>
+                <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="abrirModalGH('/formacion/planificacion/grupos/editar/{{ grupo.id }}/', 'Editar Grupo')">
+                    <i class="fas fa-pencil-alt"></i> Editar
+                </button>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5 text-muted">
+        <i class="fas fa-layer-group fa-3x mb-3 opacity-25"></i>
+        <p class="fw-bold mb-1">No hay grupos creados para esta oferta.</p>
+        <small>Cree al menos un grupo para organizar los turnos o días de asistencia.</small>
+    </div>
+    {% endfor %}
+</div>

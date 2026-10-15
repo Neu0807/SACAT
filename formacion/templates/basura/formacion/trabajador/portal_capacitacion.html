@@ -1,0 +1,272 @@
+{% extends 'includes/base_standard.html' %}
+
+{% block title %}SACAT | Portal de Capacitación{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-body: #F8FAFC; --bg-card: #ffffff;
+        --text-main: #0F172A; --text-muted: #64748B;
+        --border-color: #E2E8F0; --brand-primary: #1E3A8A;
+        --brand-dark: #172554; --brand-light: #EEF2FF;
+    }
+    .nav-tabs .nav-link {
+        font-weight: 700; font-size: 0.9rem; color: var(--text-muted);
+        border: none; padding: 12px 24px; border-radius: 10px 10px 0 0;
+    }
+    .nav-tabs .nav-link.active {
+        color: var(--brand-primary); background: var(--bg-card);
+        border-bottom: 3px solid var(--brand-primary);
+    }
+    .tab-content {
+        background: var(--bg-card); border-radius: 0 14px 14px 14px;
+        border: 1px solid var(--border-color); border-top: none;
+    }
+    .oferta-card {
+        border-radius: 16px; border: 1px solid var(--border-color);
+        background: var(--bg-card); transition: all 0.25s; height: 100%;
+    }
+    .oferta-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.06); border-color: var(--brand-primary); }
+    .card-badge { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-estado { font-size: 0.72rem; font-weight: 700; padding: 6px 12px; border-radius: 50px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <a href="{% url 'inicio' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+            <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
+        </a>
+        <h2 class="fw-bold mb-1" style="color: var(--brand-primary);">
+            <i class="fas fa-graduation-cap me-2"></i>Portal de Capacitación
+        </h2>
+        <p class="text-muted mb-0">Explore las ofertas de formación, revise los detalles y gestione su historial y certificados en un solo lugar.</p>
+    </div>
+
+    <!-- Pestañas del Trabajador -->
+    <ul class="nav nav-tabs border-0">
+        <li class="nav-item">
+            <button class="nav-link {% if tab_activa != 'historial' %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#tabExplorarOfertas">
+                <i class="fas fa-bullhorn me-2"></i>Ofertas Disponibles
+                <span class="badge bg-primary ms-1 rounded-pill">{{ ofertas|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link {% if tab_activa == 'historial' %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#tabMiHistorial">
+                <i class="fas fa-history me-2"></i>Mis Postulaciones y Certificados
+                <span class="badge bg-secondary ms-1 rounded-pill">{{ postulaciones|length }}</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content p-4 shadow-sm">
+        <!-- PESTAÑA 1: OFERTAS DISPONIBLES -->
+        <div class="tab-pane fade {% if tab_activa != 'historial' %}show active{% endif %}" id="tabExplorarOfertas">
+            <div class="row g-4">
+                {% for o in ofertas %}
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="oferta-card p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="d-flex gap-2">
+                                <span class="badge bg-secondary card-badge">{{ o.tipo_formacion.descripcion }}</span>
+                                <span class="badge bg-light text-dark border card-badge">{{ o.modalidad.descripcion }}</span>
+                            </div>
+                            {% if o.mi_postulacion %}
+                                <span class="badge bg-info text-dark card-badge">YA POSTULADO ({{ o.mi_postulacion.estado }})</span>
+                            {% endif %}
+                        </div>
+
+                        <h6 class="fw-bold mb-1">{{ o.nombre }}</h6>
+                        <p class="text-muted small mb-3"><i class="fas fa-university me-1"></i>{{ o.institucion }}</p>
+
+                        <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                            <div class="small text-muted">
+                                <div><i class="far fa-clock me-1 text-primary"></i><strong>{{ o.horas_academicas }} hrs</strong></div>
+                                <div><i class="far fa-calendar-times me-1 text-danger"></i>Cierra: {{ o.fecha_cierre_postulacion|date:"d/m/Y" }}</div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" onclick="verDetalleOferta('{{ o.id }}')">
+                                    <i class="fas fa-eye me-1"></i> Ver Detalle
+                                </button>
+                                {% if o.mi_postulacion and o.mi_postulacion.estado in 'PENDIENTE,APROBADA,APROBADO_GH' %}
+                                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="cancelarMiPostulacion('{{ o.mi_postulacion.id }}', '{{ o.nombre|escapejs }}')" title="Cancelar postulación">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5 text-muted">
+                    <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+                    <p class="fw-bold mb-1">No hay ofertas abiertas en este momento</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- PESTAÑA 2: HISTORIAL Y CERTIFICADOS -->
+        <div class="tab-pane fade {% if tab_activa == 'historial' %}show active{% endif %}" id="tabMiHistorial">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Formación / Institución</th>
+                            <th class="text-center">Horas</th>
+                            <th>Grupo / Convocatoria</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center">Asistencia</th>
+                            <th class="text-center">Certificado / Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in postulaciones %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ p.oferta.nombre }}</div>
+                                <small class="text-muted">{{ p.oferta.tipo_formacion.descripcion }} | {{ p.oferta.institucion }}</small>
+                                {% if p.observacion %}
+                                    <div class="small text-secondary mt-1"><i class="fas fa-comment-dots me-1"></i><em>{{ p.observacion }}</em></div>
+                                {% endif %}
+                            </td>
+                            <td class="text-center fw-bold">{{ p.oferta.horas_academicas }} hrs</td>
+                            <td>
+                                {% if p.grupo %}
+                                    <span class="badge bg-primary bg-opacity-10 text-primary mb-1">{{ p.grupo.nombre_grupo }}</span>
+                                    <div class="small text-muted">
+                                        {% if p.grupo.fecha_inicio %}<i class="far fa-calendar me-1"></i>{{ p.grupo.fecha_inicio|date:"d/m/Y" }}{% endif %}
+                                        {% if p.grupo.lugar %}<br><i class="fas fa-map-marker-alt me-1"></i>{{ p.grupo.lugar }}{% endif %}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted small">Por asignar grupo</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge {% if p.estado == 'PENDIENTE' %}bg-warning text-dark{% elif p.estado in 'APROBADA,APROBADO_GH' %}bg-success{% elif p.estado == 'CONFIRMADO' %}bg-primary{% elif p.estado in 'RECHAZADA,RECHAZADO_GH' %}bg-danger{% elif p.estado == 'CANCELADA' %}bg-secondary{% else %}bg-dark{% endif %} badge-estado">
+                                    {{ p.estado }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                {% if p.registro_asistencia %}
+                                    {% if p.registro_asistencia.asistio %}
+                                        <span class="badge bg-success"><i class="fas fa-check me-1"></i>ASISTIÓ</span>
+                                    {% else %}
+                                        <span class="badge bg-danger"><i class="fas fa-times me-1"></i>INASISTENTE</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted small">Pendiente</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                    {% if p.oferta.estado_oferta == 'ABIERTA' and p.estado in 'PENDIENTE,APROBADA,APROBADO_GH' %}
+                                        <button class="btn btn-outline-danger btn-sm rounded-pill" onclick="cancelarMiPostulacion('{{ p.id }}', '{{ p.oferta.nombre|escapejs }}')">
+                                            <i class="fas fa-ban me-1"></i> Cancelar
+                                        </button>
+                                    {% endif %}
+
+                                    {% if p.registro_asistencia and p.registro_asistencia.asistio %}
+                                        {% if p.registro_asistencia.ruta_certificado %}
+                                            <a href="{{ MEDIA_URL }}{{ p.registro_asistencia.ruta_certificado }}" target="_blank" class="btn btn-success btn-sm rounded-pill">
+                                                <i class="fas fa-award me-1"></i> Ver
+                                            </a>
+                                        {% endif %}
+                                        <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="abrirModalCertificado('{{ p.id }}', '{{ p.oferta.nombre|escapejs }}')">
+                                            <i class="fas fa-upload me-1"></i> Certificado
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center py-5 text-muted">Aún no tienes postulaciones registradas.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ver Detalle -->
+<div class="modal fade" id="modalDetalleOferta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-0 p-4 text-white" style="background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark));">
+                <h5 class="modal-title fw-bold"><i class="fas fa-info-circle me-2"></i>Detalle de la Oferta</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" id="contenidoDetalleOferta"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    const modalDetalle = new bootstrap.Modal(document.getElementById('modalDetalleOferta'));
+    function verDetalleOferta(ofertaId) {
+        const cont = document.getElementById('contenidoDetalleOferta');
+        cont.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        modalDetalle.show();
+        fetch(`/formacion/postulaciones/detalle-oferta/${ofertaId}/`).then(r => r.text()).then(html => { cont.innerHTML = html; });
+    }
+
+    function confirmarPostulacion(ofertaId, nombreOferta) {
+        Swal.fire({
+            title: '¿Confirmar postulación?', text: `Te postularás a: ${nombreOferta}`, icon: 'question',
+            showCancelButton: true, confirmButtonColor: 'var(--brand-primary)', confirmButtonText: 'Sí, postularme'
+        }).then(res => {
+            if (res.isConfirmed) {
+                fetch(`/formacion/postulaciones/postular/${ofertaId}/`, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+                .then(r => r.json()).then(d => {
+                    if (d.success) {
+                        modalDetalle.hide();
+                        Swal.fire({ icon: 'success', title: '¡Postulado!', text: d.mensaje, timer: 1500, showConfirmButton: false })
+                            .then(() => window.location.href = '/formacion/postulaciones/?tab=historial');
+                    } else { Swal.fire('Atención', d.error, 'warning'); }
+                });
+            }
+        });
+    }
+
+    function cancelarMiPostulacion(postulacionId, nombreOferta) {
+        Swal.fire({
+            title: '¿Cancelar postulación?', text: `Se cancelará tu solicitud para "${nombreOferta}".`,
+            input: 'text', inputPlaceholder: 'Motivo de cancelación (opcional)...', icon: 'warning',
+            showCancelButton: true, confirmButtonColor: '#dc2626', confirmButtonText: 'Sí, cancelar'
+        }).then(res => {
+            if (res.isConfirmed) {
+                const fd = new FormData(); fd.append('motivo', res.value || '');
+                fetch(`/formacion/postulaciones/cancelar/${postulacionId}/`, { method: 'POST', body: fd, headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+                .then(r => r.json()).then(d => {
+                    if (d.success) { Swal.fire('Cancelada', d.mensaje, 'success').then(() => location.reload()); }
+                    else { Swal.fire('No permitido', d.error, 'error'); }
+                });
+            }
+        });
+    }
+
+    function abrirModalCertificado(postulacionId, nombreOferta) {
+        Swal.fire({
+            title: 'Cargar Certificado',
+            html: `<p class="small text-muted mb-3">${nombreOferta}</p><input type="file" id="inputCertFile" class="form-control" accept=".pdf,.jpg,.jpeg,.png">`,
+            showCancelButton: true, confirmButtonText: 'Subir', confirmButtonColor: 'var(--brand-primary)',
+            preConfirm: () => {
+                const f = document.getElementById('inputCertFile');
+                if (!f.files.length) { Swal.showValidationMessage('Seleccione un archivo'); return false; }
+                const fd = new FormData(); fd.append('archivo_certificado', f.files[0]);
+                return fetch(`/formacion/certificados/cargar/${postulacionId}/`, { method: 'POST', body: fd, headers: { 'X-CSRFToken': '{{ csrf_token }}' } }).then(r => r.json());
+            }
+        }).then(res => {
+            if (res.isConfirmed && res.value?.success) {
+                Swal.fire('¡Éxito!', res.value.mensaje, 'success').then(() => location.reload());
+            } else if (res.value) { Swal.fire('Error', res.value.error, 'error'); }
+        });
+    }
+</script>
+{% endblock %}

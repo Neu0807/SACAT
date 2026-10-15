@@ -1,0 +1,121 @@
+{% extends 'includes/base_standard.html' %}
+{% load static %}
+
+{% block title %}SACAT | Workspace: {{ oferta.nombre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .workspace-header {
+        background: var(--bg-card);
+        border-radius: 14px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .workspace-nav {
+        display: flex;
+        gap: 0.5rem;
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .workspace-tab {
+        padding: 0.6rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .workspace-tab:hover {
+        color: var(--brand-primary);
+        background: var(--brand-light);
+    }
+    .workspace-tab.active {
+        background: var(--brand-primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(30,58,138,0.2);
+    }
+    .workspace-content {
+        background: var(--bg-card);
+        border-radius: 14px;
+        padding: 1.5rem;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        min-height: 400px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- ============ HEADER DEL CURSO ============ -->
+    <div class="workspace-header">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge-tipo">{{ oferta.tipo_formacion.descripcion }}</span>
+                    <span class="badge-modalidad">{{ oferta.modalidad.descripcion }}</span>
+                    <span class="badge-estado {{ oferta.estado_oferta }}">{{ oferta.get_estado_oferta_display }}</span>
+                </div>
+                <h2 class="fw-bold mb-1" style="color: var(--brand-primary); font-size: 1.4rem;">
+                    {{ oferta.nombre }}
+                </h2>
+                <div class="text-muted" style="font-size: 0.85rem;">
+                    <i class="fas fa-building me-1"></i> {{ oferta.institucion }} &bull; 
+                    <i class="fas fa-clock ms-2 me-1"></i> {{ oferta.horas_academicas }} Horas Académicas &bull;
+                    <i class="fas fa-calendar-times ms-2 me-1"></i> Cierra: {{ oferta.fecha_cierre_postulacion|date:"d/m/Y" }}
+                </div>
+            </div>
+            <div>
+                <a href="{% url 'formacion:listar_ofertas' %}" class="btn btn-outline-secondary btn-sm fw-bold" style="border-radius: 8px;">
+                    <i class="fas fa-arrow-left me-1"></i> Volver al Tablero
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ PESTAÑAS DE NAVEGACIÓN ============ -->
+    <div class="workspace-nav">
+        <a href="?tab=postulaciones" class="workspace-tab {% if active_tab == 'postulaciones' or not active_tab %}active{% endif %}">
+            <i class="fas fa-users"></i> Postulaciones & Aprobación
+            {% if total_pendientes > 0 %}
+            <span class="badge bg-warning text-dark rounded-pill" style="font-size: 0.65rem;">{{ total_pendientes }}</span>
+            {% endif %}
+        </a>
+        <a href="?tab=grupos" class="workspace-tab {% if active_tab == 'grupos' %}active{% endif %}">
+            <i class="fas fa-layer-group"></i> Elaboración de Grupos
+        </a>
+        <a href="?tab=asistencia" class="workspace-tab {% if active_tab == 'asistencia' %}active{% endif %}">
+            <i class="fas fa-clipboard-user"></i> Control de Asistencia
+        </a>
+        <a href="?tab=certificados" class="workspace-tab {% if active_tab == 'certificados' %}active{% endif %}">
+            <i class="fas fa-certificate"></i> Carga de Certificados
+        </a>
+    </div>
+
+    <!-- ============ CONTENEDOR DINÁMICO DE PESTAÑAS ============ -->
+    <div class="workspace-content">
+        {% if active_tab == 'grupos' %}
+            {% include 'formacion/gestion_humana/workspace_grupos.html' %}
+        {% elif active_tab == 'asistencia' %}
+            {% include 'formacion/gestion_humana/workspace_asistencia.html' %}
+        {% elif active_tab == 'certificados' %}
+            {% include 'formacion/gestion_humana/workspace_certificados.html' %}
+        {% else %}
+            {% include 'formacion/gestion_humana/workspace_postulaciones.html' %}
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

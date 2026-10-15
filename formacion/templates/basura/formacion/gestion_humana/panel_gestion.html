@@ -1,0 +1,242 @@
+{% extends 'includes/base_standard.html' %}
+{% load permisos_tags %}
+
+{% block title %}SACAT | Gestión de Formación{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-body: #F8FAFC; --bg-card: #ffffff;
+        --text-main: #0F172A; --text-muted: #64748B;
+        --border-color: #E2E8F0; --brand-primary: #1E3A8A;
+        --brand-dark: #172554; --brand-light: #EEF2FF;
+    }
+    .kpi-card {
+        border-radius: 14px; border: 1px solid var(--border-color); background: var(--bg-card);
+        padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+    }
+    .kpi-icon {
+        width: 48px; height: 48px; border-radius: 12px; display: flex;
+        align-items: center; justify-content: center; font-size: 1.25rem;
+    }
+    .oferta-card {
+        border-radius: 16px; border: 1px solid var(--border-color);
+        background: var(--bg-card); transition: all 0.25s; height: 100%;
+    }
+    .oferta-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.06); border-color: var(--brand-primary); }
+    .card-badge { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <a href="{% url 'inicio' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-1">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
+            </a>
+            <h2 class="fw-bold mb-0" style="color: var(--brand-primary);">
+                <i class="fas fa-cogs me-2"></i>Centro de Gestión de Formación
+            </h2>
+        </div>
+        {% tiene_permiso 'crear_oferta' as puede_crear %}
+        {% if puede_crear %}
+        <button onclick="abrirModalGH('{% url 'crear_oferta' %}', 'Registrar Oferta de Formación')" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="fas fa-plus-circle me-2"></i> Registrar Oferta
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- KPIs Globales -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-xl-3">
+            <div class="kpi-card d-flex align-items-center gap-3">
+                <div class="kpi-icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-bullhorn"></i></div>
+                <div>
+                    <span class="text-muted small fw-bold d-block text-uppercase">Ofertas Activas</span>
+                    <h3 class="fw-bold mb-0">{{ kpis.ofertas_activas }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="kpi-card d-flex align-items-center gap-3">
+                <div class="kpi-icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-clock"></i></div>
+                <div>
+                    <span class="text-muted small fw-bold d-block text-uppercase">Pendientes GH</span>
+                    <h3 class="fw-bold mb-0">{{ kpis.pendientes_totales }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="kpi-card d-flex align-items-center gap-3">
+                <div class="kpi-icon bg-success bg-opacity-10 text-success"><i class="fas fa-user-check"></i></div>
+                <div>
+                    <span class="text-muted small fw-bold d-block text-uppercase">Aprobados Totales</span>
+                    <h3 class="fw-bold mb-0">{{ kpis.aprobados_totales }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="kpi-card d-flex align-items-center gap-3">
+                <div class="kpi-icon bg-info bg-opacity-10 text-info"><i class="fas fa-award"></i></div>
+                <div>
+                    <span class="text-muted small fw-bold d-block text-uppercase">Certificados</span>
+                    <h3 class="fw-bold mb-0">{{ kpis.certificados_emitidos }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid de Ofertas -->
+    <div class="row g-4">
+        {% for o in ofertas %}
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="oferta-card p-4 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-secondary card-badge">{{ o.tipo_formacion.descripcion }}</span>
+                        <span class="badge bg-light text-dark border card-badge">{{ o.modalidad.descripcion }}</span>
+                    </div>
+                    <span class="badge {% if o.estado_oferta == 'ABIERTA' %}bg-success{% elif o.estado_oferta == 'CERRADA' %}bg-secondary{% elif o.estado_oferta == 'FINALIZADA' %}bg-dark{% else %}bg-danger{% endif %} card-badge">
+                        {{ o.estado_oferta }}
+                    </span>
+                </div>
+
+                <h6 class="fw-bold mb-1">{{ o.nombre }}</h6>
+                <p class="text-muted small mb-3"><i class="fas fa-university me-1"></i>{{ o.institucion }}</p>
+
+                <div class="small text-muted mb-3 bg-light p-2 rounded-2">
+                    <div><i class="far fa-clock me-1 text-primary"></i><strong>{{ o.horas_academicas }} hrs</strong> académicas</div>
+                    <div><i class="fas fa-users me-1 text-success"></i>Postulados: <strong>{{ o.total_postulados }}</strong> | Pendientes: <strong class="text-warning">{{ o.pendientes_count }}</strong></div>
+                </div>
+
+                <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" 
+                            onclick="abrirModalGH('/formacion/ofertas/editar/{{ o.id }}/', 'Editar Oferta')">
+                        <i class="fas fa-pencil-alt me-1"></i> Editar
+                    </button>
+                    <a href="{% url 'workspace_postulaciones' o.id %}" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="fas fa-laptop-code me-1"></i> Gestionar Curso
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5 text-muted">
+            <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+            <p class="fw-bold">No hay ofertas de formación registradas</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal Workspace de Gestión por Curso -->
+<div class="modal fade" id="modalWorkspace" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-0 p-4 text-white" style="background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark));">
+                <div>
+                    <span class="badge bg-light text-dark mb-1" id="wsCursoInstitucion" style="font-size: 0.65rem;">CURSO</span>
+                    <h5 class="modal-title fw-bold mb-0" id="wsCursoNombre">Workspace de Formación</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0 bg-light">
+                <ul class="nav nav-tabs px-4 pt-3 bg-white border-bottom" id="workspaceTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active fw-bold" id="tab-postulados" data-bs-toggle="tab" data-bs-target="#pane-postulados" type="button">
+                            <i class="fas fa-users-cog me-1"></i> 1. Postulaciones y Aprobación
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold" id="tab-grupos" data-bs-toggle="tab" data-bs-target="#pane-grupos" type="button">
+                            <i class="fas fa-layer-group me-1"></i> 2. Planificación y Grupos
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold" id="tab-asistencia" data-bs-toggle="tab" data-bs-target="#pane-asistencia" type="button">
+                            <i class="fas fa-clipboard-check me-1"></i> 3. Control de Asistencia y Acta
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content p-4" style="min-height: 450px;">
+                    <div class="tab-pane fade show active" id="pane-postulados"><div class="text-center py-5"><div class="spinner-border text-primary"></div></div></div>
+                    <div class="tab-pane fade" id="pane-grupos"><div class="text-center py-5"><div class="spinner-border text-primary"></div></div></div>
+                    <div class="tab-pane fade" id="pane-asistencia"><div class="text-center py-5"><div class="spinner-border text-primary"></div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Genérico Formularios -->
+<div class="modal fade" id="modalFormGH" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+            <div class="modal-header border-0 p-4 text-white" style="background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark));">
+                <h5 class="modal-title fw-bold" id="tituloModalGH">Gestión</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="cargandoModalGH" class="p-4 text-center d-none"><div class="spinner-border text-primary"></div></div>
+                <div id="contenidoModalGH"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    const modalWorkspace = new bootstrap.Modal(document.getElementById('modalWorkspace'));
+    let cursoActualId = null;
+
+    function abrirWorkspace(ofertaId, ofertaNombre) {
+        cursoActualId = ofertaId;
+        document.getElementById('wsCursoNombre').innerText = ofertaNombre;
+        modalWorkspace.show();
+        cargarPestañaWorkspace('postulaciones', ofertaId);
+    }
+
+    document.getElementById('workspaceTabs').addEventListener('shown.bs.tab', function (event) {
+        const target = event.target.id;
+        if (target === 'tab-postulados') cargarPestañaWorkspace('postulaciones', cursoActualId);
+        if (target === 'tab-grupos') cargarPestañaWorkspace('grupos', cursoActualId);
+        if (target === 'tab-asistencia') cargarPestañaWorkspace('asistencia', cursoActualId);
+    });
+
+    function cargarPestañaWorkspace(seccion, ofertaId) {
+        let paneId = '', url = '';
+        if (seccion === 'postulaciones') { paneId = 'pane-postulados'; url = `/formacion/workspace/${ofertaId}/postulaciones/`; }
+        else if (seccion === 'grupos') { paneId = 'pane-grupos'; url = `/formacion/planificacion/grupos/${ofertaId}/`; }
+        else if (seccion === 'asistencia') { paneId = 'pane-asistencia'; url = `/formacion/workspace/${ofertaId}/asistencia/`; }
+
+        const pane = document.getElementById(paneId);
+        pane.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+
+        fetch(url).then(r => r.text()).then(html => {
+            pane.innerHTML = html;
+            pane.querySelectorAll('script').forEach(old => {
+                var s = document.createElement('script'); s.text = old.text;
+                document.body.appendChild(s).parentNode.removeChild(s);
+            });
+        });
+    }
+
+    const modalFormGH = new bootstrap.Modal(document.getElementById('modalFormGH'));
+    function abrirModalGH(url, titulo) {
+        document.getElementById('tituloModalGH').innerText = titulo;
+        const cont = document.getElementById('contenidoModalGH');
+        const spin = document.getElementById('cargandoModalGH');
+        cont.innerHTML = ''; spin.classList.remove('d-none'); modalFormGH.show();
+        fetch(url).then(r => r.text()).then(html => {
+            spin.classList.add('d-none'); cont.innerHTML = html;
+            cont.querySelectorAll('script').forEach(old => {
+                var s = document.createElement('script'); s.text = old.text;
+                document.body.appendChild(s).parentNode.removeChild(s);
+            });
+        });
+    }
+</script>
+{% endblock %}

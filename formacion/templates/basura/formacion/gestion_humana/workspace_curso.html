@@ -1,0 +1,134 @@
+{% extends 'includes/base_standard.html' %}
+
+{% block title %}SACAT | Workspace del Curso{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg-body: #F8FAFC; --bg-card: #ffffff;
+        --text-main: #0F172A; --text-muted: #64748B;
+        --border-color: #E2E8F0; --brand-primary: #1E3A8A;
+        --brand-dark: #172554; --brand-light: #EEF2FF;
+    }
+    .workspace-header {
+        background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark));
+        color: white; border-radius: 16px; padding: 24px 30px; margin-bottom: 24px;
+        box-shadow: 0 10px 25px rgba(30, 58, 138, 0.15);
+    }
+    .nav-tabs .nav-link {
+        font-weight: 700; font-size: 0.95rem; color: var(--text-muted);
+        border: none; padding: 14px 28px; border-radius: 12px 12px 0 0;
+        background: #E2E8F0; margin-right: 4px; transition: all 0.2s;
+    }
+    .nav-tabs .nav-link:hover { color: var(--brand-primary); background: #CBD5E1; }
+    .nav-tabs .nav-link.active {
+        color: var(--brand-primary); background: var(--bg-card);
+        border-bottom: 4px solid var(--brand-primary);
+    }
+    .tab-content {
+        background: var(--bg-card); border-radius: 0 0 16px 16px;
+        border: 1px solid var(--border-color); border-top: none;
+        padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <!-- Botón Volver y Cabecera del Curso -->
+    <div class="mb-3">
+        <a href="{% url 'listar_ofertas' %}" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+            <i class="fas fa-arrow-left me-2"></i>Volver al Centro de Gestión
+        </a>
+    </div>
+
+    <div class="workspace-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <span class="badge bg-light text-dark mb-2" style="font-size: 0.7rem; font-weight: 800; letter-spacing: 1px;">INSTITUCIÓN: {{ oferta.institucion }}</span>
+            <h3 class="fw-bold mb-1">{{ oferta.nombre }}</h3>
+            <p class="text-white-50 mb-0 small">
+                <i class="far fa-clock me-1"></i> {{ oferta.horas_academicas }} Horas Académicas &nbsp;|&nbsp; 
+                <i class="fas fa-users me-1"></i> Cupo Máximo: {{ oferta.cupo_maximo_oferta|default:50 }} &nbsp;|&nbsp;
+                <i class="fas fa-tag me-1"></i> Estado: <span class="badge bg-success text-white">{{ oferta.estado_oferta }}</span>
+            </p>
+        </div>
+        <div>
+            <span class="badge bg-white bg-opacity-10 text-white px-3 py-2 border border-light border-opacity-25 rounded-pill">
+                <i class="fas fa-laptop-code me-2"></i>Página de Gestión Integral
+            </span>
+        </div>
+    </div>
+
+    <!-- Pestañas de Navegación a Ancho Completo -->
+    <ul class="nav nav-tabs border-0" id="workspaceTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-postulados" data-bs-toggle="tab" data-bs-target="#pane-postulados" type="button" role="tab">
+                <i class="fas fa-users-cog me-2"></i>1. Postulaciones y Aprobación
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-grupos" data-bs-toggle="tab" data-bs-target="#pane-grupos" type="button" role="tab">
+                <i class="fas fa-layer-group me-2"></i>2. Planificación y Grupos (PDF)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-asistencia" data-bs-toggle="tab" data-bs-target="#pane-asistencia" type="button" role="tab">
+                <i class="fas fa-clipboard-check me-2"></i>3. Control de Asistencia y Actas
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenido de las Pestañas -->
+    <div class="tab-content shadow-sm">
+        <div class="tab-pane fade show active" id="pane-postulados" role="tabpanel">
+            <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+        </div>
+        <div class="tab-pane fade" id="pane-grupos" role="tabpanel">
+            <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+        </div>
+        <div class="tab-pane fade" id="pane-asistencia" role="tabpanel">
+            <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    const ofertaId = "{{ oferta.id }}";
+
+    // Cargar por defecto la primera pestaña al abrir la página
+    document.addEventListener("DOMContentLoaded", function() {
+        cargarPestañaWorkspace('postulaciones', ofertaId);
+    });
+
+    // Escuchar cambios de pestañas
+    document.getElementById('workspaceTabs').addEventListener('shown.bs.tab', function (event) {
+        const target = event.target.id;
+        if (target === 'tab-postulados') cargarPestañaWorkspace('postulaciones', ofertaId);
+        if (target === 'tab-grupos') cargarPestañaWorkspace('grupos', ofertaId);
+        if (target === 'tab-asistencia') cargarPestañaWorkspace('asistencia', ofertaId);
+    });
+
+    function cargarPestañaWorkspace(seccion, idOferta) {
+        let paneId = '', url = '';
+        if (seccion === 'postulaciones') { paneId = 'pane-postulados'; url = `/formacion/workspace/${idOferta}/postulaciones/`; }
+        else if (seccion === 'grupos') { paneId = 'pane-grupos'; url = `/formacion/planificacion/grupos/${idOferta}/`; }
+        else if (seccion === 'asistencia') { paneId = 'pane-asistencia'; url = `/formacion/workspace/${idOferta}/asistencia/`; }
+
+        const pane = document.getElementById(paneId);
+        pane.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+
+        fetch(url).then(r => r.text()).then(html => {
+            pane.innerHTML = html;
+            pane.querySelectorAll('script').forEach(old => {
+                var s = document.createElement('script'); s.text = old.text;
+                document.body.appendChild(s).parentNode.removeChild(s);
+            });
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% load static %}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-main">Control de Asistencia por Grupo</h4>
+        <p class="text-muted mb-0" style="font-size: 0.85rem;">Selecciona el grupo, marca quiénes asistieron y adjunta el acta firmada.</p>
+    </div>
+</div>
+
+<!-- Selector de grupo -->
+<div class="bg-light p-3 rounded-3 border mb-4">
+    <form method="get" class="row g-3 align-items-center">
+        <input type="hidden" name="tab" value="asistencia">
+        <div class="col-md-8">
+            <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">SELECCIONAR GRUPO A CONTROLAR</label>
+            <select name="grupo_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">— Selecciona un grupo —</option>
+                {% for g in grupos %}
+                <option value="{{ g.id }}" {% if grupo_seleccionado and grupo_seleccionado.id == g.id %}selected{% endif %}>{{ g.nombre_grupo }} ({{ g.fecha_inicio|date:"d/m/Y" }})</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+{% if grupo_seleccionado %}
+<form method="post" action="{% url 'formacion:guardar_asistencia_grupo' grupo_seleccionado.id %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="table-responsive mb-4">
+        <table class="table table-hover align-middle" style="font-size: 0.85rem;">
+            <thead class="table-light">
+                <tr>
+                    <th>Participante</th>
+                    <th>Cédula</th>
+                    <th class="text-center" style="width: 120px;">¿Asistió?</th>
+                    <th>Observación / Inasistencia</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in participantes_asistencia %}
+                <tr>
+                    <td>
+                        <div class="fw-bold">{{ item.postulacion.trabajador.persona.primer_nombre }} {{ item.postulacion.trabajador.persona.primer_apellido }}</div>
+                        <small class="text-muted">{{ item.postulacion.trabajador.cargo.nombre_cargo|default:"Sin cargo" }}</small>
+                    </td>
+                    <td>{{ item.postulacion.trabajador.persona.cedula }}</td>
+                    <td class="text-center">
+                        <input type="checkbox" name="asistio_{{ item.postulacion.id }}" value="1" {% if item.asistio %}checked{% endif %} class="form-check-input" style="transform: scale(1.3);">
+                    </td>
+                    <td>
+                        <input type="text" name="obs_{{ item.postulacion.id }}" value="{{ item.observacion_asistencia|default:'' }}" class="form-control form-control-sm" placeholder="Motivo de inasistencia (opcional)...">
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">
+                        <p class="mb-0">No hay participantes asignados a este grupo.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Subir Acta escaneada + Botón Guardar -->
+    <div class="row align-items-center bg-light p-4 rounded-3 border g-3">
+        <div class="col-md-6">
+            <label class="form-label fw-bold text-muted" style="font-size: 0.8rem;">ADJUNTAR ACTA DE ASISTENCIA FIRMADA (PDF o Imagen)</label>
+            <input type="file" name="archivo_acta" class="form-control form-control-sm">
+            {% if grupo_seleccionado.archivo_acta_asistencia %}
+            <small class="text-success mt-1 d-block"><i class="fas fa-check-circle me-1"></i>Ya hay un acta cargada previamente.</small>
+            {% endif %}
+        </div>
+        <div class="col-md-6 text-md-end">
+            <button type="submit" class="btn btn-success fw-bold px-4" style="border-radius: 10px;">
+                <i class="fas fa-save me-1"></i> Guardar Control de Asistencia
+            </button>
+        </div>
+    </div>
+</form>
+
+<!-- Agregar asistente en sitio (fuera de lista) -->
+<div class="mt-5 pt-4 border-top">
+    <h5 class="fw-bold text-main fs-6 mb-2"><i class="fas fa-user-plus text-primary me-2"></i>Registrar Asistente de Último Momento (No planificado)</h5>
+    <p class="text-muted" style="font-size: 0.85rem;">Si un trabajador asistió por fuerza mayor sin postulación previa, puedes integrarlo aquí.</p>
+    <form method="post" action="{% url 'formacion:agregar_asistente_sitio' grupo_seleccionado.id %}" class="row g-3 align-items-end">
+        {% csrf_token %}
+        <div class="col-md-6">
+            <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">SELECCIONAR TRABAJADOR</label>
+            <select name="trabajador_id" class="form-select form-select-sm" required>
+                <option value="">— Buscar trabajador —</option>
+                {% for trab in trabajadores_disponibles %}
+                <option value="{{ trab.id }}">{{ trab.persona.cedula }} - {{ trab.persona.primer_nombre }} {{ trab.persona.primer_apellido }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">JUSTIFICACIÓN</label>
+            <input type="text" name="observacion" class="form-control form-control-sm" placeholder="Motivo de asistencia presencial excepcional..." required>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold" style="border-radius: 8px;">
+                <i class="fas fa-plus me-1"></i> Integrar
+            </button>
+        </div>
+    </form>
+</div>
+
+{% else %}
+<div class="text-center py-5 text-muted">
+    <i class="fas fa-hand-pointer fa-2x mb-2 opacity-50"></i>
+    <p>Por favor, selecciona un grupo arriba para desplegar la lista de control de asistencia.</p>
+</div>
+{% endif %}

@@ -1,0 +1,461 @@
+{% extends 'includes/base_standard.html' %}
+{% load static %}
+
+{% block title %}SACAT | Gestión de Formación{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========== HEADER ========== */
+    .gh-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .gh-header h2 {
+        font-weight: 800;
+        color: var(--brand-primary);
+        margin: 0;
+        font-size: 1.6rem;
+    }
+    .gh-header .subtitle {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-top: 2px;
+    }
+
+    /* ========== KPI CARDS ========== */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
+    .kpi-card {
+        background: var(--bg-card);
+        border-radius: 14px;
+        padding: 1.25rem 1.5rem;
+        border-left: 4px solid var(--brand-primary);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.25s;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+    .kpi-card.kpi-warn { border-left-color: #F59E0B; }
+    .kpi-card.kpi-success { border-left-color: #10B981; }
+    .kpi-card.kpi-info { border-left-color: #0D9488; }
+    .kpi-icon {
+        width: 48px; height: 48px;
+        border-radius: 12px;
+        background: var(--brand-light);
+        display: flex; align-items: center; justify-content: center;
+        color: var(--brand-primary);
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+    .kpi-warn .kpi-icon { background: #FEF3C7; color: #B45309; }
+    .kpi-success .kpi-icon { background: #D1FAE5; color: #047857; }
+    .kpi-info .kpi-icon { background: #CCFBF1; color: #0F766E; }
+    .kpi-value {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-main);
+        line-height: 1.1;
+    }
+    .kpi-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        font-weight: 600;
+        margin-top: 2px;
+    }
+
+    /* ========== FILTROS ========== */
+    .filtros-bar {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .filtro-btn {
+        padding: 0.45rem 1rem;
+        border-radius: 50px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-card);
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    .filtro-btn:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+    .filtro-btn.active {
+        background: var(--brand-primary);
+        color: white;
+        border-color: var(--brand-primary);
+    }
+
+    /* ========== GRID OFERTAS ========== */
+    .ofertas-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 1rem;
+    }
+    .oferta-card {
+        background: var(--bg-card);
+        border-radius: 14px;
+        padding: 1.25rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        transition: all 0.25s;
+        position: relative;
+    }
+    .oferta-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+
+    .oferta-badges {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.25rem;
+    }
+    .badge-tipo, .badge-modalidad, .badge-estado {
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 50px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .badge-tipo { background: var(--brand-light); color: var(--brand-primary); }
+    .badge-modalidad { background: #E0E7FF; color: #3730A3; }
+    .badge-estado.ABIERTA { background: #D1FAE5; color: #065F46; }
+    .badge-estado.CERRADA { background: #FEF3C7; color: #92400E; }
+    .badge-estado.FINALIZADA { background: #E5E7EB; color: #374151; }
+    .badge-estado.CANCELADA { background: #FEE2E2; color: #991B1B; }
+
+    .oferta-titulo {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-main);
+        line-height: 1.3;
+        margin: 0;
+    }
+    .oferta-institucion {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .oferta-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        flex-wrap: wrap;
+    }
+    .oferta-meta i { color: var(--brand-primary); }
+    .oferta-cupos-bar {
+        background: #F1F5F9;
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 0.25rem;
+    }
+    .oferta-cupos-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #10B981, #059669);
+        transition: width 0.4s;
+    }
+    .oferta-cupos-fill.warn { background: linear-gradient(90deg, #F59E0B, #D97706); }
+    .oferta-cupos-fill.danger { background: linear-gradient(90deg, #EF4444, #B91C1C); }
+
+    .oferta-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border-color);
+    }
+    .pendientes-badge {
+        background: #FEF3C7;
+        color: #92400E;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .pendientes-badge.sin-pendientes { background: #F1F5F9; color: #64748B; }
+    .btn-gestionar {
+        background: var(--brand-primary);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-gestionar:hover { background: var(--brand-dark); color: white; }
+
+    /* ========== EMPTY STATE ========== */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--bg-card);
+        border-radius: 14px;
+        border: 2px dashed var(--border-color);
+    }
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--text-muted);
+        opacity: 0.4;
+        margin-bottom: 1rem;
+    }
+    .empty-state h5 { color: var(--text-main); font-weight: 700; }
+    .empty-state p { color: var(--text-muted); font-size: 0.9rem; }
+
+    /* Botón primario reutilizable */
+    .btn-primary-custom {
+        background: var(--brand-primary);
+        color: white;
+        border: none;
+        padding: 0.65rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 8px rgba(30,58,138,0.25);
+    }
+    .btn-primary-custom:hover {
+        background: var(--brand-dark);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(30,58,138,0.35);
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- ============ HEADER ============ -->
+    <div class="gh-header">
+        <div>
+            <h2><i class="fas fa-chalkboard-teacher me-2"></i>Gestión de Formación</h2>
+            <div class="subtitle">Centro de operaciones para administrar cursos, postulaciones, grupos y certificados</div>
+        </div>
+        <button class="btn-primary-custom" onclick="abrirModalNuevaOferta()">
+            <i class="fas fa-plus-circle"></i> Nueva Oferta de Formación
+        </button>
+    </div>
+
+    <!-- ============ KPIs GLOBALES ============ -->
+    <div class="kpi-grid">
+        <div class="kpi-card kpi-success">
+            <div class="kpi-icon"><i class="fas fa-door-open"></i></div>
+            <div>
+                <div class="kpi-value">{{ kpis.ofertas_activas }}</div>
+                <div class="kpi-label">Ofertas Activas</div>
+            </div>
+        </div>
+        <div class="kpi-card kpi-warn">
+            <div class="kpi-icon"><i class="fas fa-hourglass-half"></i></div>
+            <div>
+                <div class="kpi-value">{{ kpis.pendientes_totales }}</div>
+                <div class="kpi-label">Postulaciones Pendientes</div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon"><i class="fas fa-user-check"></i></div>
+            <div>
+                <div class="kpi-value">{{ kpis.aprobados_totales }}</div>
+                <div class="kpi-label">Aprobados Totales</div>
+            </div>
+        </div>
+        <div class="kpi-card kpi-info">
+            <div class="kpi-icon"><i class="fas fa-certificate"></i></div>
+            <div>
+                <div class="kpi-value">{{ kpis.certificados_emitidos }}</div>
+                <div class="kpi-label">Certificados Emitidos</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ FILTROS ============ -->
+    <div class="filtros-bar">
+        <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-right:0.5rem;">
+            <i class="fas fa-filter me-1"></i> Filtrar:
+        </span>
+        <a href="?estado=TODAS" class="filtro-btn {% if not request.GET.estado or request.GET.estado == 'TODAS' %}active{% endif %}">
+            Todas ({{ ofertas|length }})
+        </a>
+        <a href="?estado=ABIERTA" class="filtro-btn {% if request.GET.estado == 'ABIERTA' %}active{% endif %}">Abiertas</a>
+        <a href="?estado=CERRADA" class="filtro-btn {% if request.GET.estado == 'CERRADA' %}active{% endif %}">Cerradas</a>
+        <a href="?estado=FINALIZADA" class="filtro-btn {% if request.GET.estado == 'FINALIZADA' %}active{% endif %}">Finalizadas</a>
+        <a href="?estado=CANCELADA" class="filtro-btn {% if request.GET.estado == 'CANCELADA' %}active{% endif %}">Canceladas</a>
+    </div>
+
+    <!-- ============ GRID DE OFERTAS ============ -->
+    {% if ofertas %}
+    <div class="ofertas-grid">
+        {% for oferta in ofertas %}
+        <div class="oferta-card">
+
+            <!-- Badges -->
+            <div class="oferta-badges">
+                <span class="badge-tipo">{{ oferta.tipo_formacion.descripcion }}</span>
+                <span class="badge-modalidad">{{ oferta.modalidad.descripcion }}</span>
+                <span class="badge-estado {{ oferta.estado_oferta }}">{{ oferta.get_estado_oferta_display }}</span>
+            </div>
+
+            <!-- Título -->
+            <h3 class="oferta-titulo">{{ oferta.nombre }}</h3>
+
+            <!-- Institución -->
+            <div class="oferta-institucion">
+                <i class="fas fa-building"></i> {{ oferta.institucion }}
+            </div>
+
+            <!-- Meta -->
+            <div class="oferta-meta">
+                <span><i class="fas fa-clock"></i> {{ oferta.horas_academicas }} hrs</span>
+                <span><i class="fas fa-calendar-times"></i> Cierra {{ oferta.fecha_cierre_postulacion|date:"d/m/Y" }}</span>
+            </div>
+
+            <!-- Cupos -->
+            <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-muted); margin-bottom:4px;">
+                    <span><b>Aprobados:</b> {{ oferta.aprobados_count }} / {{ oferta.cupo_maximo_oferta }}</span>
+                    <span><b>Total postulados:</b> {{ oferta.total_postulados }}</span>
+                </div>
+                <div class="oferta-cupos-bar">
+                    {% widthratio oferta.aprobados_count oferta.cupo_maximo_oferta 100 as pct %}
+                    <div class="oferta-cupos-fill {% if pct >= 90 %}danger{% elif pct >= 70 %}warn{% endif %}"
+                         style="width: {% if pct > 100 %}100{% else %}{{ pct }}{% endif %}%"></div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="oferta-footer">
+                {% if oferta.pendientes_count > 0 %}
+                <span class="pendientes-badge">
+                    <i class="fas fa-exclamation-circle"></i> {{ oferta.pendientes_count }} pendiente{{ oferta.pendientes_count|pluralize }}
+                </span>
+                {% else %}
+                <span class="pendientes-badge sin-pendientes">
+                    <i class="fas fa-check-circle"></i> Sin pendientes
+                </span>
+                {% endif %}
+
+                <a href="{% url 'formacion:workspace_curso' oferta.id %}" class="btn-gestionar">
+                    <i class="fas fa-cog"></i> Gestionar
+                </a>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h5>No hay ofertas de formación registradas</h5>
+        <p>Comienza creando tu primera oferta de formación para que los trabajadores puedan postularse.</p>
+        <button class="btn-primary-custom mt-3" onclick="abrirModalNuevaOferta()">
+            <i class="fas fa-plus-circle"></i> Crear Primera Oferta
+        </button>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- ============ MODAL: NUEVA OFERTA ============ -->
+{% include 'formacion/gestion_humana/modales/_modal_nueva_oferta.html' %}
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    // ============================================================
+    // MODAL: NUEVA OFERTA
+    // ============================================================
+    function abrirModalNuevaOferta() {
+        const modal = new bootstrap.Modal(document.getElementById('modalNuevaOferta'));
+        modal.show();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('formNuevaOferta');
+        if (!form) return;
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const btnGuardar = document.getElementById('btnGuardarOferta');
+            const textoOriginal = btnGuardar.innerHTML;
+            btnGuardar.disabled = true;
+            btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+            fetch("{% url 'formacion:crear_oferta' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Oferta creada!',
+                        text: data.mensaje,
+                        timer: 1800,
+                        showConfirmButton: false
+                    }).then(() => window.location.reload());
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.error || 'No se pudo crear la oferta.'
+                    });
+                    btnGuardar.disabled = false;
+                    btnGuardar.innerHTML = textoOriginal;
+                }
+            })
+            .catch(err => {
+                Swal.fire({ icon: 'error', title: 'Error de red', text: err.message });
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = textoOriginal;
+            });
+        });
+    });
+</script>
+{% endblock %}

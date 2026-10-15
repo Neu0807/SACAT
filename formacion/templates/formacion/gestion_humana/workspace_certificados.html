@@ -1,0 +1,105 @@
+<div class="mb-4">
+    <h4 class="fw-bold mb-1" style="color: var(--text-main);">Gestión y Control de Certificados</h4>
+    <p class="text-muted mb-0" style="font-size: 0.85rem;">Monitorea la emisión y carga de certificados de los participantes que asistieron.</p>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle" style="font-size: 0.85rem;">
+        <thead class="table-light text-muted text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+            <tr>
+                <th>Trabajador</th>
+                <th>Cédula</th>
+                <th>Grupo</th>
+                <th>Estatus Asistencia</th>
+                <th>Certificado Digital</th>
+                <th class="text-end">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in participantes_certificables %}
+            <tr>
+                <td>
+                    <div class="fw-bold text-main">{{ p.trabajador.persona.primer_nombre }} {{ p.trabajador.persona.primer_apellido }}</div>
+                    <small class="text-muted">{{ p.trabajador.unidad_org.nombre_unidad|default:"Sin unidad" }}</small>
+                </td>
+                <td><span class="badge bg-light text-dark font-monospace">{{ p.trabajador.persona.cedula }}</span></td>
+                <td>{{ p.grupo.nombre_grupo|default:"Sin grupo" }}</td>
+                <td>
+                    {% with asist=p.asistencias.first %}
+                        {% if asist and asist.asistio %}
+                            <span class="badge bg-success">Asistió (Certificable)</span>
+                        {% else %}
+                            <span class="badge bg-secondary">No asistió / Pendiente</span>
+                        {% endif %}
+                    {% endwith %}
+                </td>
+                <td>
+                    {% with asist=p.asistencias.first %}
+                        {% if asist and asist.ruta_certificado %}
+                            <a href="{{ MEDIA_URL }}{{ asist.ruta_certificado }}" target="_blank" class="text-success fw-bold text-decoration-none">
+                                <i class="fas fa-check-circle me-1"></i> Ver Certificado
+                            </a>
+                        {% else %}
+                            <span class="text-muted">No cargado</span>
+                        {% endif %}
+                    {% endwith %}
+                </td>
+                <td class="text-end">
+                    {% with asist=p.asistencias.first %}
+                        {% if asist and asist.asistio %}
+                        <button class="btn btn-outline-primary btn-sm py-0 px-2" onclick="abrirModalCertificado('{{ p.id }}')">
+                            <i class="fas fa-upload me-1"></i> Subir / Reemplazar
+                        </button>
+                        {% else %}
+                        <button class="btn btn-light btn-sm py-0 px-2" disabled title="Debe marcar asistencia positiva primero">
+                            Bloqueado
+                        </button>
+                        {% endif %}
+                    {% endwith %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center py-4 text-muted">
+                    <i class="fas fa-award fa-2x mb-2 opacity-50"></i>
+                    <p class="mb-0">No hay participantes habilitados para certificación en esta oferta.</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Carga Certificado GH -->
+<div class="modal fade" id="modalCargarCertificado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4">
+            <div class="modal-header bg-success text-white py-3">
+                <h5 class="modal-title fw-bold fs-6"><i class="fas fa-upload me-2"></i>Cargar Certificado Institucional</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formCargarCertificado" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-3">Sube el documento oficial en PDF o imagen. El sistema lo sincronizará automáticamente con el expediente y ficha curricular del trabajador.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Archivo del Certificado <span class="text-danger">*</span></label>
+                        <input type="file" name="archivo_certificado" class="form-control" accept=".pdf,image/*" required>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-light btn-sm fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success btn-sm fw-bold px-3">Subir y Sincronizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function abrirModalCertificado(postulacionId) {
+        const form = document.getElementById('formCargarCertificado');
+        form.action = `/formacion/gestion/postulacion/${postulacionId}/cargar-certificado/`;
+        new bootstrap.Modal(document.getElementById('modalCargarCertificado')).show();
+    }
+</script>

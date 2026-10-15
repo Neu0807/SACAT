@@ -1,0 +1,39 @@
+<div class="modal fade" id="modalRechazarPostulacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 14px;">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold fs-6"><i class="fas fa-ban me-2"></i>Rechazar Postulación</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formRechazar" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="postulacion_id" id="rechazarPostulacionId">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted" style="font-size: 0.8rem;">MOTIVO DE RECHAZO <span class="text-danger">*</span></label>
+                        <select name="motivo_rechazo_id" class="form-select" required>
+                            <option value="">— Selecciona un motivo —</option>
+                            {% for motivo in motivos_rechazo %}
+                            <option value="{{ motivo.id }}">{{ motivo.descripcion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted" style="font-size: 0.8rem;">OBSERVACIONES / DETALLES</label>
+                        <textarea name="observacion" class="form-control" rows="3" placeholder="Detalles adicionales opcionales..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-light btn-sm fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger btn-sm fw-bold">Confirmar Rechazo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    // Ajustar acción dinámicamente al abrir
+    const formRechazar = document.getElementById('formRechazar');
+    const inputRechazarId = document.getElementById('rechazarPostulacionId');
+    // Nota: el action del form se puede actualizar o enviar directo a una vista genérica según tu views.py
+</script>

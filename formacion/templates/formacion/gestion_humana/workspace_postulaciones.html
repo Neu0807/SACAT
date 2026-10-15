@@ -1,0 +1,147 @@
+{% load static %}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <h4 class="fw-bold mb-1" style="color: var(--text-main);">Gestión de Postulaciones</h4>
+        <p class="text-muted mb-0" style="font-size: 0.85rem;">Aprueba, rechaza con trazabilidad o gestiona sustituciones de personal.</p>
+    </div>
+    
+    <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-outline-primary btn-sm fw-bold px-3" style="border-radius: 8px;" onclick="abrirModalInscribir()">
+            <i class="fas fa-user-plus me-1"></i> Inscribir Trabajador Directo
+        </button>
+    </div>
+</div>
+
+<!-- Barra de Filtros Avanzados -->
+<form method="GET" class="row g-2 mb-4 p-3 bg-light rounded-3 align-items-center" style="border: 1px solid var(--border-color);">
+    <input type="hidden" name="tab" value="postulaciones">
+    
+    <div class="col-md-4">
+        <label class="form-label fw-bold text-muted mb-1" style="font-size: 0.75rem;">FILTRAR POR OFICINA / UNIDAD</label>
+        <select name="oficina" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">— Todas las oficinas —</option>
+            {% for unidad in unidades_organizativas %}
+            <option value="{{ unidad.id }}" {% if request.GET.oficina == unidad.id|stringformat:"s" %}selected{% endif %}>{{ unidad.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label fw-bold text-muted mb-1" style="font-size: 0.75rem;">ESTADO DE POSTULACIÓN</label>
+        <select name="estado" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">— Todos los estados —</option>
+            <option value="PENDIENTE" {% if request.GET.estado == 'PENDIENTE' %}selected{% endif %}>Pendientes</option>
+            <option value="APROBADA" {% if request.GET.estado == 'APROBADA' %}selected{% endif %}>Aprobadas</option>
+            <option value="CONFIRMADO" {% if request.GET.estado == 'CONFIRMADO' %}selected{% endif %}>Confirmados (Con grupo)</option>
+            <option value="RECHAZADA" {% if request.GET.estado == 'RECHAZADA' %}selected{% endif %}>Rechazadas</option>
+            <option value="SUSTITUIDO" {% if request.GET.estado == 'SUSTITUIDO' %}selected{% endif %}>Sustituidos</option>
+        </select>
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label fw-bold text-muted mb-1" style="font-size: 0.75rem;">BUSCAR TRABAJADOR</label>
+        <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control form-control-sm" placeholder="Cédula o nombre...">
+    </div>
+
+    <div class="col-md-1 d-flex align-items-end">
+        <button type="submit" class="btn btn-secondary btn-sm w-100" style="border-radius: 6px;" title="Buscar">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+</form>
+
+<!-- Tabla de Postulaciones -->
+<div class="table-responsive">
+    <table class="table table-hover align-middle" style="font-size: 0.85rem;">
+        <thead class="table-light text-muted text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+            <tr>
+                <th style="width: 40px;">
+                    <input type="checkbox" id="selectAll" class="form-check-input" onclick="toggleSelectAll(this)">
+                </th>
+                <th>Trabajador</th>
+                <th>Cédula</th>
+                <th>Oficina / Área</th>
+                <th>Origen</th>
+                <th>Fecha Postulación</th>
+                <th>Estado</th>
+                <th class="text-end">Acciones Operativas</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in postulaciones %}
+            <tr>
+                <td>
+                    {% if post.estado == 'PENDIENTE' %}
+                    <input type="checkbox" name="postulacion_ids" value="{{ post.id }}" class="form-check-input row-checkbox">
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="fw-bold text-main">{{ post.trabajador.persona.primer_nombre }} {{ post.trabajador.persona.primer_apellido }}</div>
+                    <small class="text-muted">{{ post.trabajador.cargo.nombre|default:"Sin cargo especificado" }}</small>
+                </td>
+                <td><span class="badge bg-light text-dark font-monospace">{{ post.trabajador.persona.cedula }}</span></td>
+                <td>{{ post.trabajador.unidad_organizativa.nombre|default:"N/A" }}</td>
+                <td>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary" style="font-size: 0.7rem;">
+                        {{ post.get_origen_postulacion_display }}
+                    </span>
+                </td>
+                <td class="text-muted">{{ post.fecha_postulacion|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% if post.estado == 'PENDIENTE' %}
+                        <span class="badge bg-warning text-dark">Pendiente</span>
+                    {% elif post.estado == 'APROBADA' %}
+                        <span class="badge bg-success">Aprobada</span>
+                    {% elif post.estado == 'CONFIRMADO' %}
+                        <span class="badge bg-info text-dark">Convocado (Grupo)</span>
+                    {% elif post.estado == 'RECHAZADA' %}
+                        <span class="badge bg-danger" title="{{ post.motivo_rechazo.descripcion }}">Rechazada</span>
+                    {% elif post.estado == 'SUSTITUIDO' %}
+                        <span class="badge bg-dark">Sustituido</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ post.estado }}</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <div class="d-flex gap-1 justify-content-end">
+                        {% if post.estado == 'PENDIENTE' %}
+                            <a href="{% url 'formacion:aprobar_gh' post.id %}" class="btn btn-success btn-sm py-0 px-2" title="Aprobar postulación">
+                                <i class="fas fa-check"></i>
+                            </a>
+                            <button type="button" class="btn btn-danger btn-sm py-0 px-2" title="Rechazar con motivo" onclick="abrirModalRechazar('{{ post.id }}', '{{ post.trabajador.persona.primer_nombre }} {{ post.trabajador.persona.primer_apellido }}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        {% endif %}
+
+                        {% if post.estado == 'APROBADA' or post.estado == 'CONFIRMADO' %}
+                            <button type="button" class="btn btn-outline-dark btn-sm py-0 px-2" title="Sustituir trabajador" onclick="abrirModalSustituir('{{ post.id }}', '{{ post.trabajador.persona.primer_nombre }} {{ post.trabajador.persona.primer_apellido }}')">
+                                <i class="fas fa-exchange-alt"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center py-4 text-muted">
+                    <i class="fas fa-inbox fa-2x mb-2 opacity-50"></i>
+                    <p class="mb-0">No se encontraron postulaciones con los filtros seleccionados.</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Incluir Modales Operativos de la Pestaña -->
+{% include 'formacion/gestion_humana/modales/_modal_rechazar.html' %}
+{% include 'formacion/gestion_humana/modales/_modal_inscribir.html' %}
+{% include 'formacion/gestion_humana/modales/_modal_sustituir.html' %}
+
+<script>
+    function toggleSelectAll(master) {
+        const checkboxes = document.querySelectorAll('.row-checkbox');
+        checkboxes.forEach(cb => cb.checked = master.checked);
+    }
+</script>

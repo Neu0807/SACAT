@@ -1,0 +1,30 @@
+<div class="modal fade" id="modalSustituirParticipante" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 14px;">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold fs-6"><i class="fas fa-exchange-alt me-2"></i>Sustituir Participante Aprobado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" id="formSustituir">
+                {% csrf_token %}
+                <input type="hidden" name="postulacion_original_id" id="sustituirPostulacionId">
+                <div class="modal-body">
+                    <p class="text-muted" style="font-size: 0.85rem;">Selecciona al trabajador que tomará el lugar del participante actual. Heredará automáticamente su grupo asignado.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted" style="font-size: 0.8rem;">CÉDULA O NOMBRE DEL NUEVO TRABAJADOR <span class="text-danger">*</span></label>
+                        <select name="nuevo_trabajador_id" class="form-select" required>
+                            <option value="">— Selecciona trabajador —</option>
+                            {% for trab in trabajadores_disponibles %}
+                            <option value="{{ trab.id }}">{{ trab.persona.cedula }} - {{ trab.persona.primer_nombre }} {{ trab.persona.primer_apellido }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-light btn-sm fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning btn-sm fw-bold text-dark">Ejecutar Sustitución</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

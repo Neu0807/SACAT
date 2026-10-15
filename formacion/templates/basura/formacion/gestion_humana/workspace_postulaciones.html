@@ -1,0 +1,249 @@
+<div class="row g-3 align-items-center mb-4">
+    <div class="col-md-8">
+        <div class="d-flex flex-wrap gap-2">
+            <span class="badge bg-success px-3 py-2">Aprobados: {{ metricas.aprobados }} / {{ metricas.cupo_max }}</span>
+            <span class="badge bg-warning text-dark px-3 py-2">Pendientes: {{ metricas.pendientes }}</span>
+            <span class="badge bg-danger px-3 py-2">Rechazados: {{ metricas.rechazados }}</span>
+        </div>
+    </div>
+    <div class="col-md-4 text-md-end d-flex justify-content-md-end gap-2">
+        <button class="btn btn-outline-success btn-sm rounded-pill px-3" onclick="aprobarSeleccionadosGH('{{ oferta.id }}')">
+            <i class="fas fa-check-double me-1"></i> Aprobar Seleccionados
+        </button>
+        <button class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="abrirModalInscribirDirecto()">
+            <i class="fas fa-user-plus me-1"></i> Inscripción Directa
+        </button>
+    </div>
+</div>
+
+<div class="table-responsive bg-white rounded-3 shadow-sm border p-3">
+    <table class="table table-hover align-middle mb-0" id="tablaPostulacionesWorkspace">
+        <thead class="table-light">
+            <tr>
+                <th style="width: 30px;"><input type="checkbox" id="checkTodosGh"></th>
+                <th>Trabajador</th>
+                <th>Unidad Organizativa</th>
+                <th class="text-center">Origen</th>
+                <th class="text-center">Estado</th>
+                <th class="text-center">Acciones y Trazabilidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in postulaciones %}
+            <tr>
+                <td>
+                    {% if p.estado == 'PENDIENTE' %}
+                        <input type="checkbox" name="post_ids" value="{{ p.id }}" class="check-gh-item">
+                    {% endif %}
+                </td>
+                <td>
+                    <strong>{{ p.trabajador.persona.primer_nombre }} {{ p.trabajador.persona.primer_apellido }}</strong>
+                    <br><small class="text-muted">CI: {{ p.trabajador.persona.cedula }}</small>
+                </td>
+                <td>
+                    <span class="badge bg-light text-dark border">{{ p.trabajador.unidad_org.nombre_unidad|default:"—" }}</span>
+                </td>
+                <td class="text-center small">
+                    {% if p.origen_postulacion == 'TRABAJADOR' %}
+                        <span class="text-primary fw-bold">Autogestión</span>
+                    {% elif p.origen_postulacion == 'GESTION_HUMANA' %}
+                        <span class="text-success fw-bold">Inscrito GH</span>
+                    {% else %}
+                        <span class="text-secondary fw-bold">En Sitio</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    <span class="badge {% if p.estado == 'PENDIENTE' %}bg-warning text-dark{% elif p.estado in 'APROBADA,APROBADO_GH' %}bg-success{% elif p.estado == 'CONFIRMADO' %}bg-primary{% elif p.estado in 'RECHAZADA,RECHAZADO_GH' %}bg-danger{% elif p.estado == 'CANCELADA' %}bg-secondary{% else %}bg-dark{% endif %}">
+                        {{ p.estado }}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <div class="d-flex justify-content-center gap-1">
+                        {% if p.estado == 'PENDIENTE' %}
+                            <button class="btn btn-success btn-sm rounded-pill px-3" onclick="accionGhItem('aprobar_gh', '{{ p.id }}')">
+                                <i class="fas fa-check"></i> Aprobar
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="accionGhRechazar('{{ p.id }}')">
+                                <i class="fas fa-times"></i> Rechazar
+                            </button>
+                        {% endif %}
+
+                        {% if p.estado in 'APROBADA,APROBADO_GH,CONFIRMADO' %}
+                            <button class="btn btn-outline-warning btn-sm rounded-pill px-3" onclick="abrirModalSustituir('{{ p.id }}', '{{ p.trabajador.persona.primer_nombre|escapejs }} {{ p.trabajador.persona.primer_apellido|escapejs }}')">
+                                <i class="fas fa-exchange-alt me-1"></i> Sustituir
+                            </button>
+                        {% endif %}
+
+                        {% if p.observacion %}
+                            <button class="btn btn-light btn-sm rounded-circle" title="{{ p.observacion }}">
+                                <i class="fas fa-info-circle text-info"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center py-4 text-muted">No hay postulaciones registradas en esta oferta.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Inscripción Directa -->
+<div class="modal fade" id="modalInscribirDirecto" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold">Inscribir Trabajador Directamente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formInscribirDirecto">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Seleccione al Trabajador</label>
+                        <select name="trabajador_id" class="form-select" required>
+                            <option value="" selected disabled>Seleccione...</option>
+                            {% for tw in trabajadores_disponibles %}
+                                <option value="{{ tw.id }}">{{ tw.persona.primer_apellido }} {{ tw.persona.primer_nombre }} (CI: {{ tw.persona.cedula }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Observación / Motivo</label>
+                        <textarea name="observacion" class="form-control" rows="2" placeholder="Ej: Incorporado por solicitud de jefatura..."></textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary fw-bold">Inscribir y Aprobar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sustitución -->
+<div class="modal fade" id="modalSustituir" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold">Sustituir Participante</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSustituir">
+                    {% csrf_token %}
+                    <input type="hidden" id="postulacionSalienteId">
+                    <p class="small text-muted mb-3">Sustituyendo a: <strong id="nombreSalienteDisplay"></strong></p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Nuevo Trabajador (Sustituto)</label>
+                        <select name="nuevo_trabajador_id" class="form-select" required>
+                            <option value="" selected disabled>Seleccione trabajador...</option>
+                            {% for tw in trabajadores_disponibles %}
+                                <option value="{{ tw.id }}">{{ tw.persona.primer_apellido }} {{ tw.persona.primer_nombre }} (CI: {{ tw.persona.cedula }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Motivo de Sustitución <span class="text-danger">*</span></label>
+                        <textarea name="motivo" class="form-control" rows="2" placeholder="Ej: Reposo médico, viaje de comisión..." required></textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning fw-bold">Confirmar Sustitución</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('checkTodosGh')?.addEventListener('change', function() {
+        document.querySelectorAll('.check-gh-item').forEach(cb => cb.checked = this.checked);
+    });
+
+    function accionGhItem(accion, postulacionId) {
+        fetch(`/formacion/aprobacion/${accion}/${postulacionId}/`, {
+            method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        }).then(r => r.json()).then(data => {
+            if (data.success) cargarPestañaWorkspace('postulaciones', cursoActualId);
+            else Swal.fire('Error', data.error, 'error');
+        });
+    }
+
+    function accionGhRechazar(postulacionId) {
+        Swal.fire({
+            title: 'Motivo del Rechazo', input: 'text', inputPlaceholder: 'Escriba el porqué se rechaza...',
+            showCancelButton: true, confirmButtonColor: '#dc2626', confirmButtonText: 'Rechazar solicitud'
+        }).then(res => {
+            if (res.isConfirmed) {
+                const fd = new FormData(); fd.append('motivo', res.value || '');
+                fetch(`/formacion/aprobacion/rechazar_gh/${postulacionId}/`, {
+                    method: 'POST', body: fd, headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                }).then(r => r.json()).then(d => {
+                    if (d.success) cargarPestañaWorkspace('postulaciones', cursoActualId);
+                    else Swal.fire('Error', d.error, 'error');
+                });
+            }
+        });
+    }
+
+    function aprobarSeleccionadosGH(ofertaId) {
+        const ids = Array.from(document.querySelectorAll('.check-gh-item:checked')).map(cb => cb.value);
+        if (!ids.length) { Swal.fire('Atención', 'Seleccione al menos un trabajador.', 'warning'); return; }
+
+        Swal.fire({
+            title: '¿Aprobar selección?', text: `Se aprobarán ${ids.length} postulaciones de golpe.`,
+            icon: 'question', showCancelButton: true, confirmButtonColor: 'var(--brand-primary)'
+        }).then(res => {
+            if (res.isConfirmed) {
+                const fd = new FormData(); ids.forEach(id => fd.append('postulaciones_ids[]', id));
+                fetch(`/formacion/aprobacion/aprobar-masivo/${ofertaId}/`, {
+                    method: 'POST', body: fd, headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                }).then(r => r.json()).then(d => {
+                    if (d.success) {
+                        Swal.fire({ icon: 'success', title: '¡Aprobados!', text: d.mensaje, timer: 1500, showConfirmButton: false });
+                        cargarPestañaWorkspace('postulaciones', cursoActualId);
+                    } else { Swal.fire('Error', d.error, 'error'); }
+                });
+            }
+        });
+    }
+
+    const modalInscribir = new bootstrap.Modal(document.getElementById('modalInscribirDirecto'));
+    function abrirModalInscribirDirecto() { modalInscribir.show(); }
+
+    document.getElementById('formInscribirDirecto')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        fetch(`/formacion/aprobacion/inscribir-directo/${cursoActualId}/`, {
+            method: 'POST', body: new FormData(this), headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        }).then(r => r.json()).then(d => {
+            if (d.success) {
+                modalInscribir.hide();
+                Swal.fire({ icon: 'success', title: '¡Inscrito!', text: d.mensaje, timer: 1500, showConfirmButton: false });
+                cargarPestañaWorkspace('postulaciones', cursoActualId);
+            } else { Swal.fire('Error', d.error, 'error'); }
+        });
+    });
+
+    const modalSustituir = new bootstrap.Modal(document.getElementById('modalSustituir'));
+    function abrirModalSustituir(postulacionId, nombreTrabajador) {
+        document.getElementById('postulacionSalienteId').value = postulacionId;
+        document.getElementById('nombreSalienteDisplay').innerText = nombreTrabajador;
+        modalSustituir.show();
+    }
+
+    document.getElementById('formSustituir')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const postId = document.getElementById('postulacionSalienteId').value;
+        fetch(`/formacion/aprobacion/sustituir/${postId}/`, {
+            method: 'POST', body: new FormData(this), headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        }).then(r => r.json()).then(d => {
+            if (d.success) {
+                modalSustituir.hide();
+                Swal.fire({ icon: 'success', title: '¡Sustitución Exitosa!', text: d.mensaje, timer: 2000, showConfirmButton: false });
+                cargarPestañaWorkspace('postulaciones', cursoActualId);
+            } else { Swal.fire('Error', d.error, 'error'); }
+        });
+    });
+</script>

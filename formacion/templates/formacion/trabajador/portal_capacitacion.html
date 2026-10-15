@@ -1,0 +1,318 @@
+{% extends 'includes/base_standard.html' %}
+{% load static %}
+
+{% block title %}SACAT | Portal de Capacitación{% endblock %}
+
+{% block extra_css %}
+<style>
+    .portal-header {
+        background: linear-gradient(135deg, var(--brand-primary), var(--brand-dark));
+        color: white;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(30,58,138,0.15);
+    }
+    .portal-nav {
+        display: flex;
+        gap: 0.5rem;
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+    }
+    .portal-tab {
+        padding: 0.6rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .portal-tab:hover { color: var(--brand-primary); background: var(--brand-light); }
+    .portal-tab.active { background: var(--brand-primary); color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Banner exclusivo para personal de GH probando el portal -->
+    {% if es_personal_gh %}
+    <div class="alert alert-info d-flex justify-content-between align-items-center mb-3 py-2 px-3 shadow-sm" style="border-radius: 10px; font-size: 0.85rem;">
+        <div>
+            <i class="fas fa-info-circle me-2"></i> Estás visualizando el <b>Portal del Trabajador</b> (Vista de Autogestión y Postulación).
+        </div>
+        <a href="{% url 'formacion:listar_ofertas' %}" class="btn btn-dark btn-sm fw-bold px-3" style="border-radius: 8px;">
+            <i class="fas fa-cog me-1"></i> Volver al Panel de Gestión Humana
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Header Portal -->
+    <div class="portal-header">
+        <h2 class="fw-bold mb-1"><i class="fas fa-graduation-cap me-2"></i>Portal de Capacitación y Desarrollo</h2>
+        <p class="mb-0 opacity-80" style="font-size: 0.9rem;">Explora las ofertas formativas disponibles, postúlate y consulta tu historial académico institucional.</p>
+    </div>
+
+    <!-- Pestañas del Portal -->
+    <div class="portal-nav">
+        <a href="?tab=ofertas" class="portal-tab {% if active_tab == 'ofertas' or not active_tab %}active{% endif %}">
+            <i class="fas fa-door-open"></i> Ofertas Disponibles
+        </a>
+        <a href="?tab=historial" class="portal-tab {% if active_tab == 'historial' %}active{% endif %}">
+            <i class="fas fa-history"></i> Mis Postulaciones e Historial
+        </a>
+    </div>
+
+    <!-- Contenido según la pestaña -->
+    <div class="bg-card rounded-14 p-4 border shadow-sm">
+        {% if active_tab == 'historial' %}
+            <!-- ============ PESTAÑA 2: HISTORIAL Y POSTULACIONES DEL TRABAJADOR ============ -->
+            <h4 class="fw-bold mb-3 text-main">Mis Postulaciones y Cursos</h4>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" style="font-size: 0.85rem;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Curso / Formación</th>
+                            <th>Institución</th>
+                            <th>Fecha Postulación</th>
+                            <th>Estado Actual</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for post in mis_postulaciones %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ post.oferta.nombre }}</div>
+                                <small class="text-muted">{{ post.oferta.tipo_formacion.descripcion }} &bull; {{ post.oferta.modalidad.descripcion }}</small>
+                            </td>
+                            <td>{{ post.oferta.institucion }}</td>
+                            <td>{{ post.fecha_postulacion|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if post.estado == 'PENDIENTE' %}bg-warning text-dark
+                                    {% elif post.estado == 'APROBADA' or post.estado == 'CONFIRMADO' %}bg-success
+                                    {% elif post.estado == 'RECHAZADA' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}" style="font-size: 0.75rem;">
+                                    {{ post.get_estado_display }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    {% if post.estado == 'PENDIENTE' %}
+                                    <form action="{% url 'formacion:cancelar_postulacion' post.id %}" method="post" class="d-inline" onsubmit="return confirmCancel(event, '{{ post.oferta.nombre|escapejs }}')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2" title="Cancelar postulación">
+                                            <i class="fas fa-times me-1"></i> Cancelar
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fas fa-inbox fa-2x mb-2 opacity-50"></i>
+                                <p class="mb-0">Aún no te has postulado a ninguna oferta de formación.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        {% else %}
+            <!-- ============ PESTAÑA 1: OFERTAS DISPONIBLES PARA POSTULARSE ============ -->
+            <h4 class="fw-bold mb-3 text-main">Ofertas de Formación Abiertas</h4>
+            <div class="ofertas-grid">
+                {% for oferta in ofertas_activas %}
+                <div class="oferta-card border p-3 rounded-3 shadow-sm bg-white mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="badge bg-light text-primary border fw-bold" style="font-size: 0.65rem;">{{ oferta.tipo_formacion.descripcion }}</span>
+                            <span class="badge bg-secondary" style="font-size: 0.65rem;">{{ oferta.modalidad.descripcion }}</span>
+                        </div>
+                        <small class="text-muted"><i class="fas fa-calendar-times me-1"></i>Cierra: {{ oferta.fecha_cierre_postulacion|date:"d/m/Y" }}</small>
+                    </div>
+                    <h5 class="fw-bold text-main mb-1">{{ oferta.nombre }}</h5>
+                    <div class="text-muted mb-3" style="font-size: 0.8rem;"><i class="fas fa-building me-1"></i>{{ oferta.institucion }} &bull; <i class="fas fa-clock ms-2 me-1"></i>{{ oferta.horas_academicas }} hrs</div>
+                    
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                        <span class="text-muted" style="font-size: 0.75rem;">Cupos disponibles: <b>{{ oferta.calculated_cupos_disponibles }}</b></span>
+                        
+                        <!-- Botón Ver Detalle o Estado de Postulación -->
+                        {% if oferta.mi_postulacion %}
+                            <span class="badge bg-info text-dark py-2 px-3" style="font-size: 0.75rem;">
+                                <i class="fas fa-check-circle me-1"></i> Ya postulado ({{ oferta.mi_postulacion.get_estado_display }})
+                            </span>
+                        {% else %}
+                            <button type="button" class="btn btn-primary btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalDetalleOferta{{ oferta.id }}" style="border-radius: 8px;">
+                                <i class="fas fa-eye me-1"></i> Ver Detalle y Postularme
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Modal de Detalle para cada oferta -->
+                <div class="modal fade" id="modalDetalleOferta{{ oferta.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title fw-bold fs-5">{{ oferta.nombre }}</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <div class="mb-3">
+                                    <span class="badge bg-light text-primary border">{{ oferta.tipo_formacion.descripcion }}</span>
+                                    <span class="badge bg-secondary">{{ oferta.modalidad.descripcion }}</span>
+                                    <span class="badge bg-info text-dark">Institución: {{ oferta.institucion }}</span>
+                                </div>
+                                <h6 class="fw-bold text-main">Descripción y Contenido:</h6>
+                                <p class="text-muted" style="font-size: 0.9rem; white-space: pre-line;">{{ oferta.descripcion|default:"No se proporcionó descripción detallada." }}</p>
+                                
+                                <div class="row g-3 bg-light p-3 rounded-3 mt-3">
+                                    <div class="col-md-4">
+                                        <small class="text-muted d-block">Horas Académicas</small>
+                                        <b class="text-main">{{ oferta.horas_academicas }} hrs</b>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted d-block">Cierre de Postulación</small>
+                                        <b class="text-main">{{ oferta.fecha_cierre_postulacion|date:"d/m/Y" }}</b>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted d-block">Cupos Totales</small>
+                                        <b class="text-main">{{ oferta.cupo_maximo_oferta }}</b>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer bg-light">
+                                <button type="button" class="btn btn-light btn-sm fw-bold" data-bs-dismiss="modal">Cerrar</button>
+                                {% if not oferta.mi_postulacion %}
+                                <button type="button" class="btn btn-success btn-sm fw-bold px-4" style="border-radius: 8px;" onclick="postularOferta('{{ oferta.id }}')">
+                                    <i class="fas fa-check-circle me-1"></i> Confirmar mi Postulación
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-inbox fa-3x mb-2 opacity-50"></i>
+                    <h5>No hay ofertas de formación abiertas en este momento</h5>
+                    <p class="text-muted" style="font-size: 0.85rem;">Vuelve más tarde para consultar nuevas capacitaciones publicadas por Gestión Humana.</p>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Procesador automático para notificaciones del backend mediante SweetAlert2
+    {% if messages %}
+        {% for message in messages %}
+            Swal.fire({
+                icon: "{% if message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}success{% endif %}",
+                title: "Notificación",
+                text: "{{ message|escapejs }}",
+                confirmButtonColor: "#1E3A8A"
+            });
+        {% endfor %}
+    {% endif %}
+
+    // 1. Postularse a una oferta mediante AJAX + SweetAlert2
+    function postularOferta(ofertaId) {
+        const modalEl = document.getElementById('modalDetalleOferta' + ofertaId);
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+
+        Swal.fire({
+            title: '¿Confirmar postulación?',
+            text: 'Gestión Humana evaluará tu solicitud para esta oferta de formación.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, postularme',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#10B981',
+            cancelButtonColor: '#6B7280'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/formacion/portal/oferta/${ofertaId}/postular/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Postulación Exitosa!',
+                            text: data.mensaje,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => window.location.reload());
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'No se pudo postular',
+                            text: data.error || 'Ocurrió un inconveniente al procesar la solicitud.'
+                        });
+                    }
+                })
+                .catch(err => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de Red',
+                        text: 'Verifica tu conexión a internet o la disponibilidad del servidor.'
+                    });
+                });
+            }
+        });
+    }
+
+    // 2. Confirmación previa con SweetAlert2 para cancelar postulación
+    function confirmCancel(event, nombreCurso) {
+        event.preventDefault();
+        const form = event.target;
+
+        Swal.fire({
+            title: '¿Cancelar postulación?',
+            text: `Vas a retirar tu postulación del curso: ${nombreCurso}`,
+            icon: 'warning',
+            input: 'text',
+            inputPlaceholder: 'Escribe el motivo de la cancelación (opcional)...',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, cancelar postulación',
+            cancelButtonText: 'Volver',
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#6B7280'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Agregar el motivo ingresado al formulario antes de enviarlo
+                const motivoInput = document.createElement('input');
+                motivoInput.type = 'hidden';
+                motivoInput.name = 'motivo';
+                motivoInput.value = result.value || 'Cancelada voluntariamente por el trabajador antes del cierre.';
+                form.appendChild(motivoInput);
+                form.submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

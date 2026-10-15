@@ -1,0 +1,33 @@
+<div class="modal fade" id="modalInscribirDirecto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 14px;">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold fs-6"><i class="fas fa-user-plus me-2"></i>Inscripción Directa de Trabajador</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'formacion:inscribir_trabajador_gh' oferta.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p class="text-muted" style="font-size: 0.85rem;">Inscribe de forma directa a un trabajador (por excepción o cupo especial) saltando el proceso regular de postulación.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted" style="font-size: 0.8rem;">TRABAJADOR <span class="text-danger">*</span></label>
+                        <select name="trabajador_id" class="form-select" required>
+                            <option value="">— Selecciona trabajador —</option>
+                            {% for trab in trabajadores_disponibles %}
+                            <option value="{{ trab.id }}">{{ trab.persona.cedula }} - {{ trab.persona.primer_nombre }} {{ trab.persona.primer_apellido }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted" style="font-size: 0.8rem;">OBSERVACIÓN / JUSTIFICACIÓN</label>
+                        <textarea name="observacion" class="form-control" rows="2" placeholder="Motivo de la inscripción directa..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-light btn-sm fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold">Inscribir Directamente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
